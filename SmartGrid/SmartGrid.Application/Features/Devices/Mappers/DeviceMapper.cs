@@ -8,8 +8,13 @@ namespace SmartGrid.Application.Features.Devices.Mappers
     {
         public DeviceDto Map(Device source)
         {
-            // TODO
-            throw new NotImplementedException();
+            return new DeviceDto(
+                source.Id,
+                source.Name,
+                source.Type,
+                source.Location,
+                source.NominalPower,
+                source.RegisteredAt);
         }
     }
 }

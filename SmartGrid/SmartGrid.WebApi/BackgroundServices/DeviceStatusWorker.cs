@@ -1,13 +1,15 @@
-﻿using SmartGrid.Application.Features.DeviceStatuses.Queries;
+﻿using Microsoft.AspNetCore.SignalR;
+using SmartGrid.Application.Features.DeviceStatuses.Queries;
 using SmartGrid.Application.Interfaces;
 using SmartGrid.Application.Interfaces.Messaging;
 using SmartGrid.Domain.Models;
+using SmartGrid.WebApi.Hubs;
 
 namespace SmartGrid.WebApi.BackgroundServices
 {
     internal class DeviceStatusWorker(
         IServiceProvider serviceProvider,
-        //IHubContext<DeviceHub> hubContext,
+        IHubContext<DeviceHub> hubContext,
         IMapper<DeviceStatus, DeviceStatusDto> deviceStatusMapper,
         ILogger<DeviceStatusWorker> logger) : BackgroundService
     {
@@ -23,14 +25,9 @@ namespace SmartGrid.WebApi.BackgroundServices
                 {
                     using var scope = serviceProvider.CreateScope();
 
-                    var queueService = scope
-                        .ServiceProvider
-                        .GetRequiredService<IDeviceStatusQueueService>();
+                    var queueService = scope.ServiceProvider.GetRequiredService<IDeviceStatusQueueService>();
 
-
-                    // TODO Step 1: Receive message from queeu
-
-                    IReceivedMessage<DeviceStatus>? message = null;
+                    var message = await queueService.ReceiveStatusUpdateAsync(stoppingToken);
 
                     if (message != null)
                     {
@@ -40,12 +37,15 @@ namespace SmartGrid.WebApi.BackgroundServices
                         logger.LogInformation("[WORKER] Received update for device: {DeviceId}",
                             deviceStatus.DeviceId);
 
-                        // Step 2: Map message to device status DTO
-                        // Step 3: Send status on ReceiveStatusUpdate
-                        // Step 4: Call message complete
+                        var deviceStatusDto = deviceStatusMapper.Map(deviceStatus);
 
-                        logger
-                            .LogInformation("[WORKER] Update broadcasted to clients and message deleted.");
+                        await hubContext.Clients.All.SendAsync("ReceiveStatusUpdate",
+                                                               deviceStatusDto,
+                                                               stoppingToken);
+
+                        await message.CompleteAsync();
+
+                        logger.LogInformation("[WORKER] Update broadcasted to clients and message deleted.");
                     }
                 }
                 catch (Exception ex)

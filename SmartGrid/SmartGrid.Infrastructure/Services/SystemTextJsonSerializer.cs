@@ -1,6 +1,7 @@
 ﻿using SmartGrid.Application.Interfaces;
 using System.Text.Json;
 
+
 namespace SmartGrid.Infrastructure.Services
 {
     internal class SystemTextJsonSerializer(JsonSerializerOptions options) : IJsonSerializer

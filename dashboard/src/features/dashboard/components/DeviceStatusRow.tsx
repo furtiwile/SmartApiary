@@ -50,7 +50,7 @@ export const DeviceRow: React.FC<{ device: DeviceStatus }> = ({ device }) => {
         <span className="text-[15px] text-indigo-500 font-bold ml-1">W</span>
       </td>
 
-      {/* Load (CENTER) */}
+      {/* Load */}
       <td className="px-6 py-4 align-middle text-center">
         <div className="w-32 mx-auto">
           <div className="flex justify-between mb-1 text-[9px] font-black uppercase tracking-widest text-slate-500">

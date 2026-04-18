@@ -9,8 +9,20 @@ namespace SmartGrid.Application.Features.DeviceStatuses.Mappers
     {
         public DeviceStatusDto Map(DeviceStatus source)
         {
-            // TODO
-            throw new NotImplementedException();
+            var now = dateTimeProvider.UtcNow;
+
+            return new DeviceStatusDto(
+                source.DeviceId.ToString(),
+                source.DeviceType,
+                source.CurrentPower.Value,
+                source.LoadPercentage.Value,
+                source.IsOnline(now),
+                source.IsUnderperforming,
+                source.IsOverloaded,
+                source.CurrentFirmwareVersion.Value,
+                source.TargetFirmwareVersion?.Value,
+                source.UpdateStatus
+            );
         }
     }
 }
