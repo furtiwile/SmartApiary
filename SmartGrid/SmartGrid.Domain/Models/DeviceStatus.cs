@@ -163,7 +163,7 @@ namespace SmartGrid.Domain.Models
                 return Alert.Create(
                     DeviceId,
                     AlertType.Critical,
-                    $"Heartbeat missing. Device has been offline since {LastHeartbeat}.").Value;
+                    $"Heartbeat missing. Device has been offline since {LastHeartbeat} UTC.").Value;
             }
 
             if (IsOverloaded)

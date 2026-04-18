@@ -35,8 +35,7 @@ namespace SmartGrid.Application.Features.DeviceStatuses.Queries
         {
             try
             {
-                // TODO: List all device statuses
-                IReadOnlyCollection<DeviceStatus>? statuses = null;
+                var statuses = await deviceStatusQueryRepository.GetAllAsync(ct);
 
                 var deviceStatuseDTO = statuses.Select(mapper.Map).ToList();
 

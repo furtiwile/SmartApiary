@@ -11,14 +11,34 @@ namespace SmartGrid.Infrastructure.Persistence.AzureQueue.Mappers
 
             return new DeviceStatusMessage
             {
-                // TODO
+                DeviceId = model.DeviceId.Value,
+                DeviceType = model.DeviceType,
+                CurrentPower = model.CurrentPower.Value,
+                LoadPercentage = model.LoadPercentage,
+                LastHeartbeat = model.LastHeartbeat,
+                CurrentFirmwareVersion = model.CurrentFirmwareVersion.Value,
+                TargetFirmwareVersion = model.TargetFirmwareVersion?.Value,
+                UpdateStatus = model.UpdateStatus
             };
         }
 
         public static DeviceStatus? ToDomainModel(this DeviceStatusMessage message)
         {
-            // TODO
-            throw new NotImplementedException();
+            var deviceStatusResult = DeviceStatus.Load(
+                message.DeviceId,
+                message.DeviceType,
+                message.CurrentPower,
+                message.LoadPercentage,
+                message.LastHeartbeat,
+                message.CurrentFirmwareVersion,
+                message.TargetFirmwareVersion,
+                message.UpdateStatus
+            );
+
+            if (deviceStatusResult.IsFailure)
+                return null;
+
+            return deviceStatusResult.Value;
         }
     }
 }

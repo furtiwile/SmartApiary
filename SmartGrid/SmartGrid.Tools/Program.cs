@@ -11,8 +11,7 @@ Console.WriteLine();
 
 var tables = new[] { "Devices", "Telemetries", "DeviceStatuses", "Firmwares"};
 var blobs = new[] { "firmware-updates" };
-// TODO: Add queue name
-var queues = new[] { "alert-queue"};
+var queues = new[] { "alert-queue", "device-status-queue" };
 
 var tableServiceClient = new TableServiceClient(ConnectionString);
 var blobServiceClient = new BlobServiceClient(ConnectionString);

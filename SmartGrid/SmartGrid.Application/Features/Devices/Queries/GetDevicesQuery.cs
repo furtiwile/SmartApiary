@@ -30,8 +30,7 @@ namespace SmartGrid.Application.Features.Devices.Queries
         {
             try
             {
-                // TODO: Get all devices
-                IReadOnlyCollection<Device> devices = null;
+                var devices = await deviceRepository.GetAllAsync(ct);
 
                 var devicesDTO = devices.Select(mapper.Map).ToList();
 

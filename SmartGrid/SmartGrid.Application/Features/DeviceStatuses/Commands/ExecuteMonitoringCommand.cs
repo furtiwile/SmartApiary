@@ -37,7 +37,7 @@ internal class ExecuteMonitoringHandler(
             {
                 try
                 {
-                    // TODO: Send new device status to queue
+                    await deviceStatusQueueService.SendStatusUpdateAsync(device.Status, token);
 
                     device.EvaluateMonitoring(dateTimeProvider.UtcNow);
 

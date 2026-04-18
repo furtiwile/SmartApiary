@@ -4,9 +4,8 @@ import { Link, Outlet } from "react-router-dom";
 
 const MainLayout: React.FC = () => {
   return (
-    // bg-slate-950 je baza za ceo ekran
     <div className="flex flex-col min-h-screen bg-slate-950 text-slate-200">
-      {/* Header - Glassmorphism efekt */}
+      {/* Header */}
       <header className="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 shadow-xl">
         <div className="container mx-auto flex items-center justify-between p-4">
           <Link to="/" className="group">
@@ -29,7 +28,7 @@ const MainLayout: React.FC = () => {
         </div>
       </header>
 
-      {/* Main content - Ovde Outlet renderuje Dashboard */}
+      {/* Main content */}
       <main className="flex-1 container mx-auto p-6">
         <Toaster position="top-right" reverseOrder={false} />
         <Outlet />

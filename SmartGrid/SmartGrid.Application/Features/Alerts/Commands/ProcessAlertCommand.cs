@@ -16,7 +16,7 @@ namespace SmartGrid.Application.Features.Alerts.Commands
         public async Task<Result> Handle(ProcessAlertCommand request, CancellationToken ct)
         {
             var alert = request.Alert;
-            string logMsg = $"[ALARM] {alert.AlertType}: {alert.Message}";
+            string logMsg = $"[ALARM] {alert.AlertType} on {alert.DeviceId}: {alert.Message}";
 
             await Task.CompletedTask; // Simulate async work
 
