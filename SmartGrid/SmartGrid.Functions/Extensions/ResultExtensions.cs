@@ -12,7 +12,7 @@ namespace SmartGrid.Functions.Extensions
                             ? new OkObjectResult(new { message = "Operation successful." })
                             : HandleFailure(result);
         }
-  
+
         public static IActionResult ToActionResult<T>(this Result<T> result)
         {
             return result.IsSuccess
@@ -24,7 +24,7 @@ namespace SmartGrid.Functions.Extensions
                 : HandleFailure(result);
         }
 
-         private static ObjectResult HandleFailure(Result result)
+        private static ObjectResult HandleFailure(Result result)
         {
             object messagePayload = result.Error?.Message ?? "An error occurred.";
 

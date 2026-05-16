@@ -23,7 +23,7 @@ namespace SmartGrid.ITSimulator.Services
             try
             {
                 var response = await _httpClient.PostAsJsonAsync($"{_httpClient.BaseAddress}api/ReceiveDevice", payload);
-                
+
                 if (response.IsSuccessStatusCode)
                 {
                     var responseBody = await response.Content.ReadFromJsonAsync<ApiResponse<string>>();

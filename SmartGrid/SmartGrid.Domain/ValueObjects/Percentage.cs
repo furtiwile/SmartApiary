@@ -21,7 +21,7 @@ public sealed record Percentage : IComparable<Percentage>
         other is null ? 1 : Value.CompareTo(other.Value);
     public static bool operator >(Percentage left, Percentage right) => left.Value > right.Value;
     public static bool operator <(Percentage left, Percentage right) => left.Value < right.Value;
-    
+
     public static implicit operator double(Percentage p) => p.Value;
     public override string ToString() => $"{Value}%";
 }

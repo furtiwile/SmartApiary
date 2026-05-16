@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
 using SmartGrid.Application.Interfaces;
+using System.Reflection;
 
 namespace SmartGrid.Application.Extensions
 {

@@ -33,7 +33,7 @@ namespace SmartGrid.WebApi.BackgroundServices
                     {
                         foundMessage = true;
                         var deviceStatus = message.Body;
-                        
+
                         logger.LogInformation("[WORKER] Received update for device: {DeviceId}",
                             deviceStatus.DeviceId);
 
@@ -53,7 +53,7 @@ namespace SmartGrid.WebApi.BackgroundServices
                     logger.LogError(ex, "[ERROR] Error processing device status queue.");
                 }
 
-                if(!foundMessage)
+                if (!foundMessage)
                 {
                     await Task.Delay(2000, stoppingToken);
                 }

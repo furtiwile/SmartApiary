@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Configuration;
 using SmartGrid.ITSimulator.Enums;
+using SmartGrid.ITSimulator.Models;
 using SmartGrid.ITSimulator.Services;
 using SmartGrid.ITSimulator.UI;
-using SmartGrid.ITSimulator.Models;
 
 
 // Load configuration
@@ -26,7 +26,7 @@ double nominalPower = ConsoleUI.GetNominalPowerInput();
 string location = ConsoleUI.GetLocationInput();
 string currentVersion = "V1.0.0";
 
-using var httpClient = new HttpClient { BaseAddress = new Uri(baseApiUrl)};
+using var httpClient = new HttpClient { BaseAddress = new Uri(baseApiUrl) };
 
 var deviceClient = new DeviceClient(httpClient);
 
@@ -61,10 +61,10 @@ try
 {
     while (true)
     {
-        var telemetry = simulator.GenerateTelemetry(deviceId, 
-                                                    deviceName, 
+        var telemetry = simulator.GenerateTelemetry(deviceId,
+                                                    deviceName,
                                                     nominalPower,
-                                                    currentVersion, 
+                                                    currentVersion,
                                                     deviceType);
         var (success, errorMessage) = await publisher.PublishSafeAsync(telemetry);
 

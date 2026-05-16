@@ -32,7 +32,7 @@ namespace SmartGrid.Infrastructure.Persistence.AzureTable.Mappers
                 entity.UploadedAt
             );
 
-           if (firmwareResult.IsFailure)
+            if (firmwareResult.IsFailure)
                 return null;
 
             return firmwareResult.Value;

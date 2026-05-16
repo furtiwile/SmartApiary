@@ -21,7 +21,7 @@ namespace SmartGrid.Infrastructure.Persistence.AzureTable.Repositories
     {
         public async Task SaveAsync(Telemetry telemetry, CancellationToken ct)
         {
-           await base.AddAsync(telemetry, ct);
+            await base.AddAsync(telemetry, ct);
         }
     }
 }

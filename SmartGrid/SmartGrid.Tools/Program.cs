@@ -9,7 +9,7 @@ Console.WriteLine("--- SmartGrid Infrastructure Initializer ---");
 Console.WriteLine($"Target Storage: {ConnectionString}");
 Console.WriteLine();
 
-var tables = new[] { "Devices", "Telemetries", "DeviceStatuses", "Firmwares"};
+var tables = new[] { "Devices", "Telemetries", "DeviceStatuses", "Firmwares" };
 var blobs = new[] { "firmware-updates" };
 var queues = new[] { "alert-queue", "device-status-queue" };
 

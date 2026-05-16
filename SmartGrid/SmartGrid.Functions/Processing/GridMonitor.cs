@@ -17,7 +17,7 @@ internal class GridMonitor(ILogger<GridMonitor> logger, IMediator mediator)
 
         if (result.IsFailure)
         {
-            logger.LogError("[MONITORING] Grid monitoring cycle failed: {errorMessage}", 
+            logger.LogError("[MONITORING] Grid monitoring cycle failed: {errorMessage}",
                 result.Error?.Message);
         }
         else
@@ -27,7 +27,7 @@ internal class GridMonitor(ILogger<GridMonitor> logger, IMediator mediator)
 
         if (myTimer.ScheduleStatus is not null)
         {
-            logger.LogInformation("[TIMER] Next timer schedule at: {nextSchedule}", 
+            logger.LogInformation("[TIMER] Next timer schedule at: {nextSchedule}",
                 myTimer.ScheduleStatus.Next);
         }
     }

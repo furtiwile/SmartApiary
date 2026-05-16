@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.OpenApi;
 using SmartGrid.Application;
 using SmartGrid.Infrastructure;
 using SmartGrid.WebApi.BackgroundServices;
 using System.Text.Json.Serialization;
-using Microsoft.OpenApi;
 
 namespace SmartGrid.WebApi.Extensions
 {

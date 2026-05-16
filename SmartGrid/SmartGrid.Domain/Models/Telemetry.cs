@@ -4,6 +4,11 @@ using SmartGrid.Domain.ValueObjects;
 
 namespace SmartGrid.Domain.Models
 {
+
+    /// <summary>
+    /// To delete
+    /// </summary>
+
     public class Telemetry
     {
         public EntityId Id { get; private set; }

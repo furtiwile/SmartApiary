@@ -44,8 +44,8 @@ namespace SmartGrid.Application.Features.DeviceStatuses.Queries
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error while retreiving devices..");
-                    return Result<IEnumerable<DeviceStatusDto>>.Failure("Failed to retrieve devices.",
-                     ErrorType.Failure);
+                return Result<IEnumerable<DeviceStatusDto>>.Failure("Failed to retrieve devices.",
+                 ErrorType.Failure);
             }
         }
     }

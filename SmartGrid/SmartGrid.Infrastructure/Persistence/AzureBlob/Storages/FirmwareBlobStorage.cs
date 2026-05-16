@@ -12,7 +12,7 @@ namespace SmartGrid.Infrastructure.Persistence.AzureBlob.Storages
         BlobServiceClient blobServiceClient,
         ILogger<FirmwareBlobStorage> logger,
         IOptions<AzureBlobOptions> options
-    ) 
+    )
         : AzureBlobStorage<FirmwareMetadata>(
             blobServiceClient.GetBlobContainerClient(options.Value.FirmwareBlob),
             logger),

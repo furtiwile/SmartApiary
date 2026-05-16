@@ -63,7 +63,7 @@ namespace SmartGrid.Application.Features.Firmwares.Commands
             int total = 0;
 
 
-            await Parallel.ForEachAsync(statuses, parallelOptions, 
+            await Parallel.ForEachAsync(statuses, parallelOptions,
                 async (status, token) =>
                 {
                     try

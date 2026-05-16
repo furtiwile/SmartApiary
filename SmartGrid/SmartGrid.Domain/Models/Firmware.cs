@@ -6,13 +6,17 @@ namespace SmartGrid.Domain.Models
 {
     public class Firmware
     {
+
+        /// <summary>
+        /// To delete
+        /// </summary>
         public EntityId Id { get; private set; }
         public DeviceType DeviceType { get; private set; } = DeviceType.Unknown;
         public FirmwareVersion Version { get; private set; }
 
         public FirmwareFileName FileName { get; private set; }
         public long FileSizeInBytes { get; private set; }
-       
+
         public DateTime UploadedAt { get; private set; }
 
         private Firmware(
@@ -34,9 +38,9 @@ namespace SmartGrid.Domain.Models
         #region Factory Method
 
         public static Result<Firmware> Create(
-            DeviceType deviceType, 
-            string version, 
-            string fileName, 
+            DeviceType deviceType,
+            string version,
+            string fileName,
             long fileSize,
             DateTime uploadedAt
         )

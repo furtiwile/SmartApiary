@@ -21,11 +21,11 @@ namespace SmartGrid.Domain.ValueObjects
         public static Result<Alert> Create(string deviceId, AlertType alertType, string message)
         {
             var deviceIdResult = EntityId.Create(deviceId);
-            if (deviceIdResult.IsFailure) 
+            if (deviceIdResult.IsFailure)
                 return Result<Alert>.Failure(deviceIdResult.Error!.Message, ErrorType.Validation);
 
             var alertMessageResult = Message.Create(message);
-            if (alertMessageResult.IsFailure) 
+            if (alertMessageResult.IsFailure)
                 return Result<Alert>.Failure(alertMessageResult.Error!.Message, ErrorType.Validation);
 
             if (!Enum.IsDefined(typeof(AlertType), alertType))
@@ -37,11 +37,11 @@ namespace SmartGrid.Domain.ValueObjects
         public static Result<Alert> Load(string deviceId, AlertType alertType, string message, DateTime timestamp)
         {
             var deviceIdResult = EntityId.Create(deviceId);
-            if (deviceIdResult.IsFailure) 
+            if (deviceIdResult.IsFailure)
                 return Result<Alert>.Failure(deviceIdResult.Error!.Message, ErrorType.Validation);
 
             var alertMessageResult = Message.Create(message);
-            if (alertMessageResult.IsFailure) 
+            if (alertMessageResult.IsFailure)
                 return Result<Alert>.Failure(alertMessageResult.Error!.Message, ErrorType.Validation);
 
             return Result<Alert>.Success(new Alert(deviceIdResult.Value, alertType, alertMessageResult.Value, timestamp));

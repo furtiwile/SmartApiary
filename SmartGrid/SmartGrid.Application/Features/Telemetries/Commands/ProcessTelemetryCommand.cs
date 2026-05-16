@@ -42,11 +42,11 @@ namespace SmartGrid.Application.Features.Telemetries.Commands
             RuleFor(t => t.NominalPower)
                 .NotEmpty().WithMessage("NominalPower is missing from payload.")
                 .GreaterThan(0).WithMessage("NominalPower must be greater than zero.");
-            
+
             RuleFor(t => t.CurrentPower)
                 .NotEmpty().WithMessage("CurrentPower is missing from payload.")
                 .GreaterThanOrEqualTo(0);
-            
+
             RuleFor(t => t.Timestamp)
                 .NotEmpty().WithMessage("Timestamp is required.")
                 .LessThanOrEqualTo(DateTime.UtcNow).WithMessage("Timestamp cannot be in the future.");
@@ -65,8 +65,8 @@ namespace SmartGrid.Application.Features.Telemetries.Commands
                 request.DeviceId,
                 request.DeviceName,
                 request.DeviceType,
-                request.NominalPower, 
-                request.CurrentPower, 
+                request.NominalPower,
+                request.CurrentPower,
                 request.Timestamp,
                 request.FirmwareVersion
             );
@@ -80,7 +80,7 @@ namespace SmartGrid.Application.Features.Telemetries.Commands
 
             await mediator.Publish(new TelemetryProcessedEvent(telemetry), ct);
 
-            logger.LogInformation("[TELEMETRY] Telemetry data successfully saved and event published for Device: {DeviceId}", 
+            logger.LogInformation("[TELEMETRY] Telemetry data successfully saved and event published for Device: {DeviceId}",
                 telemetry.DeviceId);
 
             return Result.Success();

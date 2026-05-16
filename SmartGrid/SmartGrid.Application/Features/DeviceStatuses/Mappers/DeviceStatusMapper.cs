@@ -4,7 +4,7 @@ using SmartGrid.Domain.Models;
 
 namespace SmartGrid.Application.Features.DeviceStatuses.Mappers
 {
-    internal sealed class DeviceStatusMapper(IDateTimeProvider dateTimeProvider) 
+    internal sealed class DeviceStatusMapper(IDateTimeProvider dateTimeProvider)
         : IMapper<DeviceStatus, DeviceStatusDto>
     {
         public DeviceStatusDto Map(DeviceStatus source)

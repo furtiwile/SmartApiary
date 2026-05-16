@@ -36,7 +36,7 @@ namespace SmartGrid.Infrastructure.Persistence.AzureTable.Repositories
             return await base.QueryByPartitionKeyAsync(type.ToString(), ct);
         }
 
-        public async IAsyncEnumerable<DeviceStatus> GetByTypeStreamingAsync(DeviceType type,[EnumeratorCancellation] CancellationToken ct = default)
+        public async IAsyncEnumerable<DeviceStatus> GetByTypeStreamingAsync(DeviceType type, [EnumeratorCancellation] CancellationToken ct = default)
         {
             var partitionKey = type.ToString();
 
