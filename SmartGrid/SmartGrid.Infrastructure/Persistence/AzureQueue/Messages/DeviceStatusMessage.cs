@@ -14,6 +14,6 @@ namespace SmartGrid.Infrastructure.Persistence.AzureQueue.Messages
         //FIRMWARE STATUS
         public string CurrentFirmwareVersion { get; set; } = string.Empty;
         public string? TargetFirmwareVersion { get; set; } = string.Empty;
-        public UpdateStatus UpdateStatus { get; set; } 
+        public UpdateStatus UpdateStatus { get; set; }
     }
 }

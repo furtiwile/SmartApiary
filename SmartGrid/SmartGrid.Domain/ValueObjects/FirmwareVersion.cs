@@ -30,7 +30,7 @@ public sealed record FirmwareVersion : IComparable<FirmwareVersion>
     }
     public int CompareTo(FirmwareVersion? other)
     {
-       return other is null ? 1 : _parsedVersion.CompareTo(other._parsedVersion);
+        return other is null ? 1 : _parsedVersion.CompareTo(other._parsedVersion);
     }
     public static bool operator >(FirmwareVersion left, FirmwareVersion right) => left.CompareTo(right) > 0;
     public static bool operator <(FirmwareVersion left, FirmwareVersion right) => left.CompareTo(right) < 0;

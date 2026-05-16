@@ -16,7 +16,7 @@ namespace SmartGrid.Infrastructure.Persistence.AzureQueue.Services
         ILogger<AlertQueueService> logger,
         IOptions<AzureQueueOptions> options
     ) : AzureQueueService<AlertMessage>(
-              queueServiceClient.GetQueueClient(options.Value.AlertQueue), 
+              queueServiceClient.GetQueueClient(options.Value.AlertQueue),
               serializer,
               logger),
          IAlertQueueService

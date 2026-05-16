@@ -23,7 +23,7 @@ namespace SmartGrid.Infrastructure.Persistence.AzureTable.Repositories
     {
         public async Task SaveAsync(Firmware firmware, CancellationToken ct)
         {
-           await base.AddAsync(firmware, ct);
+            await base.AddAsync(firmware, ct);
         }
         public async Task<FirmwareVersion?> GetLatestVersionAsync(DeviceType deviceType, CancellationToken ct)
         {

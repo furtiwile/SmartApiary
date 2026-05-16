@@ -1,6 +1,7 @@
 ﻿using SmartGrid.Domain.Common;
 
 namespace SmartGrid.Domain.ValueObjects;
+
 public sealed record Message
 {
     public string Value { get; }

@@ -14,10 +14,10 @@ namespace SmartGrid.ITSimulator.Services
             _maxPowerVariation = maxPowerVariation;
         }
 
-        public TelemetryDTO GenerateTelemetry(string deviceId, 
-                                              string deviceName, 
-                                              double nominalPower, 
-                                              string firmwareVersion, 
+        public TelemetryDTO GenerateTelemetry(string deviceId,
+                                              string deviceName,
+                                              double nominalPower,
+                                              string firmwareVersion,
                                               DeviceType deviceType)
         {
             if (string.IsNullOrWhiteSpace(deviceId))

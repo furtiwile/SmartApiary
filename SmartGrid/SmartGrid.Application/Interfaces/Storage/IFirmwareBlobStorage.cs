@@ -3,5 +3,5 @@
 namespace SmartGrid.Application.Interfaces.Storage
 {
     public interface IFirmwareBlobStorage : IFileStorage<FirmwareMetadata>
-    {}
+    { }
 }

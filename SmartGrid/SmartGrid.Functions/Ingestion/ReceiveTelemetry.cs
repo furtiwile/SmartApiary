@@ -7,6 +7,7 @@ using SmartGrid.Domain.Common;
 using SmartGrid.Functions.Extensions;
 
 namespace SmartGrid.Functions.Ingestion;
+
 internal class ReceiveTelemetry(IMediator mediator)
 {
     [Function("ReceiveTelemetry")]

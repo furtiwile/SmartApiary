@@ -10,7 +10,7 @@ namespace SmartGrid.Application.Features.Alerts.Commands
     public record ProcessAlertCommand(Alert Alert) : IRequest<Result>;
 
     // HANDLER
-    internal class ProcessAlertHandler(ILogger<ProcessAlertHandler> logger) 
+    internal class ProcessAlertHandler(ILogger<ProcessAlertHandler> logger)
         : IRequestHandler<ProcessAlertCommand, Result>
     {
         public async Task<Result> Handle(ProcessAlertCommand request, CancellationToken ct)

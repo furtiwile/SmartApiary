@@ -103,7 +103,7 @@ namespace SmartGrid.Application.Features.Firmwares.Commands
             {
                 await firmwareStorage.DeleteAsync(metadata, ct);
                 logger.LogError(ex, "Error while processing new upload.");
-                    return Result.Failure("Failed to process new uploaded version of firmware", ErrorType.Failure);
+                return Result.Failure("Failed to process new uploaded version of firmware", ErrorType.Failure);
             }
         }
     }

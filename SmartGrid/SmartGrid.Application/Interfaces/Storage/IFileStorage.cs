@@ -7,5 +7,5 @@ namespace SmartGrid.Application.Interfaces.Storage
         Task SaveAsync(FileData<TMetadata> file, CancellationToken ct = default);
         Task<bool> ExistsAsync(TMetadata metadata, CancellationToken ct = default);
         Task DeleteAsync(TMetadata metadata, CancellationToken ct = default);
-    } 
+    }
 }

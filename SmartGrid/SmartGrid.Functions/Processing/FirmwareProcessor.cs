@@ -5,11 +5,12 @@ using SmartGrid.Application.Features.Firmwares.Commands;
 using SmartGrid.Domain.Enums;
 
 namespace SmartGrid.Functions.Processing;
+
 internal class FirmwareProcessor(IMediator mediator, ILogger<FirmwareProcessor> logger)
 {
     [Function("FirmwareUploadProcessor")]
     public async Task Run(
-        [BlobTrigger("firmware-updates/{deviceType}/firmware_{version}.bin", 
+        [BlobTrigger("firmware-updates/{deviceType}/firmware_{version}.bin",
         Connection = "AzureWebJobsStorage")] Stream firmwareStream,
         string deviceType,
         string version)
@@ -20,15 +21,15 @@ internal class FirmwareProcessor(IMediator mediator, ILogger<FirmwareProcessor> 
             return;
         }
 
-        logger.LogInformation("[PROCESSOR] New firmware detected! Type: {DeviceType}, Version: {Version}", 
-            deviceType, 
+        logger.LogInformation("[PROCESSOR] New firmware detected! Type: {DeviceType}, Version: {Version}",
+            deviceType,
             version);
 
         var result = await mediator.Send(new ApplyTargetVersionCommand(parsedDeviceType, version));
 
         if (result.IsFailure)
         {
-            logger.LogError("[PROCESSOR] Failed to apply firmware update to devices: {Error}", 
+            logger.LogError("[PROCESSOR] Failed to apply firmware update to devices: {Error}",
                 result.Error?.Message);
         }
     }

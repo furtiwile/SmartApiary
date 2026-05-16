@@ -5,6 +5,12 @@ using SmartGrid.Domain.ValueObjects;
 
 namespace SmartGrid.Domain.Models
 {
+
+    /// <summary>
+    /// To delete
+    /// </summary>
+
+
     // AGGREGATE ROOT
     public class Device : AggregateRoot
     {
@@ -45,10 +51,10 @@ namespace SmartGrid.Domain.Models
         {
             if (!Enum.IsDefined(typeof(DeviceType), type) || type == DeviceType.Unknown)
                 return Result<Device>.Failure("Invalid Device Type.", ErrorType.Validation);
-            
+
             if (string.IsNullOrWhiteSpace(name))
                 return Result<Device>.Failure("Name is required.", ErrorType.Validation);
-            
+
             if (string.IsNullOrWhiteSpace(location))
                 return Result<Device>.Failure("Location is required.", ErrorType.Validation);
 
@@ -73,7 +79,7 @@ namespace SmartGrid.Domain.Models
         {
             var idResult = EntityId.Create(id);
 
-            if(idResult.IsFailure)
+            if (idResult.IsFailure)
                 return Result<Device>.Failure(idResult.Error!.Message, ErrorType.Validation);
 
             var powerResult = Power.Create(nominalPower);

@@ -5,6 +5,10 @@ using SmartGrid.Domain.ValueObjects;
 
 namespace SmartGrid.Domain.Models
 {
+    /// <summary>
+    /// To delete
+    /// </summary>
+
     public class DeviceStatus
     {
         public EntityId DeviceId { get; private set; }
@@ -70,7 +74,7 @@ namespace SmartGrid.Domain.Models
             UpdateStatus updateStatus)
         {
             var deviceIdResult = EntityId.Create(deviceId);
-            if (deviceIdResult.IsFailure) 
+            if (deviceIdResult.IsFailure)
                 return Result<DeviceStatus>.Failure(deviceIdResult.Error!.Message, ErrorType.Validation);
 
             var powerResult = Power.Create(currentPower);
@@ -78,11 +82,11 @@ namespace SmartGrid.Domain.Models
                 return Result<DeviceStatus>.Failure(powerResult.Error!.Message, ErrorType.Validation);
 
             var loadResult = Percentage.Create(loadPercentage);
-            if (loadResult.IsFailure) 
+            if (loadResult.IsFailure)
                 return Result<DeviceStatus>.Failure(loadResult.Error!.Message, ErrorType.Validation);
 
             var currentFwResult = FirmwareVersion.Create(currentFirmwareVersion);
-            if (currentFwResult.IsFailure) 
+            if (currentFwResult.IsFailure)
                 return Result<DeviceStatus>.Failure(currentFwResult.Error!.Message, ErrorType.Validation);
 
             FirmwareVersion? targetFw = null;
@@ -115,7 +119,7 @@ namespace SmartGrid.Domain.Models
         {
             LastHeartbeat = telemetry.Timestamp;
             CurrentPower = telemetry.CurrentPower;
-            LoadPercentage= telemetry.LoadPercentage;
+            LoadPercentage = telemetry.LoadPercentage;
 
             if (UpdateStatus == UpdateStatus.PendingUpdate &&
                 TargetFirmwareVersion != null &&
