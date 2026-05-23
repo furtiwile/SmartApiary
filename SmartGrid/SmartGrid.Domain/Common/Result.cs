@@ -7,6 +7,7 @@ namespace SmartGrid.Domain.Common
     {
         public bool IsSuccess { get; }
         public Error? Error { get; }
+
         public bool IsFailure => !IsSuccess;
 
         protected Result(bool isSuccess, Error? error)
@@ -16,6 +17,7 @@ namespace SmartGrid.Domain.Common
         }
 
         public static Result Success() => new Result(true, null);
+
         public static Result Failure(string message, ErrorType type = ErrorType.Failure)
             => new Result(false, new Error(message, type));
     }
@@ -31,6 +33,7 @@ namespace SmartGrid.Domain.Common
         }
 
         public static Result<T> Success(T value) => new Result<T>(value, true, null);
+
         public static new Result<T> Failure(string message, ErrorType type = ErrorType.Failure)
                     => new Result<T>(default!, false, new Error(message, type));
     }
