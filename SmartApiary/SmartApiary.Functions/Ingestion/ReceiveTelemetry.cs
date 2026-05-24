@@ -2,7 +2,6 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
-using SmartApiary.Application.Features.Telemetries.Commands;
 using SmartApiary.Domain.Common;
 using SmartApiary.Functions.Extensions;
 

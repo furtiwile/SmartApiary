@@ -26,6 +26,7 @@ namespace SmartApiary.Infrastructure.Extensions
             services.AddSingleton(new TableServiceClient(connectionString));
 
             // Mappers
+            services.AddSingleton<ITableMapper<User, UserEntity>, UserTableMapper>();
             /* TODO: replace mappers
             services.AddSingleton<ITableMapper<Telemetry, TelemetryEntity>, TelemetryTableMapper>();
             services.AddSingleton<ITableMapper<Device, DeviceEntity>, DeviceTableMapper>();

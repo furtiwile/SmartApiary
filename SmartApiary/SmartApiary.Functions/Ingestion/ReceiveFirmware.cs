@@ -6,6 +6,7 @@ using SmartApiary.Functions.Extensions;
 
 namespace SmartApiary.Functions.Ingestion;
 
+/* TODO: DELETE
 internal class ReceiveFirmware(IMediator mediator)
 {
     [Function("InitializeFirmwareUpdate")]
@@ -24,3 +25,4 @@ internal class ReceiveFirmware(IMediator mediator)
         return finalResult.ToActionResult();
     }
 }
+*/

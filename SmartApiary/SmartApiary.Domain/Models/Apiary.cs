@@ -11,7 +11,8 @@ namespace SmartApiary.Domain.Models
     {
         public EntityId Id { get; set; }
         public string Name { get; set; } = string.Empty;
-        public Point Location { get; set; }
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
         public string Description { get; set; } = string.Empty;
         public string ImageUrl { get; set; } = string.Empty;
         public string ThumbnailUrl { get; set; } = string.Empty;
@@ -24,16 +25,27 @@ namespace SmartApiary.Domain.Models
         /// </summary>
         /// <param name="id"></param>
         /// <param name="name"></param>
-        /// <param name="location"></param>
+        /// <param name="latitude"></param>
+        /// <param name="longitude"></param>
         /// <param name="description"></param>
         /// <param name="imageUrl"></param>
         /// <param name="thumbnailUrl"></param>
         /// <param name="beekeeperId"></param>
-        private Apiary(EntityId id, string name, Point location, string description, string imageUrl, string thumbnailUrl, EntityId beekeeperId)
+        private Apiary(
+            EntityId id, 
+            string name, 
+            double latitude, 
+            double longitude, 
+            string description, 
+            string imageUrl, 
+            string thumbnailUrl, 
+            EntityId beekeeperId
+        )
         {
             Id = id;
             Name = name;
-            Location = location;
+            Latitude = latitude;
+            Longitude = longitude;
             Description = description;
             ImageUrl = imageUrl;
             ThumbnailUrl = thumbnailUrl;
@@ -44,20 +56,26 @@ namespace SmartApiary.Domain.Models
         /// Validates the apiary data and creates the apiary
         /// </summary>
         /// <param name="name"></param>
-        /// <param name="location"></param>
+        /// <param name="latitude"></param>
+        /// <param name="longitude"></param>
         /// <param name="description"></param>
         /// <param name="imageUrl"></param>
         /// <param name="thumbnailUrl"></param>
         /// <param name="beekeperId"></param>
         /// <returns>Apiary if all parameters are valid, error details otherwise</returns>
-        public static Result<Apiary> Create(string name, Point location, string description, string imageUrl, string thumbnailUrl, EntityId beekeperId)
+        public static Result<Apiary> Create(
+            string name, 
+            double latitude, 
+            double longitude, 
+            string description, 
+            string imageUrl, 
+            string thumbnailUrl, 
+            EntityId beekeperId
+        )
         {
             if (string.IsNullOrWhiteSpace(name))
                 return Result<Apiary>.Failure("Name is required");
             
-            if (location == null)
-                return Result<Apiary>.Failure("Location is required");
-
             if (string.IsNullOrWhiteSpace(description))
                 return Result<Apiary>.Failure("Description is required");
 
@@ -74,7 +92,8 @@ namespace SmartApiary.Domain.Models
                 new Apiary(
                     EntityId.New(),
                     name, 
-                    location, 
+                    latitude,
+                    longitude,
                     description, 
                     imageUrl, 
                     thumbnailUrl, 

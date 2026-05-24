@@ -1,7 +1,6 @@
 using MediatR;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using SmartApiary.Application.Features.DeviceStatuses.Commands;
 
 namespace SmartApiary.Functions.Processing;
 
