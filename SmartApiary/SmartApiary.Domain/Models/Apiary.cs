@@ -1,6 +1,8 @@
 using NetTopologySuite.Geometries;
 using SmartApiary.Domain.Common;
 using SmartApiary.Domain.ValueObjects;
+using System;
+using System.Data;
 
 namespace SmartApiary.Domain.Models
 {
@@ -98,6 +100,51 @@ namespace SmartApiary.Domain.Models
                     imageUrl, 
                     thumbnailUrl, 
                     beekeperId
+                )
+            );
+        }
+
+        /// <summary>
+        /// Loads the existing apiary
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="name"></param>
+        /// <param name="latitude"></param>
+        /// <param name="longitude"></param>
+        /// <param name="description"></param>
+        /// <param name="imageUrl"></param>
+        /// <param name="thumbnailUrl"></param>
+        /// <param name="beekeperId"></param>
+        /// <returns>Apiary if all parameters are valid, error details otherwise</returns>
+        public static Result<Apiary> Load(
+            string id,
+            string name,
+            double latitude,
+            double longitude,
+            string description,
+            string imageUrl,
+            string thumbnailUrl,
+            string beekeperId
+        )
+        {
+            var idResult = EntityId.Create(id);
+            if (idResult.IsFailure)
+                return Result<Apiary>.Failure("Invalid apiary id");
+
+            var beekeeperIdResult = EntityId.Create(beekeperId);
+            if (beekeeperIdResult.IsFailure)
+                return Result<Apiary>.Failure("Invalid beekeeper id");
+
+            return Result<Apiary>.Success(
+                new Apiary(
+                    idResult.Value,
+                    name,
+                    latitude,
+                    longitude,
+                    description,
+                    imageUrl,
+                    thumbnailUrl,
+                    beekeeperIdResult.Value
                 )
             );
         }

@@ -5,5 +5,7 @@
         public string SerialNumber { get; set; } = default!;
         public string DeviceToken { get; set; } = default!;
         public string Status { get; set; } = default!;
+        public double LatestReading { get; set; } = default;
+        public DateTime TimeOfLastReading { get; set; }
     }
 }

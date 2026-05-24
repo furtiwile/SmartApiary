@@ -74,5 +74,41 @@ namespace SmartApiary.Domain.Models
                 )
             );
         }
+
+        /// <summary>
+        /// Loads the existing smart scale
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="serialNumber"></param>
+        /// <param name="deviceToken"></param>
+        /// <param name="status"></param>
+        /// <param name="latestReading"></param>
+        /// <param name="timeOfLastReading"></param>
+        /// <returns>Smart scale if all parameters are valid, error details otherwise</returns>
+        public static Result<SmartScale> Load(
+            string id, 
+            string serialNumber, 
+            string deviceToken,
+            DeviceStatusEnum status, 
+            double latestReading, 
+            DateTime timeOfLastReading
+        )
+        {
+            var idResult = EntityId.Create(id);
+            if (idResult.IsFailure)
+                return Result<SmartScale>.Failure("Invalid smart scale id");
+
+            return Result<SmartScale>.Success(
+                new SmartScale(
+                    idResult.Value,
+                    serialNumber,
+                    deviceToken,
+                    status,
+                    latestReading,
+                    timeOfLastReading
+                )
+            );
+        }
+
     }
 }

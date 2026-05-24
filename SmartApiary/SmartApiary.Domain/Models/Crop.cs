@@ -53,5 +53,35 @@ namespace SmartApiary.Domain.Models
             );
         }
 
+        /// <summary>
+        /// Loads the existing crop
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="type"></param>
+        /// <param name="expectedFloweringTime"></param>
+        /// <param name="note"></param>
+        /// <param name="parcelId"></param>
+        /// <returns>Crop if all parameters are valid, error details otherwise</returns>
+        public static Result<Crop> Load(string id, CropType type, DateTime expectedFloweringTime, string note, string parcelId)
+        {
+            var idResult = EntityId.Create(id);
+            if (idResult.IsFailure)
+                return Result<Crop>.Failure("Invalid crop id");
+
+            var parcelIdResult = EntityId.Create(parcelId);
+            if (parcelIdResult.IsFailure)
+                return Result<Crop>.Failure("Invalid parcel id");
+
+            return Result<Crop>.Success(
+                new Crop(
+                    idResult.Value,
+                    type,
+                    expectedFloweringTime,
+                    note,
+                    parcelIdResult.Value
+                )
+            );
+        }
+
     }
 }

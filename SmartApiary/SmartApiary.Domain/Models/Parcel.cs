@@ -59,5 +59,35 @@ namespace SmartApiary.Domain.Models
             );
         }
 
+        /// <summary>
+        /// Loads the existing parcel
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="name"></param>
+        /// <param name="latitude"></param>
+        /// <param name="longitude"></param>
+        /// <param name="farmerId"></param>
+        /// <returns>Parcel if all parameters are valid, error details otherwise</returns>
+        public static Result<Parcel> Load(string id, string name, double latitude, double longitude, string farmerId)
+        {
+            var idResult = EntityId.Create(id);
+            if (idResult.IsFailure)
+                return Result<Parcel>.Failure("Invalid parcel id");
+
+            var farmerIdResult = EntityId.Create(farmerId);
+            if (farmerIdResult.IsFailure)
+                return Result<Parcel>.Failure("Invalid farmer id");
+
+            return Result<Parcel>.Success(
+                new Parcel(
+                    idResult.Value,
+                    name,
+                    latitude,
+                    longitude,
+                    farmerIdResult.Value
+                )
+            );
+        }
+
     }
 }

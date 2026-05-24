@@ -1,4 +1,5 @@
 using SmartApiary.Domain.Common;
+using SmartApiary.Domain.Enums;
 using SmartApiary.Domain.ValueObjects;
 
 namespace SmartApiary.Domain.Models
@@ -99,6 +100,54 @@ namespace SmartApiary.Domain.Models
                     queenPresent,
                     note,
                     hiveId
+                )
+            );
+        }
+
+        /// <summary>
+        /// Loads the existing hive inspection
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="inspectionDate"></param>
+        /// <param name="bottomBoardColor"></param>
+        /// <param name="honeyFrames"></param>
+        /// <param name="honeyAmount"></param>
+        /// <param name="broodFrames"></param>
+        /// <param name="queenPresent"></param>
+        /// <param name="note"></param>
+        /// <param name="hiveId"></param>
+        /// <returns>Hive inspection if all parameters are valid, error details otherwise</returns>
+        public static Result<HiveInspection> Load(
+            string id,
+            DateTime inspectionDate,
+            string bottomBoardColor,
+            int honeyFrames,
+            double honeyAmount,
+            int broodFrames,
+            bool queenPresent,
+            string note,
+            string hiveId
+        )
+        {
+            var idResult = EntityId.Create(id);
+            if (idResult.IsFailure)
+                return Result<HiveInspection>.Failure("Invalid hive id");
+
+            var hiveIdResult = EntityId.Create(hiveId);
+            if (hiveIdResult.IsFailure)
+                return Result<HiveInspection>.Failure("Invalid hive id");
+
+            return Result<HiveInspection>.Success(
+                new HiveInspection(
+                    idResult.Value,
+                    inspectionDate,
+                    bottomBoardColor,
+                    honeyFrames,
+                    honeyAmount,
+                    broodFrames,
+                    queenPresent,
+                    note,
+                    hiveIdResult.Value
                 )
             );
         }
