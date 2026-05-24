@@ -96,5 +96,48 @@ namespace SmartApiary.Domain.Models
                 )
             );
         }
+
+        /// <summary>
+        /// Loads the existing user
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="email"></param>
+        /// <param name="firstName"></param>
+        /// <param name="lastName"></param>
+        /// <param name="phoneNumber"></param>
+        /// <param name="password"></param>
+        /// <param name="role"></param>
+        /// <param name="active"></param>
+        /// <returns>User if parameters are valid, error details otherwise</returns>
+        public static Result<User> Load(
+            string id,
+            string email,
+            string firstName,
+            string lastName,
+            string phoneNumber,
+            string password,
+            RoleType role,
+            bool active = true
+        )
+        {
+            var idResult = EntityId.Create(id);
+            if (idResult.IsFailure)
+                return Result<User>.Failure("Invalid id");
+
+            return Result<User>.Success(
+                new User(
+                    idResult.Value,
+                    email,
+                    firstName,
+                    lastName,
+                    phoneNumber,
+                    password,
+                    role,
+                    active
+                )
+            );
+
+        }
+
     }
 }

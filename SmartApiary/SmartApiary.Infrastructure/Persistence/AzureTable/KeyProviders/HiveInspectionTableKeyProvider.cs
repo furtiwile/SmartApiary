@@ -3,18 +3,16 @@ using SmartApiary.Infrastructure.Persistence.AzureTable.Common;
 
 namespace SmartApiary.Infrastructure.Persistence.AzureTable.KeyProviders
 {
-/* TODO: DELETE
-    internal class FirmwareTableKeyProvider : ITableKeyProvider<Firmware>
+    internal class HiveInspectionTableKeyProvider : ITableKeyProvider<HiveInspection>
     {
-        public string GetPartitionKey(Firmware model)
+        public string GetPartitionKey(HiveInspection model)
         {
-            return model.DeviceType.ToString();
+            return model.BottomBoardColor;
         }
 
-        public string GetRowKey(Firmware model)
+        public string GetRowKey(HiveInspection model)
         {
             return model.Id.Value;
         }
     }
-*/
 }

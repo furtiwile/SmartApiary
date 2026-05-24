@@ -8,7 +8,8 @@ namespace SmartApiary.Domain.Models
     {
         public EntityId Id { get; set; }
         public string Name { get; set; }
-        public Point Location { get; set; }
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
         public EntityId FarmerId { get; set; }
 
         public ICollection<Crop> Crops { get; set; } = [];
@@ -19,13 +20,15 @@ namespace SmartApiary.Domain.Models
         /// </summary>
         /// <param name="id"></param>
         /// <param name="name"></param>
-        /// <param name="location"></param>
+        /// <param name="latitude"></param>
+        /// <param name="longitude"></param>
         /// <param name="farmerId"></param>
-        private Parcel(EntityId id, string name, Point location, EntityId farmerId)
+        private Parcel(EntityId id, string name, double latitude, double longitude, EntityId farmerId)
         {
             Id = id;
             Name = name;
-            Location = location;
+            Latitude = latitude;
+            Longitude = longitude;
             FarmerId = farmerId;
         }
 
@@ -33,16 +36,14 @@ namespace SmartApiary.Domain.Models
         /// Validates the parcel data and creates the parcel
         /// </summary>
         /// <param name="name"></param>
-        /// <param name="location"></param>
+        /// <param name="latitude"></param>
+        /// <param name="longitude"></param>
         /// <param name="farmerId"></param>
         /// <returns>Parcel if all parameters are valid, error details otherwise</returns>
-        public static Result<Parcel> Create(string name, Point location, EntityId farmerId)
+        public static Result<Parcel> Create(string name, double latitude, double longitude, EntityId farmerId)
         {
             if (string.IsNullOrWhiteSpace(name))
                 return Result<Parcel>.Failure("Name is required");
-
-            if (location == null)
-                return Result<Parcel>.Failure("Location is required");
 
             if (farmerId == null || !string.IsNullOrWhiteSpace(farmerId.Value))
                 return Result<Parcel>.Failure("Farmer ID is required");
@@ -51,7 +52,8 @@ namespace SmartApiary.Domain.Models
                 new Parcel(
                     EntityId.New(),
                     name,
-                    location,
+                    latitude,
+                    longitude,
                     farmerId
                 )
             );

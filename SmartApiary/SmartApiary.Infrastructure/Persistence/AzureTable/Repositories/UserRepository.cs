@@ -21,17 +21,17 @@ namespace SmartApiary.Infrastructure.Persistence.AzureTable.Repositories
             userMapper
         ), IUserRepository
     {
-        public async Task<IReadOnlyCollection<User>> GetAllAsync(CancellationToken ct = default)
+        public async Task<IReadOnlyCollection<User>> GetAllUsersAsync(CancellationToken ct = default)
         {
             return await base.QueryAsync(string.Empty, ct);
         }
 
-        public async Task<User?> GetByIdAsync(EntityId userId, CancellationToken ct = default)
+        public async Task<User?> GetUserByIdAsync(EntityId userId, CancellationToken ct = default)
         {
             return (await base.QueryAsync(string.Empty, ct)).FirstOrDefault(u => u.Id == userId);
         }
 
-        public async Task<User?> GetByIdAndRoleAsync(RoleType role, EntityId userId, CancellationToken ct = default)
+        public async Task<User?> GetUserByIdAndRoleAsync(RoleType role, EntityId userId, CancellationToken ct = default)
         {
             return await base.GetByIdAsync(role.ToString(), userId, ct);
         }
@@ -41,24 +41,25 @@ namespace SmartApiary.Infrastructure.Persistence.AzureTable.Repositories
             return (await base.QueryAsync($"Email eq '{email}'", ct)).FirstOrDefault();
         }
 
-        public async Task<IReadOnlyCollection<User>> GetAllByRoleAsync(RoleType role, CancellationToken ct = default)
+        public async Task<IReadOnlyCollection<User>> GetAllUsersByRoleAsync(RoleType role, CancellationToken ct = default)
         {
-            return await base.QueryAsync($"PartitionKey eq '{role}'", ct);
+            return await base.QueryByPartitionKeyAsync(role.ToString(), ct);
         }
 
-        public async Task SaveAsync(User user, CancellationToken ct = default)
+        public async Task SaveUserAsync(User user, CancellationToken ct = default)
         {
             await base.AddAsync(user, ct);
         }
 
-        public async Task UpadateAsync(User user, CancellationToken ct = default)
+        public async Task UpadateUserAsync(User user, CancellationToken ct = default)
         {
             await base.UpdateAsync(user, ct);
         }
 
-        public async Task DeleteAsync(RoleType role, EntityId userId, CancellationToken ct)
+        public async Task DeleteUserAsync(User user, CancellationToken ct = default)
         {
-            await _tableClient.DeleteEntityAsync(role.ToString(), userId, cancellationToken: ct);
+            await base.DeleteAsync(user, ct);
         }
+
     }
 }

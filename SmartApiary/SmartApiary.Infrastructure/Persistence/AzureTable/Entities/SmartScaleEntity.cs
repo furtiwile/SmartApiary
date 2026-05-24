@@ -1,0 +1,9 @@
+﻿namespace SmartApiary.Infrastructure.Persistence.AzureTable.Entities
+{
+    internal class SmartScaleEntity : BaseTableEntity
+    {
+        public string SerialNumber { get; set; } = default!;
+        public string DeviceToken { get; set; } = default!;
+        public string Status { get; set; } = default!;
+    }
+}

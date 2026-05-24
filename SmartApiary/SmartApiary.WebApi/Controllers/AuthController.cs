@@ -1,4 +1,8 @@
-﻿/* TODO: DELETE
+﻿
+using MediatR;
+using Microsoft.AspNetCore.Mvc;
+using SmartApiary.Application.Features.Auth.Commands;
+
 namespace SmartApiary.WebApi.Controllers
 {
     [Route("api/[controller]")]
@@ -11,6 +15,9 @@ namespace SmartApiary.WebApi.Controllers
             try
             {
                 var result = await mediator.Send(cmd, ct);
+                if (result.IsFailure)
+                    return Unauthorized(new { message = result.Error?.Message ?? "Login failed" });
+
                 return Ok(result);
             }
             catch (UnauthorizedAccessException ex)
@@ -20,4 +27,3 @@ namespace SmartApiary.WebApi.Controllers
         }
     }
 }
-*/
