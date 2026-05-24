@@ -27,21 +27,28 @@ namespace SmartApiary.Infrastructure.Extensions
 
             // Mappers
             services.AddSingleton<ITableMapper<User, UserEntity>, UserTableMapper>();
-            /* TODO: replace mappers
-            services.AddSingleton<ITableMapper<Telemetry, TelemetryEntity>, TelemetryTableMapper>();
-            services.AddSingleton<ITableMapper<Device, DeviceEntity>, DeviceTableMapper>();
-            services.AddSingleton<ITableMapper<DeviceStatus, DeviceStatusEntity>, DeviceStatusTableMapper>();
-            services.AddSingleton<ITableMapper<Firmware, FirmwareEntity>, FirmwareTableMapper>();
-            */
+            services.AddSingleton<ITableMapper<Apiary, ApiaryEntity>, ApiaryTableMapper>();
+            services.AddSingleton<ITableMapper<Crop, CropEntity>, CropTableMapper>();
+            services.AddSingleton<ITableMapper<Hive, HiveEntity>, HiveTableMapper>();
+            services.AddSingleton<ITableMapper<HiveInspection, HiveInspectionEntity>, HiveInspectionTableMapper>();
+            services.AddSingleton<ITableMapper<Parcel, ParcelEntity>, ParcelTableMapper>();
+            services.AddSingleton<ITableMapper<SmartScale, SmartScaleEntity>, SmartScaleTableMapper>();
+            services.AddSingleton<ITableMapper<SprinklingAnnouncement, SprinklingAnnouncementEntity>, SprinklingAnnouncementTableMapper>();
+            services.AddSingleton<ITableMapper<SprinklingRecord, SprinklingRecordEntity>, SprinklingRecordTableMapper>();
 
             // Key Providers
-            /* TODO: replace key providers
-            services.AddSingleton<ITableKeyProvider<Telemetry>, TelemetryTableKeyProvider>();
-            services.AddSingleton<ITableKeyProvider<Device>, DeviceTableKeyProvider>();
-            services.AddSingleton<ITableKeyProvider<DeviceStatus>, DeviceStatusTableKeyProvider>();
-            services.AddSingleton<ITableKeyProvider<Firmware>, FirmwareTableKeyProvider>();
-            */
+            services.AddSingleton<ITableKeyProvider<User>, UserTableKeyProvider>();
+            services.AddSingleton<ITableKeyProvider<Apiary>, ApiaryTableKeyProvider>();
+            services.AddSingleton<ITableKeyProvider<Crop>, CropTableKeyProvider>();
+            services.AddSingleton<ITableKeyProvider<Hive>, HiveTableKeyProvider>();
+            services.AddSingleton<ITableKeyProvider<HiveInspection>, HiveInspectionTableKeyProvider>();
+            services.AddSingleton<ITableKeyProvider<Parcel>, ParcelTableKeyProvider>();
+            services.AddSingleton<ITableKeyProvider<SmartScale>, SmartScaleTableKeyProvider>();
+            services.AddSingleton<ITableKeyProvider<SprinklingAnnouncement>, SprinklingAnnouncementTableKeyProvider>();
+            services.AddSingleton<ITableKeyProvider<SprinklingRecord>, SprinklingRecordTableKeyProvider>();
+            
             // Repositories
+            services.AddSingleton<IUserRepository, UserRepository>();
             /* TODO: replace repositories
             services.AddScoped<ITelemetryRepository, TelemetryRepository>();
             services.AddScoped<IDeviceRepository, DeviceRepository>();

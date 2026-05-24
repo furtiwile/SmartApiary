@@ -90,5 +90,47 @@ namespace SmartApiary.Domain.Models
 
         }
 
+        /// <summary>
+        /// Loads the existing sprinkling record
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="actualStartTime"></param>
+        /// <param name="actualEndTime"></param>
+        /// <param name="preparationType"></param>
+        /// <param name="windSpeed"></param>
+        /// <param name="precipitation"></param>
+        /// <param name="announcementId"></param>
+        /// <returns>Sprinkling record if all parameters are valid, error details otherwise</returns>
+        public static Result<SprinklingRecord> Load(
+            string id,
+            DateTime actualStartTime,
+            DateTime actualEndTime,
+            string preparationType,
+            double windSpeed,
+            double precipitation,
+            string announcementId
+        )
+        {
+            var idResult = EntityId.Create(id);
+            if (idResult.IsFailure)
+                return Result<SprinklingRecord>.Failure("Invalid sprinkling announcement id");
+
+            var announcementIdResult = EntityId.Create(announcementId);
+            if (announcementIdResult.IsFailure)
+                return Result<SprinklingRecord>.Failure("Invalid announcement id");
+
+            return Result<SprinklingRecord>.Success(
+                new SprinklingRecord(
+                    idResult.Value,
+                    actualStartTime,
+                    actualEndTime,
+                    preparationType,
+                    windSpeed,
+                    precipitation,
+                    announcementIdResult.Value
+                )
+            );
+        }
+
     }
 }

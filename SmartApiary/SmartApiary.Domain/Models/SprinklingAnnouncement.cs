@@ -1,5 +1,6 @@
 
 using SmartApiary.Domain.Common;
+using SmartApiary.Domain.Enums;
 using SmartApiary.Domain.ValueObjects;
 
 namespace SmartApiary.Domain.Models
@@ -75,6 +76,45 @@ namespace SmartApiary.Domain.Models
                     preparationType,
                     isCancelled,
                     parcelId
+                )
+            );
+        }
+
+        /// <summary>
+        /// Loads the existing sprinkling announcement
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="startTime"></param>
+        /// <param name="expectedDurationHours"></param>
+        /// <param name="preparationType"></param>
+        /// <param name="isCancelled"></param>
+        /// <param name="parcelId"></param>
+        /// <returns>Sprinkling announcement if all parameters are valid, error details otherwise</returns>
+        public static Result<SprinklingAnnouncement> Load(
+            string id,
+            DateTime startTime,
+            double expectedDurationHours,
+            string preparationType,
+            bool isCancelled,
+            string parcelId
+        )
+        {
+            var idResult = EntityId.Create(id);
+            if (idResult.IsFailure)
+                return Result<SprinklingAnnouncement>.Failure("Invalid sprinkling announcement id");
+
+            var parcelIdResult = EntityId.Create(parcelId);
+            if (parcelIdResult.IsFailure)
+                return Result<SprinklingAnnouncement>.Failure("Invalid parcel id");
+
+            return Result<SprinklingAnnouncement>.Success(
+                new SprinklingAnnouncement(
+                    idResult.Value,
+                    startTime,
+                    expectedDurationHours,
+                    preparationType,
+                    isCancelled,
+                    parcelIdResult.Value
                 )
             );
         }

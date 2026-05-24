@@ -122,7 +122,7 @@ namespace SmartApiary.Domain.Models
         {
             var idResult = EntityId.Create(id);
             if (idResult.IsFailure)
-                return Result<User>.Failure("Invalid id");
+                return Result<User>.Failure("Invalid user id");
 
             return Result<User>.Success(
                 new User(

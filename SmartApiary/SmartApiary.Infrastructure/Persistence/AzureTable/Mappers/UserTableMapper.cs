@@ -27,11 +27,8 @@ namespace SmartApiary.Infrastructure.Persistence.AzureTable.Mappers
                 ? parsedType
                 : RoleType.Unknown;
 
-            var parts = entity.RowKey.Split('_');
-            var userId = parts.Length > 1 ? parts[1] : entity.RowKey;
-
             var userResult = User.Load(
-                userId,
+                entity.RowKey,
                 entity.Email,
                 entity.FirstName,
                 entity.LastName,
