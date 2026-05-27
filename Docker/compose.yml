@@ -1,0 +1,39 @@
+name: cloud-db
+services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    container_name: mssql_db
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${DATABASE_PASSWORD:-P@ssw0rd!}"
+    ports:
+      - "${DATABASE_PUBLIC_PORT:-1433}:1433"
+    volumes:
+      - mssql-data:/var/opt/mssql
+    restart: unless-stopped
+    env_file:
+      - .env
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    container_name: azurite_storage
+    command:
+      - azurite
+      - --blobHost
+      - 0.0.0.0
+      - --queueHost
+      - 0.0.0.0
+      - --tableHost
+      - 0.0.0.0
+      - --location
+      - /data
+    ports:
+      - "10000:10000"
+      - "10001:10001"
+      - "10002:10002"
+    volumes:
+      - azurite-data:/data
+    restart: unless-stopped
+
+volumes:
+  mssql-data:
+  azurite-data:
