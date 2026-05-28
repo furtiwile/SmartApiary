@@ -5,7 +5,11 @@ info:
 
 http:
   method: GET
-  url: "{{smart_apiary_api_base_url}}/apiaries?beekeeperId=11111111-1111-1111-1111-111111111111"
+  url: "{{smart_apiary_api_base_url}}/apiaries?beekeeperId=0f313a4f-0780-4089-9ae9-e78ff62f51ef"
+  params:
+    - name: beekeeperId
+      value: 0f313a4f-0780-4089-9ae9-e78ff62f51ef
+      type: query
   auth: inherit
 
 settings:

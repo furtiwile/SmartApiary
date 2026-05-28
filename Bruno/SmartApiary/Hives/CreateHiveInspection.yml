@@ -8,7 +8,7 @@ http:
   url: "{{smart_apiary_api_base_url}}/hiveinspections"
   body:
     type: json
-    data: |
+    data: |+
       {
         "hiveId": "30a13a3b-d2ca-480e-aa9e-0c28090c446f",
         "inspectionDate": "2026-05-26T09:00:00Z",
@@ -19,6 +19,7 @@ http:
         "queenPresent": true,
         "note": "Routine inspection"
       }
+
   auth: inherit
 
 settings:

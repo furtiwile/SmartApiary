@@ -1,0 +1,24 @@
+info:
+  name: Create Crop
+  type: http
+  seq: 10
+
+http:
+  method: POST
+  url: "{{smart_apiary_api_base_url}}/crops"
+  body:
+    type: json
+    data: |+
+      {
+        "parcelId": "55555555-5555-5555-5555-555555555555",
+        "type": "Sunflower",
+        "expectedFloweringTime": "2026-06-15T00:00:00Z",
+        "note": ""
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

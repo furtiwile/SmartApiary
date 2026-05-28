@@ -12,7 +12,7 @@ namespace SmartApiary.Infrastructure.Persistence.AzureTable.KeyProviders
     {
         public string GetPartitionKey(Crop model)
         {
-            return model.Type.ToString();
+            return model.ParcelId.Value;
         }
 
         public string GetRowKey(Crop model)

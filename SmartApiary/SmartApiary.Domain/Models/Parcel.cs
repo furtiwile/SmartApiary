@@ -45,7 +45,7 @@ namespace SmartApiary.Domain.Models
             if (string.IsNullOrWhiteSpace(name))
                 return Result<Parcel>.Failure("Name is required");
 
-            if (farmerId == null || !string.IsNullOrWhiteSpace(farmerId.Value))
+            if (farmerId == null || string.IsNullOrWhiteSpace(farmerId.Value))
                 return Result<Parcel>.Failure("Farmer ID is required");
 
             return Result<Parcel>.Success(
