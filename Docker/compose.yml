@@ -18,6 +18,7 @@ services:
     container_name: azurite_storage
     command:
       - azurite
+      - --skipApiVersionCheck
       - --blobHost
       - 0.0.0.0
       - --queueHost

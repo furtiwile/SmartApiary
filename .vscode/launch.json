@@ -1,0 +1,31 @@
+{
+  "$schema": "vscode://schemas/launch",
+  "version": "0.2.0",
+  "compounds": [
+    {
+      "name": "Functions + WebApi",
+      "configurations": ["Functions", "WebApi"]
+    }
+  ],
+  "configurations": [
+    {
+      "name": "WebApi",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/SmartApiary/SmartApiary.WebApi/bin/Debug/net8.0/SmartApiary.WebApi.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/SmartApiary/SmartApiary.WebApi",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Functions",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/SmartApiary/SmartApiary.Functions/bin/Debug/net8.0/SmartApiary.Functions.dll",
+      "cwd": "${workspaceFolder}/SmartApiary/SmartApiary.Functions",
+      "stopAtEntry": false
+    }
+  ]
+}

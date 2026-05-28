@@ -16,6 +16,9 @@ namespace SmartApiary.Infrastructure
             services.Configure<AzureBlobOptions>(configuration.GetSection("AzureBlobOptions"));
             services.Configure<AzureQueueOptions>(configuration.GetSection("AzureQueueOptions"));
             services.Configure<ParallelSettings>(configuration.GetSection("ParallelSettings"));
+            services.Configure<JwtOptions>(configuration.GetSection("JwtOptions"));
+            services.Configure<EmailOptions>(configuration.GetSection("EmailOptions"));
+            services.Configure<UserTokenOptions>(configuration.GetSection("UserTokenOptions"));
 
             var tableConn = configuration.GetValue<string>("AzureTableOptions:ConnectionString")
                 ?? throw new InvalidOperationException("AzureTableOptions:ConnectionString is not configured.");
