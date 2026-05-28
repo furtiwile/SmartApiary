@@ -1,0 +1,15 @@
+info:
+  name: Get Apiaries Near Parcel
+  type: http
+  seq: 20
+
+http:
+  method: GET
+  url: "{{smart_apiary_api_base_url}}/geo/apiaries-near-parcel?parcelId=55555555-5555-5555-5555-555555555555&radiusKm=5"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

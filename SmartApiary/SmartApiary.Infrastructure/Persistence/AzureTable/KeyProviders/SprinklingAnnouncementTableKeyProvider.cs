@@ -12,8 +12,7 @@ namespace SmartApiary.Infrastructure.Persistence.AzureTable.KeyProviders
     {
         public string GetPartitionKey(SprinklingAnnouncement model)
         {
-            /// TODO: REVISE
-            return model.PreparationType;
+            return model.ParcelId.Value;
         }
 
         public string GetRowKey(SprinklingAnnouncement model)

@@ -1,0 +1,24 @@
+info:
+  name: Reschedule Sprinkling Announcement
+  type: http
+  seq: 19
+
+http:
+  method: POST
+  url: "{{smart_apiary_api_base_url}}/sprinklingannouncements/66666666-6666-6666-6666-666666666666/reschedule"
+  body:
+    type: json
+    data: |+
+      {
+        "parcelId": "55555555-5555-5555-5555-555555555555",
+        "startTime": "2026-06-02T07:00:00Z",
+        "expectedDurationHours": 2.5,
+        "preparationType": "Herbicide A"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
