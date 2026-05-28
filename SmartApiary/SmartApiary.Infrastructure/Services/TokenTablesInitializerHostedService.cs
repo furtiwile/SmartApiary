@@ -14,11 +14,29 @@ namespace SmartApiary.Infrastructure.Services
     {
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            var activationTable = options.Value.ActivationTokensTable;
-            var resetTable = options.Value.PasswordResetTokensTable;
+            var tableNames = new[]
+            {
+                options.Value.UserTable,
+                options.Value.ApiariesTable,
+                options.Value.HivesTable,
+                options.Value.HiveInspectionsTable,
+                options.Value.ParcelsTable,
+                options.Value.CropsTable,
+                options.Value.SmartScalesTable,
+                options.Value.SprinklingAnnouncementsTable,
+                options.Value.SprinklingRecordsTable,
+                options.Value.TelemetriesTable,
+                options.Value.DevicesTable,
+                options.Value.DeviceStatusesTable,
+                options.Value.FirmwaresTable,
+                options.Value.ActivationTokensTable,
+                options.Value.PasswordResetTokensTable
+            };
 
-            await EnsureTableExistsAsync(activationTable, cancellationToken);
-            await EnsureTableExistsAsync(resetTable, cancellationToken);
+            foreach (var tableName in tableNames)
+            {
+                await EnsureTableExistsAsync(tableName, cancellationToken);
+            }
         }
 
         public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;

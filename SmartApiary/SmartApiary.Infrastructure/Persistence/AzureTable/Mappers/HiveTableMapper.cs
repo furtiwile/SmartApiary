@@ -23,7 +23,7 @@ namespace SmartApiary.Infrastructure.Persistence.AzureTable.Mappers
 
         public Hive? ToDomain(HiveEntity entity)
         {
-            var type = Enum.TryParse<HiveType>(entity.PartitionKey, out var parsedType)
+            var type = Enum.TryParse<HiveType>(entity.Type, out var parsedType)
                 ? parsedType
                 : HiveType.Other;
 

@@ -2,7 +2,11 @@
 using Microsoft.OpenApi;
 using SmartApiary.Application;
 using SmartApiary.Infrastructure;
+using SmartApiary.WebApi.BackgroundServices;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace SmartApiary.WebApi.Extensions
 {
@@ -38,6 +42,35 @@ namespace SmartApiary.WebApi.Extensions
                 });
             });
 
+            // Authentication
+            var jwtSection = configuration.GetSection("JwtOptions");
+            var secret = jwtSection.GetValue<string>("Secret");
+            if (!string.IsNullOrWhiteSpace(secret))
+            {
+                services.AddAuthentication(options =>
+                {
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
+                .AddJwtBearer(options =>
+                {
+                    options.RequireHttpsMetadata = false;
+                    options.SaveToken = true;
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = jwtSection.GetValue<string>("Issuer"),
+                        ValidAudience = jwtSection.GetValue<string>("Audience"),
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret))
+                    };
+                });
+
+                services.AddAuthorization();
+            }
+
             return services;
         }
 
@@ -69,8 +102,7 @@ namespace SmartApiary.WebApi.Extensions
 
         public static IServiceCollection AddWebApiHostedServices(this IServiceCollection services)
         {
-            /// TODO: remove
-            ///services.AddHostedService<DeviceStatusWorker>();
+            services.AddHostedService<TelemetryBroadcastWorker>();
             return services;
         }
     }

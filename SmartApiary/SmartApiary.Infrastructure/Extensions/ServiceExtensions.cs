@@ -18,6 +18,8 @@ namespace SmartApiary.Infrastructure.Extensions
             services.AddSingleton<IEmailSender, SendGridEmailSender>();
             services.AddSingleton<IUserTokenSettings, UserTokenSettings>();
 
+            services.AddScoped<ICurrentUserContext, CurrentUserContext>();
+
             services.AddScoped<IParallelSettingsProvider, ParallelSettingsProvider>();
 
             services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();

@@ -23,6 +23,8 @@ namespace SmartApiary.Infrastructure.Extensions
             this IServiceCollection services,
             string connectionString)
         {
+            services.AddHttpContextAccessor();
+
             // Table Service Client
             services.AddSingleton(new TableServiceClient(connectionString));
 
@@ -80,6 +82,7 @@ namespace SmartApiary.Infrastructure.Extensions
             services.AddSingleton(sp => new BlobServiceClient(connectionString));
 
             services.AddScoped<IFirmwareBlobStorage, FirmwareBlobStorage>();
+            services.AddScoped<IApiaryImageStorage, ApiaryImageStorage>();
 
             return services;
         }
