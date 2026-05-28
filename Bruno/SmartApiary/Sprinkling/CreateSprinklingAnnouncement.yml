@@ -1,0 +1,24 @@
+info:
+  name: Create Sprinkling Announcement
+  type: http
+  seq: 14
+
+http:
+  method: POST
+  url: "{{smart_apiary_api_base_url}}/sprinklingannouncements"
+  body:
+    type: json
+    data: |+
+      {
+        "parcelId": "55555555-5555-5555-5555-555555555555",
+        "startTime": "2026-06-01T06:00:00Z",
+        "expectedDurationHours": 2,
+        "preparationType": "Herbicide A"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
