@@ -48,6 +48,11 @@ namespace SmartApiary.Application.Features.Auth.Commands
                 return Result<LoginResponse>.Failure("Invalid email or password");
             }
 
+            if (!user.IsActive)
+            {
+                return Result<LoginResponse>.Failure("Account is not active");
+            }
+
             var token = jwtGenerator.Generate(user);
 
             return Result<LoginResponse>.Success(new LoginResponse { Token = token });

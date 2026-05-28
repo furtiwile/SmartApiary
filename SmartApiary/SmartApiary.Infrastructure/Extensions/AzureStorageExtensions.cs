@@ -13,6 +13,7 @@ using SmartApiary.Infrastructure.Persistence.AzureTable.Entities;
 using SmartApiary.Infrastructure.Persistence.AzureTable.KeyProviders;
 using SmartApiary.Infrastructure.Persistence.AzureTable.Mappers;
 using SmartApiary.Infrastructure.Persistence.AzureTable.Repositories;
+using SmartApiary.Infrastructure.Services;
 
 namespace SmartApiary.Infrastructure.Extensions
 {
@@ -35,6 +36,10 @@ namespace SmartApiary.Infrastructure.Extensions
             services.AddSingleton<ITableMapper<SmartScale, SmartScaleEntity>, SmartScaleTableMapper>();
             services.AddSingleton<ITableMapper<SprinklingAnnouncement, SprinklingAnnouncementEntity>, SprinklingAnnouncementTableMapper>();
             services.AddSingleton<ITableMapper<SprinklingRecord, SprinklingRecordEntity>, SprinklingRecordTableMapper>();
+            services.AddSingleton<ITableMapper<Telemetry, TelemetryEntity>, TelemetryTableMapper>();
+            // Token mappers
+            services.AddSingleton<ITableMapper<ActivationToken, ActivationTokenEntity>, ActivationTokenTableMapper>();
+            services.AddSingleton<ITableMapper<PasswordResetToken, PasswordResetTokenEntity>, PasswordResetTokenTableMapper>();
 
             // Key Providers
             services.AddSingleton<ITableKeyProvider<User>, UserTableKeyProvider>();
@@ -46,15 +51,25 @@ namespace SmartApiary.Infrastructure.Extensions
             services.AddSingleton<ITableKeyProvider<SmartScale>, SmartScaleTableKeyProvider>();
             services.AddSingleton<ITableKeyProvider<SprinklingAnnouncement>, SprinklingAnnouncementTableKeyProvider>();
             services.AddSingleton<ITableKeyProvider<SprinklingRecord>, SprinklingRecordTableKeyProvider>();
+            services.AddSingleton<ITableKeyProvider<Telemetry>, TelemetryTableKeyProvider>();
+            // Token key providers
+            services.AddSingleton<ITableKeyProvider<ActivationToken>, ActivationTokenTableKeyProvider>();
+            services.AddSingleton<ITableKeyProvider<PasswordResetToken>, PasswordResetTokenTableKeyProvider>();
             
             // Repositories
-            services.AddSingleton<IUserRepository, UserRepository>();
-            /* TODO: replace repositories
-            services.AddScoped<ITelemetryRepository, TelemetryRepository>();
-            services.AddScoped<IDeviceRepository, DeviceRepository>();
-            services.AddScoped<IFirmwareRepository, FirmwareRepository>();
-            services.AddScoped<IDeviceStatusQueryRepository, DeviceStatusQueryRepository>();
-            */
+            services.AddSingleton<IApiaryRepository, ApiaryRepository>();
+            services.AddSingleton<IHiveRepository, HiveRepository>();
+            services.AddSingleton<IHiveInspectionRepository, HiveInspectionRepository>();
+            services.AddSingleton<IParcelRepository, ParcelRepository>();
+            services.AddSingleton<ICropRepository, CropRepository>();
+            services.AddSingleton<ISmartScaleRepository, SmartScaleRepository>();
+            services.AddSingleton<ISprinklingAnnouncementRepository, SprinklingAnnouncementRepository>();
+            services.AddSingleton<ISprinklingRecordRepository, SprinklingRecordRepository>();
+            services.AddSingleton<ITelemetryRepository, TelemetryRepository>();
+            services.AddSingleton<IUserRepository, Persistence.Sql.Repositories.UserRepository>();
+            services.AddSingleton<IActivationTokenRepository, ActivationTokenRepository>();
+            services.AddSingleton<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
+            services.AddHostedService<TokenTablesInitializerHostedService>();
 
             return services;
         }
@@ -81,6 +96,7 @@ namespace SmartApiary.Infrastructure.Extensions
             });
 
             services.AddScoped<IAlertQueueService, AlertQueueService>();
+            services.AddScoped<ITelemetryQueueService, TelemetryQueueService>();
             // TODO: remove
             //services.AddScoped<IDeviceStatusQueueService, DeviceStatusQueueService>();
 

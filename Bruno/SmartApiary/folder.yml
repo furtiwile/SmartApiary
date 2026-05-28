@@ -1,0 +1,9 @@
+info:
+  name: SmartApiary
+  type: folder
+  seq: 4
+
+request:
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlOGJkODJiOC1iZWVkLTQ4MjMtYmE5OS00ODk2YWVhMjczY2QiLCJlbWFpbCI6ImFkbWluQGV4YW1wbGUubG9jYWwiLCJnaXZlbl9uYW1lIjoiU3lzdGVtIiwiZmFtaWx5X25hbWUiOiJBZG1pbiIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwianRpIjoiMmUxY2M2YTgtMGJhZC00ZjhlLWJiMjAtZWY1ZWI1NjZiNjZkIiwiZXhwIjoxNzc5OTYyOTM1LCJpc3MiOiJTbWFydEFwaWFyeSIsImF1ZCI6IlNtYXJ0QXBpYXJ5In0.Tq-FI0qDiPqCgMNTUMqyCglmQ9XEWCt-fZRdE5EsIJk

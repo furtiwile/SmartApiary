@@ -1,0 +1,27 @@
+info:
+  name: Activate Account
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{smart_apiary_api_base_url}}/auth/activate"
+  body:
+    type: json
+    data: |
+      {
+        "token": "<activation-token>",
+        "password": "NewUserPassword"
+      }
+  auth: inherit
+
+runtime:
+  variables:
+    - name: smart_apiary_api_base_url
+      value: https://localhost:7262/api
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

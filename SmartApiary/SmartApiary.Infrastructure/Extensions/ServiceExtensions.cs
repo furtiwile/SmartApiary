@@ -9,6 +9,14 @@ namespace SmartApiary.Infrastructure.Extensions
         public static IServiceCollection AddServices(this IServiceCollection services)
         {
             services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
+            services.AddSingleton<IDeviceTokenGenerator, DeviceTokenGenerator>();
+            services.AddSingleton<IJwtGenerator, JwtGenerator>();
+
+            // Email & token services
+            services.AddSingleton<IOneTimeTokenService, OneTimeTokenService>();
+            services.AddSingleton<IEmailLinkProvider, EmailLinkProvider>();
+            services.AddSingleton<IEmailSender, SendGridEmailSender>();
+            services.AddSingleton<IUserTokenSettings, UserTokenSettings>();
 
             services.AddScoped<IParallelSettingsProvider, ParallelSettingsProvider>();
 
