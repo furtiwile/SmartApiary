@@ -20,7 +20,7 @@ namespace SmartApiary.Infrastructure.Persistence.AzureTable.Mappers
 
         public Crop? ToDomain(CropEntity entity)
         {
-            var type = Enum.TryParse<CropType>(entity.PartitionKey, out var parsedType)
+            var type = Enum.TryParse<CropType>(entity.Type, out var parsedType)
                 ? parsedType
                 : CropType.Other;
 

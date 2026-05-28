@@ -11,7 +11,7 @@ http:
     data:
       - name: Name
         type: text
-        value: Apiary North
+        value: Apiary North1
       - name: Latitude
         type: text
         value: "45.2671"
@@ -24,7 +24,7 @@ http:
       - name: ImageFile
         type: file
         value:
-          - ./assets/apiary.jpg
+          - C:\Faculty\Cloud\Project\TestingAssets\apiary1.jpg
   auth: inherit
 
 settings:

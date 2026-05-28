@@ -7,8 +7,7 @@ namespace SmartApiary.Infrastructure.Persistence.AzureTable.KeyProviders
     {
         public string GetPartitionKey(Parcel model)
         {
-            // TODO: REVISE
-            return "TBD";
+            return model.FarmerId.Value;
         }
 
         public string GetRowKey(Parcel model)

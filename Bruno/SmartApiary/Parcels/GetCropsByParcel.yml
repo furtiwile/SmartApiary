@@ -1,0 +1,19 @@
+info:
+  name: Get Crops By Parcel
+  type: http
+  seq: 11
+
+http:
+  method: GET
+  url: "{{smart_apiary_api_base_url}}/crops?parcelId=32ddce45-1e08-4a9f-8f1a-cbf692a8576d"
+  params:
+    - name: parcelId
+      value: 32ddce45-1e08-4a9f-8f1a-cbf692a8576d
+      type: query
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

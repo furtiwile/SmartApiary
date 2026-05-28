@@ -8,14 +8,11 @@ http:
   url: "{{smart_apiary_api_base_url}}/auth/login"
   body:
     type: json
-    data: |+
+    data: |
       {
-        "email": "newuser123@local",
-        "password": "sifra123"
+        "email": "farmer@example.local",
+        "password": "Password123!"
       }
-
-
-
   auth: inherit
 
 runtime:

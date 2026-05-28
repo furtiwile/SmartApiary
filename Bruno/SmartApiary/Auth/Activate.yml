@@ -8,11 +8,12 @@ http:
   url: "{{smart_apiary_api_base_url}}/auth/activate"
   body:
     type: json
-    data: |
+    data: |+
       {
-        "token": "<activation-token>",
+        "token": "0fdb3819cf7c4c2a7bd15b07caa46d075f4bfc50669a6fc435f1c4b7ab774db9",
         "password": "NewUserPassword"
       }
+
   auth: inherit
 
 runtime:

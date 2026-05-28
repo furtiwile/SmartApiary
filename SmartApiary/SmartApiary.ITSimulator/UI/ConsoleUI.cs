@@ -1,6 +1,4 @@
-﻿using SmartApiary.ITSimulator.Enums;
-
-namespace SmartApiary.ITSimulator.UI
+﻿namespace SmartApiary.ITSimulator.UI
 {
     public class ConsoleUI
     {
@@ -18,20 +16,13 @@ namespace SmartApiary.ITSimulator.UI
             Console.Write("[INPUT] Enter Device Friendly Name: ");
             return Console.ReadLine()?.Trim() ?? "Generic Inverter";
         }
-        public static DeviceType GetDeviceTypeInput()
+        public static string GetDeviceTypeInput()
         {
-            Console.WriteLine("[INPUT] Select Device Type:");
-            Console.WriteLine("  1. SolarPanel");
-            Console.WriteLine("  2. WindTurbine");
-            Console.Write("Selection (1-2): ");
-
-            string choice = Console.ReadLine() ?? "1";
-            return choice switch
-            {
-                "1" => DeviceType.SolarPanel,
-                "2" => DeviceType.WindTurbine,
-                _ => DeviceType.SolarPanel
-            };
+            Console.Write("[INPUT] Enter device type (e.g. SmartScale) [SmartScale]: ");
+            string input = Console.ReadLine()?.Trim();
+            if (string.IsNullOrWhiteSpace(input))
+                return "SmartScale";
+            return input;
         }
         public static double GetNominalPowerInput()
         {

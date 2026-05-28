@@ -8,12 +8,13 @@ http:
   url: "{{smart_apiary_api_base_url}}/auth/admin-create"
   body:
     type: json
-    data: |-
+    data: |
       {
-        "email": "newuser@local",
+        "email": "newuser123@local",
         "firstName": "New",
         "lastName": "User",
         "phoneNumber": "+10000000003",
+        
         "role": "Beekeeper"
       }
   auth: inherit
