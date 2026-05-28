@@ -12,8 +12,7 @@ namespace SmartApiary.Infrastructure.Persistence.AzureTable.KeyProviders
     {
         public string GetPartitionKey(Apiary model)
         {
-            // TODO: REVISE
-            return "TBD";
+            return model.BeekeeperId.Value;
         }
 
         public string GetRowKey(Apiary model)

@@ -7,7 +7,7 @@ namespace SmartApiary.Infrastructure.Persistence.AzureTable.KeyProviders
     {
         public string GetPartitionKey(Hive model)
         {
-            return model.Type.ToString();
+            return model.ApiaryId.Value;
         }
 
         public string GetRowKey(Hive model)

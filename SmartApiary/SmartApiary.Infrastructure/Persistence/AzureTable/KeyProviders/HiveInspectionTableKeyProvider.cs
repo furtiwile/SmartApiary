@@ -7,7 +7,7 @@ namespace SmartApiary.Infrastructure.Persistence.AzureTable.KeyProviders
     {
         public string GetPartitionKey(HiveInspection model)
         {
-            return model.BottomBoardColor;
+            return model.HiveId.Value;
         }
 
         public string GetRowKey(HiveInspection model)

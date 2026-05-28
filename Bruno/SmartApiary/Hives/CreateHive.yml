@@ -1,0 +1,29 @@
+info:
+  name: Create Hive
+  type: http
+  seq: 6
+
+http:
+  method: POST
+  url: "{{smart_apiary_api_base_url}}/hives"
+  body:
+    type: json
+    data: |+
+      {
+        "apiaryId": "4d726278-8722-495d-a13e-e5f57f7cca2e",
+        "designation": "H-01",
+        "type": "LR",
+        "superColor": "Blue",
+        "queenAge": 2,
+        "note": "",
+        "smartScaleId": "33333333-3333-3333-3333-333333333333"
+      }
+
+
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

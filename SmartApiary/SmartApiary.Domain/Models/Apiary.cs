@@ -75,6 +75,23 @@ namespace SmartApiary.Domain.Models
             EntityId beekeperId
         )
         {
+            return Create(EntityId.New(), name, latitude, longitude, description, imageUrl, thumbnailUrl, beekeperId);
+        }
+
+        /// <summary>
+        /// Creates a new apiary using a caller supplied ID.
+        /// </summary>
+        public static Result<Apiary> Create(
+            EntityId id,
+            string name,
+            double latitude,
+            double longitude,
+            string description,
+            string imageUrl,
+            string thumbnailUrl,
+            EntityId beekeperId
+        )
+        {
             if (string.IsNullOrWhiteSpace(name))
                 return Result<Apiary>.Failure("Name is required");
             
@@ -90,9 +107,12 @@ namespace SmartApiary.Domain.Models
             if (string.IsNullOrWhiteSpace(beekeperId.Value))
                 return Result<Apiary>.Failure("Beekeper's ID is required");
 
+            if (string.IsNullOrWhiteSpace(id.Value))
+                return Result<Apiary>.Failure("Apiary ID is required");
+
             return Result<Apiary>.Success(
                 new Apiary(
-                    EntityId.New(),
+                    id,
                     name, 
                     latitude,
                     longitude,
