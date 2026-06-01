@@ -5,6 +5,7 @@ using SmartApiary.Application.Features.Apiaries.Commands;
 using SmartApiary.Domain.Common;
 using SmartApiary.Domain.Enums;
 using SmartApiary.WebApi.Extensions;
+using System.IO;
 
 namespace SmartApiary.WebApi.DTOs
 {
@@ -39,9 +40,6 @@ namespace SmartApiary.WebApi.DTOs
             var extension = Path.GetExtension(ImageFile.FileName).ToLowerInvariant();
             if (extension is not (".jpg" or ".jpeg" or ".png" or ".webp" or ".gif"))
                 return Result<CreateApiaryCommand>.Failure("Only JPG, JPEG, PNG, WEBP and GIF images are allowed.", ErrorType.Validation);
-
-            if (!string.IsNullOrWhiteSpace(ImageFile.ContentType) && !ImageFile.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
-                return Result<CreateApiaryCommand>.Failure("Apiary image must be an image file.", ErrorType.Validation);
 
             var fileBytes = await ImageFile.ToByteArrayAsync(ct);
 

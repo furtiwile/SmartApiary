@@ -12,6 +12,11 @@ http:
       type: query
   auth: inherit
 
+runtime:
+  variables:
+    - name: smart_apiary_api_base_url
+      value: https://localhost:7262/api/
+
 settings:
   encodeUrl: true
   timeout: 0

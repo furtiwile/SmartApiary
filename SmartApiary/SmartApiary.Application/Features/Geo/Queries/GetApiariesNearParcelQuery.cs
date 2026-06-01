@@ -3,7 +3,11 @@ using SmartApiary.Application.Interfaces.Repositories;
 using SmartApiary.Domain.Common;
 using SmartApiary.Domain.Enums;
 using SmartApiary.Domain.ValueObjects;
+using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SmartApiary.Application.Features.Geo.Queries
 {
@@ -32,7 +36,11 @@ namespace SmartApiary.Application.Features.Geo.Queries
             if (parcel == null)
                 return Result<IReadOnlyCollection<ApiaryGeoDto>>.Failure("Parcel not found", ErrorType.NotFound);
 
-            var apiaries = await apiaryRepository.GetAllAsync(ct);
+            var apiaries = await apiaryRepository.GetApiariesWithinRadiusAsync(
+                parcel.Latitude,
+                parcel.Longitude,
+                request.RadiusKm * 1000,
+                ct);
 
             var results = apiaries
                 .Select(a => new
@@ -40,7 +48,6 @@ namespace SmartApiary.Application.Features.Geo.Queries
                     Apiary = a,
                     Distance = DistanceKm(parcel.Latitude, parcel.Longitude, a.Latitude, a.Longitude)
                 })
-                .Where(x => x.Distance <= request.RadiusKm)
                 .OrderBy(x => x.Distance)
                 .Select(x => new ApiaryGeoDto(
                     x.Apiary.Id.Value,
