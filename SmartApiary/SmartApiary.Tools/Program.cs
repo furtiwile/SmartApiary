@@ -40,6 +40,7 @@ Console.WriteLine("2) Clear Azure Blobs");
 Console.WriteLine("3) Clear Azure Queues");
 Console.WriteLine("4) Clear SQL Users table");
 Console.WriteLine("5) Insert test users into SQL");
+Console.WriteLine("6) Initialize SQL Schema for Apiaries/Parcels");
 Console.WriteLine("0) Exit");
 Console.WriteLine();
 
@@ -66,6 +67,9 @@ while (true)
                 break;
             case "5":
                 await InsertUsersAsync(GetSqlConnectionString());
+                break;
+            case "6":
+                await EnsureApiarySchemaAsync(GetSqlConnectionString());
                 break;
             case "0":
                 return;
@@ -201,6 +205,7 @@ async Task InsertUsersAsync(string connectionString)
     await EnsureDatabaseExistsAsync(connectionString);
 
     await EnsureUsersTableAsync(connectionString);
+    await EnsureApiarySchemaAsync(connectionString);
 
     var password = PromptPassword();
     var adminHash = BCrypt.Net.BCrypt.HashPassword(password);
@@ -289,7 +294,39 @@ END";
     await using var command = new SqlCommand(script, connection);
     await command.ExecuteNonQueryAsync();
 }
+async Task EnsureApiarySchemaAsync(string connectionString)
+{
+    await using var connection = new SqlConnection(connectionString);
+    await connection.OpenAsync();
 
+    const string schemaSql = @"
+IF OBJECT_ID('[dbo].[Apiaries]', 'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[Apiaries] (
+        [Id] UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
+        [Name] NVARCHAR(256) NOT NULL,
+        [Location] GEOGRAPHY NOT NULL,
+        [Description] NVARCHAR(1000) NOT NULL,
+        [ImageUrl] NVARCHAR(1000) NOT NULL,
+        [ThumbnailUrl] NVARCHAR(1000) NOT NULL,
+        [BeekeeperId] UNIQUEIDENTIFIER NOT NULL
+    );
+END
+
+IF OBJECT_ID('[dbo].[Parcels]', 'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[Parcels] (
+        [Id] UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
+        [Name] NVARCHAR(256) NOT NULL,
+        [Location] GEOGRAPHY NOT NULL,
+        [FarmerId] UNIQUEIDENTIFIER NOT NULL
+    );
+END";
+
+    await using var command = new SqlCommand(schemaSql, connection);
+    await command.ExecuteNonQueryAsync();
+    Console.WriteLine("[OK] SQL Apiaries and Parcels schema verified.");
+}
 string PromptPassword()
 {
     Console.Write("Password for all seed users [Password123!]: ");

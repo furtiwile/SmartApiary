@@ -30,11 +30,11 @@ namespace SmartApiary.Infrastructure.Extensions
 
             // Mappers
             services.AddSingleton<ITableMapper<User, UserEntity>, UserTableMapper>();
-            services.AddSingleton<ITableMapper<Apiary, ApiaryEntity>, ApiaryTableMapper>();
+            //services.AddSingleton<ITableMapper<Apiary, ApiaryEntity>, ApiaryTableMapper>();
             services.AddSingleton<ITableMapper<Crop, CropEntity>, CropTableMapper>();
             services.AddSingleton<ITableMapper<Hive, HiveEntity>, HiveTableMapper>();
             services.AddSingleton<ITableMapper<HiveInspection, HiveInspectionEntity>, HiveInspectionTableMapper>();
-            services.AddSingleton<ITableMapper<Parcel, ParcelEntity>, ParcelTableMapper>();
+            //services.AddSingleton<ITableMapper<Parcel, ParcelEntity>, ParcelTableMapper>();
             services.AddSingleton<ITableMapper<SmartScale, SmartScaleEntity>, SmartScaleTableMapper>();
             services.AddSingleton<ITableMapper<SprinklingAnnouncement, SprinklingAnnouncementEntity>, SprinklingAnnouncementTableMapper>();
             services.AddSingleton<ITableMapper<SprinklingRecord, SprinklingRecordEntity>, SprinklingRecordTableMapper>();
@@ -45,11 +45,11 @@ namespace SmartApiary.Infrastructure.Extensions
 
             // Key Providers
             services.AddSingleton<ITableKeyProvider<User>, UserTableKeyProvider>();
-            services.AddSingleton<ITableKeyProvider<Apiary>, ApiaryTableKeyProvider>();
+            //services.AddSingleton<ITableKeyProvider<Apiary>, ApiaryTableKeyProvider>();
             services.AddSingleton<ITableKeyProvider<Crop>, CropTableKeyProvider>();
             services.AddSingleton<ITableKeyProvider<Hive>, HiveTableKeyProvider>();
             services.AddSingleton<ITableKeyProvider<HiveInspection>, HiveInspectionTableKeyProvider>();
-            services.AddSingleton<ITableKeyProvider<Parcel>, ParcelTableKeyProvider>();
+            //services.AddSingleton<ITableKeyProvider<Parcel>, ParcelTableKeyProvider>();
             services.AddSingleton<ITableKeyProvider<SmartScale>, SmartScaleTableKeyProvider>();
             services.AddSingleton<ITableKeyProvider<SprinklingAnnouncement>, SprinklingAnnouncementTableKeyProvider>();
             services.AddSingleton<ITableKeyProvider<SprinklingRecord>, SprinklingRecordTableKeyProvider>();
@@ -57,12 +57,13 @@ namespace SmartApiary.Infrastructure.Extensions
             // Token key providers
             services.AddSingleton<ITableKeyProvider<ActivationToken>, ActivationTokenTableKeyProvider>();
             services.AddSingleton<ITableKeyProvider<PasswordResetToken>, PasswordResetTokenTableKeyProvider>();
-            
+
             // Repositories
-            services.AddSingleton<IApiaryRepository, ApiaryRepository>();
+            services.AddSingleton<IApiaryRepository, Persistence.Sql.Repositories.ApiaryRepository>();
+            services.AddSingleton<IParcelRepository, Persistence.Sql.Repositories.ParcelRepository>();
             services.AddSingleton<IHiveRepository, HiveRepository>();
             services.AddSingleton<IHiveInspectionRepository, HiveInspectionRepository>();
-            services.AddSingleton<IParcelRepository, ParcelRepository>();
+            //services.AddSingleton<IParcelRepository, ParcelRepository>();
             services.AddSingleton<ICropRepository, CropRepository>();
             services.AddSingleton<ISmartScaleRepository, SmartScaleRepository>();
             services.AddSingleton<ISprinklingAnnouncementRepository, SprinklingAnnouncementRepository>();

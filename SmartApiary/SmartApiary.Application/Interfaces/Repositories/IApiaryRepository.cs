@@ -11,5 +11,6 @@ namespace SmartApiary.Application.Interfaces.Repositories
         Task SaveAsync(Apiary apiary, CancellationToken ct = default);
         Task UpdateAsync(Apiary apiary, CancellationToken ct = default);
         Task DeleteAsync(Apiary apiary, CancellationToken ct = default);
+        Task<IReadOnlyCollection<Apiary>> GetApiariesWithinRadiusAsync(double latitude, double longitude, double radiusInMeters, CancellationToken ct = default);
     }
 }

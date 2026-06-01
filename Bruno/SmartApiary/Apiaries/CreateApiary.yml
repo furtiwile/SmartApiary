@@ -21,11 +21,12 @@ http:
       - name: Description
         type: text
         value: Test apiary
-      - name: ImageFile
-        type: file
-        value:
-          - C:\Faculty\Cloud\Project\TestingAssets\apiary1.jpg
   auth: inherit
+
+runtime:
+  variables:
+    - name: smart_apiary_api_base_url
+      value: https://localhost:7262/api/
 
 settings:
   encodeUrl: true
