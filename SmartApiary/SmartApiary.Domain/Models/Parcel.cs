@@ -8,11 +8,12 @@ namespace SmartApiary.Domain.Models
     {
         public EntityId Id { get; set; }
         public string Name { get; set; }
-        public double Latitude { get; set; }
-        public double Longitude { get; set; }
+        public double Latitude => Location?.Y ?? 0;
+        public double Longitude => Location?.X ?? 0;
         public EntityId FarmerId { get; set; }
-
+        public Point Location { get; set; }
         public ICollection<Crop> Crops { get; set; } = [];
+        
         public ICollection<SprinklingAnnouncement> Announcements { get; set; } = [];
 
         /// <summary>
@@ -23,12 +24,11 @@ namespace SmartApiary.Domain.Models
         /// <param name="latitude"></param>
         /// <param name="longitude"></param>
         /// <param name="farmerId"></param>
-        private Parcel(EntityId id, string name, double latitude, double longitude, EntityId farmerId)
+        private Parcel(EntityId id, string name,Point location, EntityId farmerId)
         {
             Id = id;
             Name = name;
-            Latitude = latitude;
-            Longitude = longitude;
+            Location = location;
             FarmerId = farmerId;
         }
 
@@ -42,6 +42,7 @@ namespace SmartApiary.Domain.Models
         /// <returns>Parcel if all parameters are valid, error details otherwise</returns>
         public static Result<Parcel> Create(string name, double latitude, double longitude, EntityId farmerId)
         {
+            var location = new Point(longitude, latitude) { SRID = 4326 };
             if (string.IsNullOrWhiteSpace(name))
                 return Result<Parcel>.Failure("Name is required");
 
@@ -52,8 +53,7 @@ namespace SmartApiary.Domain.Models
                 new Parcel(
                     EntityId.New(),
                     name,
-                    latitude,
-                    longitude,
+                    location,
                     farmerId
                 )
             );
@@ -70,6 +70,8 @@ namespace SmartApiary.Domain.Models
         /// <returns>Parcel if all parameters are valid, error details otherwise</returns>
         public static Result<Parcel> Load(string id, string name, double latitude, double longitude, string farmerId)
         {
+            var location = new Point(longitude, latitude) { SRID = 4326 };
+
             var idResult = EntityId.Create(id);
             if (idResult.IsFailure)
                 return Result<Parcel>.Failure("Invalid parcel id");
@@ -82,8 +84,7 @@ namespace SmartApiary.Domain.Models
                 new Parcel(
                     idResult.Value,
                     name,
-                    latitude,
-                    longitude,
+                    location,               
                     farmerIdResult.Value
                 )
             );
