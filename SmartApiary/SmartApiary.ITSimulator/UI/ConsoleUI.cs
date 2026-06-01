@@ -7,19 +7,15 @@
             Console.Clear();
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine("======================================");
-            Console.WriteLine("   SMART GRID INVERTER SIMULATOR v1.0   ");
+            Console.WriteLine("   SMART SCALE SIMULATOR v1.0   ");
             Console.WriteLine("======================================\n");
             Console.ResetColor();
         }
-        public static string GetDeviceNameInput()
-        {
-            Console.Write("[INPUT] Enter Device Friendly Name: ");
-            return Console.ReadLine()?.Trim() ?? "Generic Inverter";
-        }
+        
         public static string GetDeviceTypeInput()
         {
             Console.Write("[INPUT] Enter device type (e.g. SmartScale) [SmartScale]: ");
-            string input = Console.ReadLine()?.Trim();
+            string? input = Console.ReadLine()?.Trim();
             if (string.IsNullOrWhiteSpace(input))
                 return "SmartScale";
             return input;
@@ -38,11 +34,11 @@
             Console.Write("[INPUT] Enter Location (e.g., Belgrade_Plant_A): ");
             return Console.ReadLine()?.Trim() ?? "Unknown_Location";
         }
-        public static void PrintStartMessage(string deviceName, string apiUrl)
+        public static void PrintStartMessage(string apiUrl)
         {
             Console.WriteLine("\n--------------------------------------");
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine($"[SYSTEM] Starting simulation for: {deviceName}");
+            Console.WriteLine($"[SYSTEM] Starting SmartScale simulation");
             Console.WriteLine($"[SYSTEM] Target API: {apiUrl}");
             Console.ResetColor();
             Console.WriteLine("[SYSTEM] Press Ctrl+C to stop simulation.");

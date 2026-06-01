@@ -36,6 +36,27 @@ namespace SmartApiary.Infrastructure.Persistence.AzureQueue
                     message.PopReceipt,
                     body);
             }
+            catch (Azure.RequestFailedException rfe)
+            {
+                if (string.Equals(rfe.ErrorCode, "QueueNotFound", StringComparison.OrdinalIgnoreCase))
+                {
+                    _logger.LogWarning(rfe, "Queue {QueueName} not found. Attempting to create it.", _queueClient.Name);
+                    try
+                    {
+                        await _queueClient.CreateIfNotExistsAsync(cancellationToken: ct);
+                        _logger.LogInformation("Queue {QueueName} created successfully.", _queueClient.Name);
+                    }
+                    catch (Exception createEx)
+                    {
+                        _logger.LogError(createEx, "Failed to create queue {QueueName} after not found error.", _queueClient.Name);
+                    }
+
+                    return null;
+                }
+
+                _logger.LogError(rfe, "Request failed while receiving message from queue {QueueName}", _queueClient.Name);
+                return null;
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex,

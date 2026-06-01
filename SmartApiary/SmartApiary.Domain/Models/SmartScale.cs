@@ -8,6 +8,7 @@ namespace SmartApiary.Domain.Models
     {
         public EntityId Id { get; set; }
         public string SerialNumber { get; set; } = string.Empty;
+        public string HardwareId { get; set; } = string.Empty;
         public string DeviceToken { get; set; } = string.Empty;
         public DeviceStatusEnum Status { get; set; }
 
@@ -30,10 +31,18 @@ namespace SmartApiary.Domain.Models
         /// <param name="status"></param>
         /// <param name="latestReading"></param>
         /// <param name="timeOfLastReading"></param>
-        private SmartScale(EntityId id, string serialNumber, string deviceToken, DeviceStatusEnum status, double latestReading, DateTime timeOfLastReading)
+        private SmartScale(
+            EntityId id,
+            string serialNumber,
+            string hardwareId,
+            string deviceToken,
+            DeviceStatusEnum status,
+            double latestReading,
+            DateTime timeOfLastReading)
         {
             Id = id;
             SerialNumber = serialNumber;
+            HardwareId = hardwareId;
             DeviceToken = deviceToken;
             Status = status;
             LatestReading = latestReading;
@@ -51,6 +60,7 @@ namespace SmartApiary.Domain.Models
         /// <returns>Smart scale if all parameters are valid, error details otherwise</returns>
         public static Result<SmartScale> Create(
             string serialNumber,
+            string hardwareId,
             string deviceToken,
             DeviceStatusEnum status,
             double latestReading,
@@ -60,6 +70,9 @@ namespace SmartApiary.Domain.Models
             if (string.IsNullOrWhiteSpace(serialNumber))
                 return Result<SmartScale>.Failure("Serial number is required");
 
+            if (string.IsNullOrWhiteSpace(hardwareId))
+                return Result<SmartScale>.Failure("Hardware id is required");
+
             if (string.IsNullOrWhiteSpace(deviceToken))
                 return Result<SmartScale>.Failure("Device token is required");
 
@@ -67,10 +80,29 @@ namespace SmartApiary.Domain.Models
                 new SmartScale(
                     EntityId.New(),
                     serialNumber,
+                    hardwareId,
                     deviceToken,
                     status,
                     latestReading,
                     timeOfLastReading
+                )
+            );
+        }
+
+        public static Result<SmartScale> CreateUnpaired(string serialNumber)
+        {
+            if (string.IsNullOrWhiteSpace(serialNumber))
+                return Result<SmartScale>.Failure("Serial number is required");
+
+            return Result<SmartScale>.Success(
+                new SmartScale(
+                    EntityId.New(),
+                    serialNumber,
+                    string.Empty,
+                    string.Empty,
+                    DeviceStatusEnum.Unpaired,
+                    0,
+                    DateTime.MinValue
                 )
             );
         }
@@ -88,6 +120,7 @@ namespace SmartApiary.Domain.Models
         public static Result<SmartScale> Load(
             string id, 
             string serialNumber, 
+            string hardwareId,
             string deviceToken,
             DeviceStatusEnum status, 
             double latestReading, 
@@ -102,6 +135,7 @@ namespace SmartApiary.Domain.Models
                 new SmartScale(
                     idResult.Value,
                     serialNumber,
+                    hardwareId,
                     deviceToken,
                     status,
                     latestReading,

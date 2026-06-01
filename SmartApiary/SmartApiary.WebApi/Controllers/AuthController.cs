@@ -19,7 +19,7 @@ namespace SmartApiary.WebApi.Controllers
                 if (result.IsFailure)
                     return Unauthorized(new { message = result.Error?.Message ?? "Login failed" });
 
-                return Ok(result);
+                return result.ToActionResult();
             }
             catch (UnauthorizedAccessException ex)
             {

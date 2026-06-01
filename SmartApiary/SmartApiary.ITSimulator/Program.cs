@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Configuration;
-using SmartApiary.ITSimulator.Enums;
 using SmartApiary.ITSimulator.Models;
 using SmartApiary.ITSimulator.Services;
 using SmartApiary.ITSimulator.UI;
@@ -12,88 +11,104 @@ var configuration = new ConfigurationBuilder()
     .Build();
 
 // Get settings
-var baseApiUrl = configuration["SimulatorSettings:BaseApiUrl"]
-    ?? throw new InvalidOperationException("Device URL is not configured");
 var delayMs = int.Parse(configuration["SimulatorSettings:DelayMilliseconds"] ?? "10000");
 var maxVariation = double.Parse(configuration["SimulatorSettings:MaxPowerVariation"] ?? "50");
 
 // Initialize services
 ConsoleUI.PrintHeader();
 
-string deviceName = ConsoleUI.GetDeviceNameInput();
-DeviceType deviceType = ConsoleUI.GetDeviceTypeInput();
-double nominalPower = ConsoleUI.GetNominalPowerInput();
-string location = ConsoleUI.GetLocationInput();
-string currentVersion = "V1.0.0";
+var apiBaseUrl = configuration["SimulatorSettings:ApiBaseUrl"]
+    ?? throw new InvalidOperationException("Api base URL is not configured");
+var functionsBaseUrl = configuration["SimulatorSettings:FunctionsBaseUrl"]
+    ?? throw new InvalidOperationException("Functions base URL is not configured");
 
-using var httpClient = new HttpClient { BaseAddress = new Uri(baseApiUrl) };
+using var apiClient = new HttpClient { BaseAddress = new Uri(apiBaseUrl) };
+using var functionsClient = new HttpClient { BaseAddress = new Uri(functionsBaseUrl) };
 
-var deviceClient = new DeviceClient(httpClient);
+// Use SmartScaleClient + SmartScaleSimulator for pairing and telemetry
+var smartClient = new SmartScaleClient(apiClient, functionsClient);
+var smartSimulator = new SmartScaleSimulator(smartClient);
 
-string? deviceId =
-    await deviceClient.RegisterDeviceAsync(
-        new DeviceDTO
-        {
-            DeviceName = deviceName,
-            DeviceType = deviceType,
-            Location = location,
-            NominalPower = nominalPower
-        }
-    );
-
-if (deviceId == null)
+while (true)
 {
-    ConsoleUI.PrintCritical("Registration failed!");
-    return;
-}
-
-var simulator = new SimulatorService(maxVariation);
-var publisher = new TelemetryPublisher(httpClient);
-
-Console.ForegroundColor = ConsoleColor.Cyan;
-Console.WriteLine($"\n[SYSTEM] Registering device '{deviceName}' on API...");
-Console.ResetColor();
-
-ConsoleUI.PrintStartMessage(deviceName, baseApiUrl + "/api/ReceiveTelemetry");
-
-
-try
-{
-    while (true)
+    try
     {
-        var telemetry = simulator.GenerateTelemetry(deviceId,
-                                                    deviceName,
-                                                    nominalPower,
-                                                    currentVersion,
-                                                    deviceType);
-        var (success, errorMessage) = await publisher.PublishSafeAsync(telemetry);
+        Console.WriteLine("Select action:");
+        Console.WriteLine("  1) Process SmartScale IDs (activate if needed and start telemetry)");
+        Console.WriteLine("  2) Start telemetry loop for a persisted SmartScale");
+        Console.WriteLine("  3) Exit");
+        Console.Write("Choice (1-3): ");
+        var choice = Console.ReadLine()?.Trim() ?? string.Empty;
 
-        if (success)
+        if (choice == "1")
         {
+            Console.Write("Enter comma-separated SmartScale IDs: ");
+            var input = Console.ReadLine() ?? string.Empty;
+            var ids = input.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+            if (!ids.Any())
+            {
+                ConsoleUI.PrintError("No SmartScale IDs provided.");
+                continue;
+            }
+
+            var started = await smartSimulator.ProcessSmartScaleIdsAsync(ids, delayMs);
+            if (!started.Any())
+            {
+                ConsoleUI.PrintError("No devices started. Check IDs and endpoints.");
+                continue;
+            }
+
             Console.ForegroundColor = ConsoleColor.Green;
-            ConsoleUI.PrintSuccess(telemetry.CurrentPower, telemetry.NominalPower);
+            Console.WriteLine($"Started {started.Count()} device(s) telemetry.");
             Console.ResetColor();
+        }
+        else if (choice == "2")
+        {
+            var devices = smartSimulator.LoadDevices().ToList();
+            if (!devices.Any())
+            {
+                ConsoleUI.PrintError("No persisted devices found. Pair one first.");
+                continue;
+            }
+
+            Console.WriteLine("Persisted devices:");
+            for (int i = 0; i < devices.Count; i++)
+            {
+                Console.WriteLine($"  {i + 1}. {devices[i].SerialNumber} (Hive: {devices[i].HiveId})");
+            }
+            Console.Write("Select device index to start telemetry: ");
+            if (!int.TryParse(Console.ReadLine(), out int idx) || idx < 1 || idx > devices.Count)
+            {
+                ConsoleUI.PrintError("Invalid selection.");
+                continue;
+            }
+
+            var device = devices[idx - 1];
+            if (string.IsNullOrWhiteSpace(device.HiveId))
+            {
+                device.HiveId = smartSimulator.PromptForHiveId(device.SerialNumber);
+                smartSimulator.SaveDevice(device);
+            }
+
+            _ = Task.Run(() => smartSimulator.StartTelemetryLoopAsync(device, delayMs));
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"Started telemetry loop for {device.SerialNumber}.");
+            Console.ResetColor();
+        }
+        else if (choice == "3")
+        {
+            Console.WriteLine("Exiting.");
+            break;
         }
         else
         {
-            Console.ForegroundColor = ConsoleColor.Red;
-            ConsoleUI.PrintError(errorMessage ?? "Unknown error");
-            Console.ResetColor();
+            ConsoleUI.PrintError("Invalid choice.");
         }
-
-        await Task.Delay(delayMs);
     }
-}
-catch (OperationCanceledException)
-{
-    Console.ForegroundColor = ConsoleColor.Yellow;
-    Console.WriteLine("\n[SYSTEM] Simulation stopped by user.");
-    Console.ResetColor();
-}
-catch (Exception ex)
-{
-    Console.ForegroundColor = ConsoleColor.Red;
-    ConsoleUI.PrintCritical($"Fatal error: {ex.Message}");
-    Console.ResetColor();
-    Environment.Exit(1);
+    catch (Exception ex)
+    {
+        ConsoleUI.PrintError(ex.Message);
+    }
+
+    Console.WriteLine();
 }
