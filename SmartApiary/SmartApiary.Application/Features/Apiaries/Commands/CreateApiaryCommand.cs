@@ -8,6 +8,7 @@ using SmartApiary.Domain.Common;
 using SmartApiary.Domain.Enums;
 using SmartApiary.Domain.Models;
 using SmartApiary.Domain.ValueObjects;
+using NetTopologySuite.Geometries;
 
 namespace SmartApiary.Application.Features.Apiaries.Commands
 {
@@ -62,11 +63,12 @@ namespace SmartApiary.Application.Features.Apiaries.Commands
             if (imageResult.IsFailure)
                 return Result<string>.Failure(imageResult.Error!.Message, imageResult.Error!.Type);
 
+            var location = new Point(request.Longitude, request.Latitude) { SRID = 4326 };
+
             var apiaryResult = Apiary.Create(
                 apiaryId,
                 request.Name,
-                request.Latitude,
-                request.Longitude,
+                location,
                 request.Description,
                 imageResult.Value.ImageUrl,
                 imageResult.Value.ThumbnailUrl,
