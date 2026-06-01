@@ -35,12 +35,12 @@ namespace SmartApiary.Infrastructure.Persistence.AzureTable.Repositories
             await base.AddAsync(record, ct);
         }
 
-        public async Task UpdateAsync(SprinklingRecord record, CancellationToken ct = default)
+        public new async Task UpdateAsync(SprinklingRecord record, CancellationToken ct = default)
         {
             await base.UpdateAsync(record, ct);
         }
 
-        public async Task DeleteAsync(SprinklingRecord record, CancellationToken ct = default)
+        public new async Task DeleteAsync(SprinklingRecord record, CancellationToken ct = default)
         {
             await base.DeleteAsync(record, ct);
         }

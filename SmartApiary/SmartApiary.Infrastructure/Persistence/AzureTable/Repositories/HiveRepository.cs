@@ -42,12 +42,12 @@ namespace SmartApiary.Infrastructure.Persistence.AzureTable.Repositories
             await base.AddAsync(hive, ct);
         }
 
-        public async Task UpdateAsync(Hive hive, CancellationToken ct = default)
+        public new async Task UpdateAsync(Hive hive, CancellationToken ct = default)
         {
             await base.UpdateAsync(hive, ct);
         }
 
-        public async Task DeleteAsync(Hive hive, CancellationToken ct = default)
+        public new async Task DeleteAsync(Hive hive, CancellationToken ct = default)
         {
             await base.DeleteAsync(hive, ct);
         }

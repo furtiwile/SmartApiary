@@ -17,7 +17,7 @@ namespace SmartApiary.WebApi.Extensions
         public static IActionResult ToActionResult<T>(this Result<T> result)
         {
             return result.IsSuccess
-                            ? new OkObjectResult(result.Value)
+                            ? new OkObjectResult(new { message = "Operation successful.", data = result.Value })
                             : HandleFailure(result);
         }
 

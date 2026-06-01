@@ -33,7 +33,7 @@ namespace SmartApiary.Infrastructure.Persistence.AzureTable.Repositories
             await base.AddAsync(token, ct);
         }
 
-        public async Task UpdateAsync(PasswordResetToken token, CancellationToken ct = default)
+        public new async Task UpdateAsync(PasswordResetToken token, CancellationToken ct = default)
         {
             await base.UpdateAsync(token, ct);
         }
