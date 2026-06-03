@@ -2,3 +2,5 @@ name: api
 variables:
   - name: smart_apiary_api_base_url
     value: https://localhost:7262/api
+  - name: smart_apiary_functions_base_url
+    value: http://localhost:7071
