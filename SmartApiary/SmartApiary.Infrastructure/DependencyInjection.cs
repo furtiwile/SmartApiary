@@ -1,10 +1,11 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using SmartApiary.Application.Common.Options;
+using SmartApiary.Application.Interfaces;
 using SmartApiary.Infrastructure.Common.Options;
 using SmartApiary.Infrastructure.Extensions;
 using SmartApiary.Infrastructure.Services;
-
 namespace SmartApiary.Infrastructure
 {
     public static class DependencyInjection
@@ -20,6 +21,8 @@ namespace SmartApiary.Infrastructure
             services.Configure<JwtOptions>(configuration.GetSection("JwtOptions"));
             services.Configure<EmailOptions>(configuration.GetSection("EmailOptions"));
             services.Configure<UserTokenOptions>(configuration.GetSection("UserTokenOptions"));
+            services.Configure<WeatherOptions>(configuration.GetSection("WeatherOptions"));
+
 
             var tableConn = configuration.GetValue<string>("AzureTableOptions:ConnectionString")
                 ?? throw new InvalidOperationException("AzureTableOptions:ConnectionString is not configured.");
@@ -31,6 +34,13 @@ namespace SmartApiary.Infrastructure
                 ?? throw new InvalidOperationException("AzureQueueOptions:ConnectionString is not configured.");
 
             services.AddJsonSerializer();
+
+            services.AddHttpClient<IWeatherService, OpenWeatherMapService>((serviceProvider, client) =>
+            {
+                var weatherOptions = serviceProvider.GetRequiredService<IOptions<WeatherOptions>>().Value;
+                client.BaseAddress = new Uri(weatherOptions.BaseUrl);
+                client.Timeout = TimeSpan.FromSeconds(10); 
+            });
 
             services
                 .AddServices()
