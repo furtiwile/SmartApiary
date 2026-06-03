@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using SmartApiary.Application.Common.Options;
 using SmartApiary.Infrastructure.Common.Options;
 using SmartApiary.Infrastructure.Extensions;
+using SmartApiary.Infrastructure.Services;
 
 namespace SmartApiary.Infrastructure
 {
@@ -35,7 +36,8 @@ namespace SmartApiary.Infrastructure
                 .AddServices()
                 .AddAzureTables(tableConn)
                 .AddAzureBlobs(blobConn)
-                .AddAzureQueues(queueConn);
+                .AddAzureQueues(queueConn)
+                .AddHostedService<QueueInitializerHostedService>(); 
 
             return services; 
         }

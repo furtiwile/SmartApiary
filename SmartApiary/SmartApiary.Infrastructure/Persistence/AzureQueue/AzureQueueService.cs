@@ -2,6 +2,10 @@
 using Microsoft.Extensions.Logging;
 using SmartApiary.Application.Interfaces;
 using SmartApiary.Application.Interfaces.Messaging;
+using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SmartApiary.Infrastructure.Persistence.AzureQueue
 {
@@ -80,6 +84,27 @@ namespace SmartApiary.Infrastructure.Persistence.AzureQueue
                     "Message {MessageType} sent to queue {QueueName}",
                     typeof(T).Name,
                     _queueClient.Name);
+            }
+            catch (Azure.RequestFailedException rfe) when (string.Equals(rfe.ErrorCode, "QueueNotFound", StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogWarning(rfe, "Queue {QueueName} not found during send operation. Attempting dynamic creation.", _queueClient.Name);
+                try
+                {
+                    await _queueClient.CreateIfNotExistsAsync(cancellationToken: ct);
+                    _logger.LogInformation("Queue {QueueName} provisioned successfully on send fallback.", _queueClient.Name);
+
+                    var json = _serializer.Serialize(message);
+                    await _queueClient.SendMessageAsync(json, ct);
+
+                    _logger.LogInformation(
+                        "Message {MessageType} sent successfully after dynamic creation to queue {QueueName}",
+                        typeof(T).Name,
+                        _queueClient.Name);
+                }
+                catch (Exception createEx)
+                {
+                    _logger.LogError(createEx, "Failed to dynamically create or retry send operation for queue {QueueName}.", _queueClient.Name);
+                }
             }
             catch (Exception ex)
             {
