@@ -47,7 +47,8 @@ namespace SmartApiary.Infrastructure
                 .AddAzureTables(tableConn)
                 .AddAzureBlobs(blobConn)
                 .AddAzureQueues(queueConn)
-                .AddHostedService<QueueInitializerHostedService>(); 
+                .AddHostedService<QueueInitializerHostedService>()
+                .AddTransient<IPdfService, PdfService>();
 
             return services; 
         }
