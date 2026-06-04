@@ -4,6 +4,8 @@ using SmartApiary.Application.Interfaces.Repositories;
 using SmartApiary.Domain.Common;
 using SmartApiary.Domain.Enums;
 using SmartApiary.Domain.ValueObjects;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
 {
@@ -29,17 +31,23 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
         {
             var parcelIdResult = EntityId.Create(request.ParcelId);
             if (parcelIdResult.IsFailure)
+            {
                 return Result.Failure(parcelIdResult.Error!.Message, ErrorType.Validation);
+            }
 
             var announcementIdResult = EntityId.Create(request.AnnouncementId);
             if (announcementIdResult.IsFailure)
+            {
                 return Result.Failure(announcementIdResult.Error!.Message, ErrorType.Validation);
+            }
 
             var announcement = await announcementRepository.GetByIdAsync(parcelIdResult.Value, announcementIdResult.Value, ct);
             if (announcement == null)
+            {
                 return Result.Failure("Announcement not found", ErrorType.NotFound);
+            }
 
-            announcement.IsCancelled = true;
+            announcement.Cancel();
             await announcementRepository.UpdateAsync(announcement, ct);
 
             return Result.Success();
