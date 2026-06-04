@@ -1,4 +1,5 @@
-using MediatR;
+﻿using MediatR;
+using SmartApiary.Application.Interfaces;
 using SmartApiary.Application.Interfaces.Repositories;
 using SmartApiary.Domain.Common;
 using SmartApiary.Domain.Enums;
@@ -11,29 +12,20 @@ using System.Threading.Tasks;
 
 namespace SmartApiary.Application.Features.SprinklingRecords.Queries
 {
-    public record SprinklingRecordDto(
-        string Id,
-        string AnnouncementId,
-        DateTime ActualStartTime,
-        DateTime ActualEndTime,
-        string PreparationType,
-        double WindSpeed,
-        double Precipitation
-    );
-
-    public record GetSprinklingRecordsByAnnouncementQuery(
+    public record ExportSprinklingRecordsToPdfQuery(
         string? AnnouncementId = null,
         string? ParcelId = null,
         DateTime? FromDate = null,
         DateTime? ToDate = null
-    ) : IRequest<Result<IReadOnlyCollection<SprinklingRecordDto>>>;
+    ) : IRequest<Result<byte[]>>;
 
-    internal class GetSprinklingRecordsByAnnouncementHandler(
+    internal class ExportSprinklingRecordsToPdfHandler(
         ISprinklingRecordRepository recordRepository,
-        ISprinklingAnnouncementRepository announcementRepository
-    ) : IRequestHandler<GetSprinklingRecordsByAnnouncementQuery, Result<IReadOnlyCollection<SprinklingRecordDto>>>
+        ISprinklingAnnouncementRepository announcementRepository,
+        IPdfService pdfService
+    ) : IRequestHandler<ExportSprinklingRecordsToPdfQuery, Result<byte[]>>
     {
-        public async Task<Result<IReadOnlyCollection<SprinklingRecordDto>>> Handle(GetSprinklingRecordsByAnnouncementQuery request, CancellationToken ct)
+        public async Task<Result<byte[]>> Handle(ExportSprinklingRecordsToPdfQuery request, CancellationToken ct)
         {
             var allowedAnnouncementIds = new HashSet<string>();
 
@@ -46,7 +38,7 @@ namespace SmartApiary.Application.Features.SprinklingRecords.Queries
                 var parcelIdResult = EntityId.Create(request.ParcelId);
                 if (parcelIdResult.IsFailure)
                 {
-                    return Result<IReadOnlyCollection<SprinklingRecordDto>>.Failure(parcelIdResult.Error!.Message, ErrorType.Validation);
+                    return Result<byte[]>.Failure(parcelIdResult.Error!.Message, ErrorType.Validation);
                 }
 
                 var announcements = await announcementRepository.GetByParcelIdAsync(parcelIdResult.Value, ct);
@@ -96,8 +88,15 @@ namespace SmartApiary.Application.Features.SprinklingRecords.Queries
                 allRecords.AddRange(filteredDtos);
             }
 
-            var result = allRecords.OrderByDescending(x => x.ActualStartTime).ToList();
-            return Result<IReadOnlyCollection<SprinklingRecordDto>>.Success(result);
+            if (!allRecords.Any())
+            {
+                return Result<byte[]>.Failure("No records found within the specified filters to export.", ErrorType.NotFound);
+            }
+
+            var sortedRecords = allRecords.OrderByDescending(x => x.ActualStartTime).ToList();
+            var pdfBytes = await pdfService.GenerateSprinklingReportAsync(sortedRecords, ct);
+
+            return Result<byte[]>.Success(pdfBytes);
         }
     }
 }
