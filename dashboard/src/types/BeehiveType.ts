@@ -1,0 +1,1 @@
+export type BeehiveType = "LR" | "DB" | "Poloska" | "Farrar" | "Other"
