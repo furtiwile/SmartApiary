@@ -23,6 +23,14 @@ const MainLayout: React.FC = () => {
                   DEVICES
                 </Link>
               </li>
+              <li>
+                <Link
+                  to="/beehives"
+                  className="text-sm font-bold tracking-wide text-slate-400 hover:text-cyan-400 transition-colors duration-200"
+                >
+                  BEEHIVES
+                </Link>
+              </li>
             </ul>
           </nav>
         </div>
