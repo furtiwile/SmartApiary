@@ -32,7 +32,7 @@ const DevicesPage: React.FC = () => {
   return (
     <PageLayout>
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <header className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-white tracking-tight">
             Device Inventory
@@ -48,7 +48,7 @@ const DevicesPage: React.FC = () => {
         >
           Upload New Firmware
         </button>
-      </div>
+      </header>
 
       {/* Table */}
       <div className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-md rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-white dark:border-slate-700 overflow-hidden">
