@@ -1,8 +1,50 @@
 import React from "react";
 import { Toaster } from "react-hot-toast";
 import { Link, Outlet } from "react-router-dom";
+import { useAuth } from "../features/users/hooks/AuthHook";
+
+
+
+function showAccountActions(isAuthed: boolean) {
+  if (isAuthed) {
+    return (
+      <li>
+        <Link
+          to="/logout"
+          className="text-sm font-bold tracking-wide text-slate-400 hover:text-cyan-400 transition-colors duration-200"
+        >
+          LOGOUT
+        </Link>
+      </li>
+    )
+  }
+  return (
+    <>
+      <li>
+        <Link
+          to="/login"
+          className="text-sm font-bold tracking-wide text-slate-400 hover:text-cyan-400 transition-colors duration-200"
+        >
+          LOGIN
+        </Link>
+      </li>
+      <li>
+        <Link
+          to="/register"
+          className="text-sm font-bold tracking-wide text-slate-400 hover:text-cyan-400 transition-colors duration-200"
+        >
+          REGISTER
+        </Link>
+      </li>
+    </>
+  );
+}
+
+
 
 const MainLayout: React.FC = () => {
+  const {isAuthed, user} = useAuth();
+  
   return (
     <div className="flex flex-col min-h-screen bg-slate-950 text-slate-200">
       {/* Header */}
@@ -31,6 +73,7 @@ const MainLayout: React.FC = () => {
                   BEEHIVES
                 </Link>
               </li>
+              { showAccountActions() /* Will it show LOGIN + REGISTER or LOGOUT */ }
             </ul>
           </nav>
         </div>
