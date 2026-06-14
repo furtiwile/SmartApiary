@@ -1,4 +1,4 @@
-﻿using Azure.Storage.Queues;
+using Azure.Storage.Queues;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -20,7 +20,8 @@ namespace SmartApiary.Infrastructure.Services
             {
                 options.Value.TelemetryQueue,
                 options.Value.AlertQueue,
-                options.Value.DeviceStatusQueue
+                options.Value.DeviceStatusQueue,
+                options.Value.AnnouncementQueue
             };
 
             foreach (var queueName in queueNames)

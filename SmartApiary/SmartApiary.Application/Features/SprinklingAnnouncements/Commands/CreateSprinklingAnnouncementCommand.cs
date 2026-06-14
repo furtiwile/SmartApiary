@@ -1,5 +1,6 @@
 using FluentValidation;
 using MediatR;
+using SmartApiary.Application.Interfaces.Messaging;
 using SmartApiary.Application.Interfaces.Repositories;
 using SmartApiary.Domain.Common;
 using SmartApiary.Domain.Enums;
@@ -30,7 +31,8 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
 
     internal class CreateSprinklingAnnouncementHandler(
         ISprinklingAnnouncementRepository announcementRepository,
-        IParcelRepository parcelRepository
+        IParcelRepository parcelRepository,
+        IAnnouncementQueueService announcementQueueService
     ) : IRequestHandler<CreateSprinklingAnnouncementCommand, Result<string>>
     {
         public async Task<Result<string>> Handle(CreateSprinklingAnnouncementCommand request, CancellationToken ct)
@@ -61,6 +63,8 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
             }
 
             await announcementRepository.SaveAsync(announcementResult.Value, ct);
+
+            await announcementQueueService.SendAnnouncementMessageAsync(announcementResult.Value.Id.Value, AnnouncementAction.Created, ct);
 
             return Result<string>.Success(announcementResult.Value.Id.Value);
         }

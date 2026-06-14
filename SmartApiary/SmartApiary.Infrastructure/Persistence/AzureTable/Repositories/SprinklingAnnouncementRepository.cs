@@ -25,6 +25,11 @@ namespace SmartApiary.Infrastructure.Persistence.AzureTable.Repositories
             return await base.GetByIdAsync(parcelId.Value, announcementId.Value, ct);
         }
 
+        public async Task<SprinklingAnnouncement?> GetByIdAsync(EntityId announcementId, CancellationToken ct = default)
+        {
+            return (await base.QueryAsync($"RowKey eq '{announcementId.Value}'", ct)).FirstOrDefault();
+        }
+
         public async Task<IReadOnlyCollection<SprinklingAnnouncement>> GetByParcelIdAsync(EntityId parcelId, CancellationToken ct = default)
         {
             return await base.QueryByPartitionKeyAsync(parcelId.Value, ct);

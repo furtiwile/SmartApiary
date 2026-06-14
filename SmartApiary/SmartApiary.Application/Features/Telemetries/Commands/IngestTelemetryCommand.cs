@@ -35,7 +35,8 @@ namespace SmartApiary.Application.Features.Telemetries.Commands
     internal class IngestTelemetryHandler(
         ISmartScaleRepository smartScaleRepository,
         ITelemetryRepository telemetryRepository,
-        ITelemetryQueueService telemetryQueueService)
+        ITelemetryQueueService telemetryQueueService,
+        IAlertQueueService alertQueueService)
         : IRequestHandler<IngestTelemetryCommand, Result>
     {
         public async Task<Result> Handle(IngestTelemetryCommand request, CancellationToken ct)
@@ -64,6 +65,50 @@ namespace SmartApiary.Application.Features.Telemetries.Commands
             await telemetryRepository.SaveAsync(telemetryResult.Value, ct);
 
             await telemetryQueueService.SendTelemetryAsync(telemetryResult.Value, ct);
+
+            // Check for weight drop alert
+            if (smartScale.LatestReading > 0)
+            {
+                var weightDrop = smartScale.LatestReading - request.WeightKg;
+                if (weightDrop > smartScale.WeightDropThreshold)
+                {
+                    var msgResult = Message.Create($"Weight dropped by {weightDrop}kg. Threshold is {smartScale.WeightDropThreshold}kg.");
+                    if (msgResult.IsSuccess)
+                    {
+                        var alertResult = Alert.Create(smartScale.Id.Value, AlertType.Critical, msgResult.Value.Value);
+                        if (alertResult.IsSuccess)
+                        {
+                            await alertQueueService.SendAlertAsync(alertResult.Value, ct);
+                        }
+                    }
+                }
+            }
+
+            // Check for battery warning
+            if (request.BatteryPercent < 15)
+            {
+                if (!smartScale.IsBatteryWarningSent)
+                {
+                    var msgResult = Message.Create($"Battery level is critically low: {request.BatteryPercent}%.");
+                    if (msgResult.IsSuccess)
+                    {
+                        var alertResult = Alert.Create(smartScale.Id.Value, AlertType.Warning, msgResult.Value.Value);
+                        if (alertResult.IsSuccess)
+                        {
+                            await alertQueueService.SendAlertAsync(alertResult.Value, ct);
+                            smartScale.IsBatteryWarningSent = true;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                // Reset battery warning flag if recharged
+                if (smartScale.IsBatteryWarningSent && request.BatteryPercent > 15)
+                {
+                    smartScale.IsBatteryWarningSent = false;
+                }
+            }
 
             smartScale.LatestReading = request.WeightKg;
             smartScale.TimeOfLastReading = request.Timestamp;

@@ -1,4 +1,4 @@
-﻿namespace SmartApiary.Infrastructure.Persistence.AzureTable.Entities
+namespace SmartApiary.Infrastructure.Persistence.AzureTable.Entities
 {
     internal class SmartScaleEntity : BaseTableEntity
     {
@@ -8,5 +8,7 @@
         public string Status { get; set; } = default!;
         public double LatestReading { get; set; } = default;
         public DateTime TimeOfLastReading { get; set; }
+        public bool IsBatteryWarningSent { get; set; }
+        public double WeightDropThreshold { get; set; } = 10.0;
     }
 }

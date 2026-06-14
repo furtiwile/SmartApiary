@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.SignalR;
 
 namespace SmartApiary.WebApi.Hubs
 {
@@ -26,6 +26,18 @@ namespace SmartApiary.WebApi.Hubs
         {
             if (string.IsNullOrWhiteSpace(hiveId)) return Task.CompletedTask;
             return Groups.RemoveFromGroupAsync(Context.ConnectionId, $"hive:{hiveId}");
+        }
+        
+        public Task JoinBeekeeperGroup(string beekeeperId)
+        {
+            if (string.IsNullOrWhiteSpace(beekeeperId)) return Task.CompletedTask;
+            return Groups.AddToGroupAsync(Context.ConnectionId, $"beekeeper:{beekeeperId}");
+        }
+
+        public Task LeaveBeekeeperGroup(string beekeeperId)
+        {
+            if (string.IsNullOrWhiteSpace(beekeeperId)) return Task.CompletedTask;
+            return Groups.RemoveFromGroupAsync(Context.ConnectionId, $"beekeeper:{beekeeperId}");
         }
     }
 }

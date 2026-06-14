@@ -1,4 +1,4 @@
-﻿namespace SmartApiary.Infrastructure.Common.Options
+namespace SmartApiary.Infrastructure.Common.Options
 {
     internal class AzureQueueOptions
     {
@@ -6,5 +6,6 @@
         public string AlertQueue { get; init; } = string.Empty;
         public string DeviceStatusQueue { get; init; } = string.Empty;
         public string TelemetryQueue { get; init; } = string.Empty;
+        public string AnnouncementQueue { get; init; } = string.Empty;
     }
 }

@@ -1,5 +1,6 @@
 using FluentValidation;
 using MediatR;
+using SmartApiary.Application.Interfaces.Messaging;
 using SmartApiary.Application.Interfaces.Repositories;
 using SmartApiary.Domain.Common;
 using SmartApiary.Domain.Enums;
@@ -22,7 +23,10 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
         }
     }
 
-    internal class CancelSprinklingAnnouncementHandler(ISprinklingAnnouncementRepository announcementRepository)
+    internal class CancelSprinklingAnnouncementHandler(
+        ISprinklingAnnouncementRepository repository,
+        IAnnouncementQueueService announcementQueueService
+    )
         : IRequestHandler<CancelSprinklingAnnouncementCommand, Result>
     {
         public async Task<Result> Handle(CancelSprinklingAnnouncementCommand request, CancellationToken ct)
@@ -35,12 +39,14 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
             if (announcementIdResult.IsFailure)
                 return Result.Failure(announcementIdResult.Error!.Message, ErrorType.Validation);
 
-            var announcement = await announcementRepository.GetByIdAsync(parcelIdResult.Value, announcementIdResult.Value, ct);
+            var announcement = await repository.GetByIdAsync(parcelIdResult.Value, announcementIdResult.Value, ct);
             if (announcement == null)
                 return Result.Failure("Announcement not found", ErrorType.NotFound);
 
             announcement.IsCancelled = true;
-            await announcementRepository.UpdateAsync(announcement, ct);
+            await repository.UpdateAsync(announcement, ct);
+
+            await announcementQueueService.SendAnnouncementMessageAsync(announcement.Id.Value, AnnouncementAction.Cancelled, ct);
 
             return Result.Success();
         }

@@ -1,9 +1,13 @@
 using FluentValidation;
 using MediatR;
+using SmartApiary.Application.Interfaces.Messaging;
 using SmartApiary.Application.Interfaces.Repositories;
 using SmartApiary.Domain.Common;
 using SmartApiary.Domain.Enums;
 using SmartApiary.Domain.ValueObjects;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
 {
@@ -26,7 +30,10 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
         }
     }
 
-    internal class RescheduleSprinklingAnnouncementHandler(ISprinklingAnnouncementRepository announcementRepository)
+    internal class RescheduleSprinklingAnnouncementHandler(
+        ISprinklingAnnouncementRepository repository,
+        IAnnouncementQueueService announcementQueueService
+    )
         : IRequestHandler<RescheduleSprinklingAnnouncementCommand, Result>
     {
         public async Task<Result> Handle(RescheduleSprinklingAnnouncementCommand request, CancellationToken ct)
@@ -39,16 +46,15 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
             if (announcementIdResult.IsFailure)
                 return Result.Failure(announcementIdResult.Error!.Message, ErrorType.Validation);
 
-            var announcement = await announcementRepository.GetByIdAsync(parcelIdResult.Value, announcementIdResult.Value, ct);
+            var announcement = await repository.GetByIdAsync(parcelIdResult.Value, announcementIdResult.Value, ct);
             if (announcement == null)
                 return Result.Failure("Announcement not found", ErrorType.NotFound);
 
-            announcement.StartTime = request.StartTime;
-            announcement.ExpectedDurationHours = request.ExpectedDurationHours;
-            announcement.PreparationType = request.PreparationType;
-            announcement.IsCancelled = false;
+            
+            announcement.Reschedule(request.StartTime, request.ExpectedDurationHours, request.PreparationType);
+            await repository.UpdateAsync(announcement, ct);
 
-            await announcementRepository.UpdateAsync(announcement, ct);
+            await announcementQueueService.SendAnnouncementMessageAsync(announcement.Id.Value, AnnouncementAction.Rescheduled, ct);
 
             return Result.Success();
         }

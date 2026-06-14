@@ -21,6 +21,8 @@ namespace SmartApiary.Domain.Models
         // reply: maybe create model for listings and have ICollection<Listing> rather than tuples
         public double LatestReading { get; set; }
         public DateTime TimeOfLastReading { get; set; }
+        public bool IsBatteryWarningSent { get; set; }
+        public double WeightDropThreshold { get; set; } = 10.0;
 
         /// <summary>
         /// Creates an instance of the smart scale
@@ -38,7 +40,9 @@ namespace SmartApiary.Domain.Models
             string deviceToken,
             DeviceStatusEnum status,
             double latestReading,
-            DateTime timeOfLastReading)
+            DateTime timeOfLastReading,
+            bool isBatteryWarningSent = false,
+            double weightDropThreshold = 10.0)
         {
             Id = id;
             SerialNumber = serialNumber;
@@ -47,6 +51,8 @@ namespace SmartApiary.Domain.Models
             Status = status;
             LatestReading = latestReading;
             TimeOfLastReading = timeOfLastReading;
+            IsBatteryWarningSent = isBatteryWarningSent;
+            WeightDropThreshold = weightDropThreshold;
         }
 
         /// <summary>
@@ -64,7 +70,9 @@ namespace SmartApiary.Domain.Models
             string deviceToken,
             DeviceStatusEnum status,
             double latestReading,
-            DateTime timeOfLastReading
+            DateTime timeOfLastReading,
+            bool isBatteryWarningSent = false,
+            double weightDropThreshold = 10.0
         )
         {
             if (string.IsNullOrWhiteSpace(serialNumber))
@@ -84,7 +92,9 @@ namespace SmartApiary.Domain.Models
                     deviceToken,
                     status,
                     latestReading,
-                    timeOfLastReading
+                    timeOfLastReading,
+                    isBatteryWarningSent,
+                    weightDropThreshold
                 )
             );
         }
@@ -102,7 +112,9 @@ namespace SmartApiary.Domain.Models
                     string.Empty,
                     DeviceStatusEnum.Unpaired,
                     0,
-                    DateTime.MinValue
+                    DateTime.MinValue,
+                    false,
+                    10.0
                 )
             );
         }
@@ -124,7 +136,9 @@ namespace SmartApiary.Domain.Models
             string deviceToken,
             DeviceStatusEnum status, 
             double latestReading, 
-            DateTime timeOfLastReading
+            DateTime timeOfLastReading,
+            bool isBatteryWarningSent = false,
+            double weightDropThreshold = 10.0
         )
         {
             var idResult = EntityId.Create(id);
@@ -139,7 +153,9 @@ namespace SmartApiary.Domain.Models
                     deviceToken,
                     status,
                     latestReading,
-                    timeOfLastReading
+                    timeOfLastReading,
+                    isBatteryWarningSent,
+                    weightDropThreshold
                 )
             );
         }
