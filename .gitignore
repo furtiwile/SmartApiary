@@ -2,6 +2,7 @@
 bin/
 *.env
 .antigravitycli/
+todo*
 
 
 

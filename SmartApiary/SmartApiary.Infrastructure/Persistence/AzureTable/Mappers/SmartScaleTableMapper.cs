@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using SmartApiary.Domain.Enums;
 using SmartApiary.Domain.Models;
 using SmartApiary.Infrastructure.Persistence.AzureTable.Common;
@@ -17,7 +17,9 @@ namespace SmartApiary.Infrastructure.Persistence.AzureTable.Mappers
                 DeviceToken = domain.DeviceToken,
                 Status = domain.Status.ToString(),
                 LatestReading = domain.LatestReading,
-                TimeOfLastReading = DateTime.SpecifyKind(domain.TimeOfLastReading, DateTimeKind.Utc)
+                TimeOfLastReading = DateTime.SpecifyKind(domain.TimeOfLastReading, DateTimeKind.Utc),
+                IsBatteryWarningSent = domain.IsBatteryWarningSent,
+                WeightDropThreshold = domain.WeightDropThreshold
             };
         }
 
@@ -34,7 +36,9 @@ namespace SmartApiary.Infrastructure.Persistence.AzureTable.Mappers
                 entity.DeviceToken,
                 type,
                 entity.LatestReading,
-                entity.TimeOfLastReading
+                entity.TimeOfLastReading,
+                entity.IsBatteryWarningSent,
+                entity.WeightDropThreshold
             );
 
             if (smartScaleResult.IsFailure)

@@ -61,6 +61,14 @@ namespace SmartApiary.WebApi.BackgroundServices
                         {
                             await hubContext.Clients.Group($"apiary:{hive.ApiaryId.Value}")
                                 .SendAsync("ReceiveTelemetry", dto, stoppingToken);
+
+                            var apiaryRepository = scope.ServiceProvider.GetRequiredService<IApiaryRepository>();
+                            var apiary = await apiaryRepository.GetByIdAsync(hive.ApiaryId, stoppingToken);
+                            if (apiary != null)
+                            {
+                                await hubContext.Clients.Group($"beekeeper:{apiary.BeekeeperId.Value}")
+                                    .SendAsync("ReceiveTelemetry", dto, stoppingToken);
+                            }
                         }
 
                         var processResult = await mediator.Send(new ProcessTelemetryCommand

@@ -1,4 +1,4 @@
-﻿using Azure.Data.Tables;
+using Azure.Data.Tables;
 using Azure.Storage.Blobs;
 using Azure.Storage.Queues;
 using Microsoft.Extensions.DependencyInjection;
@@ -101,6 +101,7 @@ namespace SmartApiary.Infrastructure.Extensions
 
             services.AddScoped<IAlertQueueService, AlertQueueService>();
             services.AddScoped<ITelemetryQueueService, TelemetryQueueService>();
+            services.AddScoped<IAnnouncementQueueService, AnnouncementQueueService>();
             // TODO: remove
             //services.AddScoped<IDeviceStatusQueueService, DeviceStatusQueueService>();
 

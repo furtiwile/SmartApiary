@@ -1,7 +1,8 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using SmartApiary.Application.Features.SprinklingAnnouncements.Commands;
+using SmartApiary.Infrastructure.Persistence.AzureQueue.Messages;
 using System.Threading.Tasks;
 
 namespace SmartApiary.Functions.Processing
@@ -11,20 +12,22 @@ namespace SmartApiary.Functions.Processing
         IMediator mediator)
     {
         [Function(nameof(SprinklingAnnouncementMonitor))]
-        public async Task RunAsync([TimerTrigger("%SprinklingMonitorSchedule%")] TimerInfo myTimer)
+        public async Task RunAsync(
+            [QueueTrigger("%AzureQueueOptions:AnnouncementQueue%", Connection = "AzureWebJobsStorage")] AnnouncementMessage message)
         {
-            logger.LogInformation("[TIMER] Executing automated sprinkling announcement monitoring cycle...");
+            logger.LogInformation("[QUEUE] Processing sprinkling announcement message for announcement: {AnnouncementId}, Action: {ActionType}", 
+                message.AnnouncementId, message.ActionType);
 
-            var result = await mediator.Send(new ProcessExpiredAnnouncementsCommand());
+            var result = await mediator.Send(new ProcessSprinklingAnnouncementCommand(message.AnnouncementId, message.ActionType));
 
             if (result.IsFailure)
             {
-                logger.LogError("[TIMER] Automated background sprinkling verification loop failed: {Error}",
+                logger.LogError("[QUEUE] Sprinkling announcement processing failed: {Error}",
                     result.Error?.Message);
             }
             else
             {
-                logger.LogInformation("[TIMER] Automated background sprinkling verification loop executed successfully.");
+                logger.LogInformation("[QUEUE] Sprinkling announcement processed successfully.");
             }
         }
     }
