@@ -5,6 +5,10 @@ using SmartApiary.Domain.Common;
 using SmartApiary.Domain.Enums;
 using SmartApiary.Domain.Models;
 using SmartApiary.Domain.ValueObjects;
+using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SmartApiary.Application.Features.SprinklingRecords.Commands
 {
@@ -30,14 +34,26 @@ namespace SmartApiary.Application.Features.SprinklingRecords.Commands
         }
     }
 
-    internal class CreateSprinklingRecordHandler(ISprinklingRecordRepository recordRepository)
-        : IRequestHandler<CreateSprinklingRecordCommand, Result<string>>
+    internal class CreateSprinklingRecordHandler(
+        ISprinklingRecordRepository recordRepository,
+        ISprinklingAnnouncementRepository announcementRepository
+    ) : IRequestHandler<CreateSprinklingRecordCommand, Result<string>>
     {
         public async Task<Result<string>> Handle(CreateSprinklingRecordCommand request, CancellationToken ct)
         {
             var announcementIdResult = EntityId.Create(request.AnnouncementId);
             if (announcementIdResult.IsFailure)
+            {
                 return Result<string>.Failure(announcementIdResult.Error!.Message, ErrorType.Validation);
+            }
+
+            var allAnnouncements = await announcementRepository.GetAllAsync(ct);
+            var targetAnnouncement = allAnnouncements.FirstOrDefault(a => a.Id == announcementIdResult.Value);
+
+            if (targetAnnouncement == null)
+            {
+                return Result<string>.Failure("Referenced sprinkling announcement does not exist.", ErrorType.NotFound);
+            }
 
             var recordResult = SprinklingRecord.Create(
                 request.ActualStartTime,
@@ -49,7 +65,9 @@ namespace SmartApiary.Application.Features.SprinklingRecords.Commands
             );
 
             if (recordResult.IsFailure)
+            {
                 return Result<string>.Failure(recordResult.Error!.Message, ErrorType.Validation);
+            }
 
             await recordRepository.SaveAsync(recordResult.Value, ct);
 

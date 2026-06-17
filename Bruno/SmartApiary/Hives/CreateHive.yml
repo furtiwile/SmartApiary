@@ -10,7 +10,7 @@ http:
     type: json
     data: |+
       {
-        "apiaryId": "4d726278-8722-495d-a13e-e5f57f7cca2e",
+        "apiaryId": "108dcacc-660f-4b74-bce9-d677f6e66c89",
         "designation": "H-01",
         "type": "LR",
         "superColor": "Blue",

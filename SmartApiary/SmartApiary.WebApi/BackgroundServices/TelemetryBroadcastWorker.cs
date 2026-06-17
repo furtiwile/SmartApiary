@@ -1,8 +1,16 @@
+using MediatR;
 using Microsoft.AspNetCore.SignalR;
+using SmartApiary.Application.Features.Telemetries.Commands;
 using SmartApiary.Application.Features.Telemetries.Queries;
 using SmartApiary.Application.Interfaces.Messaging;
 using SmartApiary.Application.Interfaces.Repositories;
 using SmartApiary.WebApi.Hubs;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace SmartApiary.WebApi.BackgroundServices
 {
@@ -25,6 +33,7 @@ namespace SmartApiary.WebApi.BackgroundServices
 
                     var queueService = scope.ServiceProvider.GetRequiredService<ITelemetryQueueService>();
                     var hiveRepository = scope.ServiceProvider.GetRequiredService<IHiveRepository>();
+                    var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
                     var message = await queueService.ReceiveTelemetryAsync(stoppingToken);
 
@@ -54,9 +63,23 @@ namespace SmartApiary.WebApi.BackgroundServices
                                 .SendAsync("ReceiveTelemetry", dto, stoppingToken);
                         }
 
+                        var processResult = await mediator.Send(new ProcessTelemetryCommand
+                        {
+                            SmartScaleId = telemetry.SmartScaleId.Value,
+                            Weight = telemetry.WeightKg,
+                            Temperature = telemetry.TemperatureC,
+                            Humidity = telemetry.HumidityPercent,
+                            BatteryLevel = telemetry.BatteryPercent
+                        }, stoppingToken);
+
+                        if (!processResult.IsSuccess)
+                        {
+                            logger.LogWarning("[WORKER] Telemetry processing failed: {Error}", processResult.Error?.Message);
+                        }
+
                         await message.CompleteAsync();
 
-                        logger.LogInformation("[WORKER] Telemetry broadcasted for SmartScale: {SmartScaleId}",
+                        logger.LogInformation("[WORKER] Telemetry broadcasted and processed for SmartScale: {SmartScaleId}",
                             telemetry.SmartScaleId.Value);
                     }
                 }

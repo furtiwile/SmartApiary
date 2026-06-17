@@ -51,5 +51,16 @@ namespace SmartApiary.Infrastructure.Persistence.AzureTable.Repositories
         {
             await base.DeleteAsync(hive, ct);
         }
+
+        public async Task<Hive?> GetBySmartScaleIdAsync(EntityId smartScaleId, CancellationToken ct = default)
+        { 
+        
+            var filter = $"SmartScaleId eq '{smartScaleId.Value}'";
+
+            var entities = await base.QueryAsync(filter, ct);
+
+            return entities.FirstOrDefault();
+     
+    }
     }
 }

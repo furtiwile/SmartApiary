@@ -44,5 +44,10 @@ namespace SmartApiary.Infrastructure.Persistence.AzureTable.Repositories
         {
             await base.DeleteAsync(announcement, ct);
         }
+
+        public async Task<IReadOnlyCollection<SprinklingAnnouncement>> GetAllAsync(CancellationToken ct = default)
+        {
+            return await base.QueryAsync("",ct);
+        }
     }
 }

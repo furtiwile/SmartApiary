@@ -9,5 +9,6 @@ namespace SmartApiary.Application.Interfaces.Repositories
         Task<IReadOnlyCollection<Telemetry>> GetBySmartScaleIdAsync(EntityId smartScaleId, CancellationToken ct = default);
         Task<Telemetry?> GetLatestBySmartScaleIdAsync(EntityId smartScaleId, CancellationToken ct = default);
         Task SaveAsync(Telemetry telemetry, CancellationToken ct = default);
+        Task<Telemetry?> GetPreviousTelemetryAsync(EntityId smartScaleId, CancellationToken ct = default);
     }
 }

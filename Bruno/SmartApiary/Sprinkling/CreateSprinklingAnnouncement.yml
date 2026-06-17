@@ -8,12 +8,12 @@ http:
   url: "{{smart_apiary_api_base_url}}/sprinklingannouncements"
   body:
     type: json
-    data: |+
+    data: |-
       {
-        "parcelId": "55555555-5555-5555-5555-555555555555",
-        "startTime": "2026-06-01T06:00:00Z",
-        "expectedDurationHours": 2,
-        "preparationType": "Herbicide A"
+        "startTime": "2026-06-02T12:00:00Z",
+        "expectedDurationHours": 2.0,
+        "preparationType": "Copper Sulfate Premium",
+        "parcelId": "afa466b3-c460-4754-a255-9e1e94625b7d"
       }
   auth: inherit
 
