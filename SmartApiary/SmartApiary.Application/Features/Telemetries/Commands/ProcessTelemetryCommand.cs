@@ -1,26 +1,23 @@
 ﻿using FluentValidation;
 using MediatR;
-using Microsoft.Extensions.Logging;
-using SmartApiary.Application.Common.Validators;
-using SmartApiary.Application.Features.Telemetries.Events;
+using SmartApiary.Application.Common;
 using SmartApiary.Application.Interfaces.Repositories;
 using SmartApiary.Domain.Common;
 using SmartApiary.Domain.Enums;
-using SmartApiary.Domain.Models;
+using SmartApiary.Domain.Events;
+using SmartApiary.Domain.ValueObjects;
+
 
 namespace SmartApiary.Application.Features.Telemetries.Commands
 {
-/* TODO: DELETE
     // COMMAND
     public record ProcessTelemetryCommand : IRequest<Result>
     {
-        public string DeviceId { get; set; } = string.Empty;
-        public string DeviceName { get; init; } = string.Empty;
-        public DeviceType DeviceType { get; init; }
-        public double NominalPower { get; init; }
-        public double CurrentPower { get; init; }
-        public string FirmwareVersion { get; init; } = string.Empty;
-        public DateTime Timestamp { get; init; }
+        public string SmartScaleId { get; init; } = string.Empty;
+        public double Weight { get; init; }
+        public double Temperature { get; init; }
+        public double Humidity { get; init; }
+        public double BatteryLevel { get; init; }
     }
 
     // VALIDATOR
@@ -28,64 +25,50 @@ namespace SmartApiary.Application.Features.Telemetries.Commands
     {
         public ProcessTelemetryValidator()
         {
-            RuleFor(t => t.DeviceId)
-                .NotEmpty().WithMessage("DeviceId is required.");
-
-            RuleFor(t => t.DeviceName)
-                .NotEmpty().WithMessage("DeviceName is required.");
-
-            RuleFor(t => t.FirmwareVersion)
-                .IsValidFirmwareVersion();
-
-            RuleFor(t => t.DeviceType)
-                 .IsValidDeviceType();
-
-            RuleFor(t => t.NominalPower)
-                .NotEmpty().WithMessage("NominalPower is missing from payload.")
-                .GreaterThan(0).WithMessage("NominalPower must be greater than zero.");
-
-            RuleFor(t => t.CurrentPower)
-                .NotEmpty().WithMessage("CurrentPower is missing from payload.")
-                .GreaterThanOrEqualTo(0);
-
-            RuleFor(t => t.Timestamp)
-                .NotEmpty().WithMessage("Timestamp is required.")
-                .LessThanOrEqualTo(DateTime.UtcNow).WithMessage("Timestamp cannot be in the future.");
+            RuleFor(t => t.SmartScaleId).NotEmpty();
+            RuleFor(t => t.Weight).GreaterThanOrEqualTo(0);
         }
     }
 
     // HANDLER
-    internal class ProcessTelemetryHandler(
+    internal class ProcessTelemetryCommandHandler(
         ITelemetryRepository telemetryRepository,
-        IMediator mediator,
-        ILogger<ProcessTelemetryHandler> logger) : IRequestHandler<ProcessTelemetryCommand, Result>
+        ISmartScaleRepository smartScaleRepository,
+        IMediator mediator // Koristimo IMediator za Publish
+    ) : IRequestHandler<ProcessTelemetryCommand, Result>
     {
         public async Task<Result> Handle(ProcessTelemetryCommand request, CancellationToken ct)
         {
-            var telemetryResult = Telemetry.Create(
-                request.DeviceId,
-                request.DeviceName,
-                request.DeviceType,
-                request.NominalPower,
-                request.CurrentPower,
-                request.Timestamp,
-                request.FirmwareVersion
-            );
+            var scaleIdResult = EntityId.Create(request.SmartScaleId);
+            if (scaleIdResult.IsFailure)
+                return Result.Failure(scaleIdResult.Error!.Message, ErrorType.Validation);
 
-            if (telemetryResult.IsFailure)
-                return Result.Failure(telemetryResult.Error!.Message, ErrorType.Validation);
+            var scale = await smartScaleRepository.GetByIdAsync(scaleIdResult.Value, ct);
+            if (scale == null)
+                return Result.Failure("Smart scale not found", ErrorType.NotFound);
 
-            var telemetry = telemetryResult.Value;
+            var previousTelemetry = await telemetryRepository.GetPreviousTelemetryAsync(scaleIdResult.Value, ct);
 
-            await telemetryRepository.SaveAsync(telemetry, ct);
+            if (previousTelemetry != null)
+            {
+                var weightDrop = previousTelemetry.WeightKg - request.Weight;
 
-            await mediator.Publish(new TelemetryProcessedEvent(telemetry), ct);
+                if (weightDrop >= 5.0)
+                {
+                    var anomalyEvent = new AnomalyDetectedDomainEvent(
+                        scaleIdResult.Value,
+                        EntityId.New(),
+                        previousTelemetry.WeightKg,
+                        request.Weight,
+                        weightDrop,
+                        DateTime.UtcNow
+                    );
 
-            logger.LogInformation("[TELEMETRY] Telemetry data successfully saved and event published for Device: {DeviceId}",
-                telemetry.DeviceId);
+                    await mediator.Publish(new DomainEventNotification<AnomalyDetectedDomainEvent>(anomalyEvent), ct);
+                }
+            }
 
             return Result.Success();
         }
     }
-*/
 }

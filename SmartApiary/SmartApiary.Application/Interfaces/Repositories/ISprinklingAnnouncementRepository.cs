@@ -10,5 +10,7 @@ namespace SmartApiary.Application.Interfaces.Repositories
         Task SaveAsync(SprinklingAnnouncement announcement, CancellationToken ct = default);
         Task UpdateAsync(SprinklingAnnouncement announcement, CancellationToken ct = default);
         Task DeleteAsync(SprinklingAnnouncement announcement, CancellationToken ct = default);
+
+        Task<IReadOnlyCollection<SprinklingAnnouncement>> GetAllAsync(CancellationToken ct = default);
     }
 }

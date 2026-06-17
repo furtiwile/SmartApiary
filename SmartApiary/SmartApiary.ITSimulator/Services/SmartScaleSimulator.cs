@@ -127,24 +127,27 @@ namespace SmartApiary.ITSimulator.Services
             }
 
             var rnd = new Random();
+            int counter = 0;
             while (true)
             {
                 var telemetry = new
                 {
                     HiveId = device.HiveId,
                     Timestamp = DateTime.UtcNow,
-                    WeightKg = Math.Round(nominalWeight + (rnd.NextDouble() - 0.5) * 2.0, 2),
-                    TemperatureC = Math.Round(20 + (rnd.NextDouble() - 0.5) * 10, 2),
+                    WeightKg = counter > 3 ? 2.0 : Math.Round(nominalWeight + (rnd.NextDouble() - 0.5) * 2.0, 2),                    TemperatureC = Math.Round(20 + (rnd.NextDouble() - 0.5) * 10, 2),
                     HumidityPercent = Math.Round(50 + (rnd.NextDouble() - 0.5) * 20, 2),
                     BatteryPercent = Math.Round(90 + rnd.NextDouble() * 10, 2)
                 };
-
+                if(counter > 3)
+                {
+                    counter = 0;
+                }
                 var sendResult = await _client.SendTelemetryAsync(device.DeviceToken, telemetry);
                 if (!sendResult.IsSuccess)
                     ConsoleUI.PrintError($"Failed to send telemetry for {device.SerialNumber} (status {(System.Net.HttpStatusCode)sendResult.StatusCode}): {sendResult.ResponseBody}");
                 else
                     Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Sent telemetry for hive {device.HiveId}, weight={telemetry.WeightKg}kg temp={telemetry.TemperatureC}C hum={telemetry.HumidityPercent}% batt={telemetry.BatteryPercent}%");
-
+                counter++;
                 await Task.Delay(delayMs);
             }
         }

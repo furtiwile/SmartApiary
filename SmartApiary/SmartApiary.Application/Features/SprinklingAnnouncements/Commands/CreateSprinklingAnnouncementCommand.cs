@@ -5,6 +5,9 @@ using SmartApiary.Domain.Common;
 using SmartApiary.Domain.Enums;
 using SmartApiary.Domain.Models;
 using SmartApiary.Domain.ValueObjects;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
 {
@@ -25,14 +28,24 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
         }
     }
 
-    internal class CreateSprinklingAnnouncementHandler(ISprinklingAnnouncementRepository announcementRepository)
-        : IRequestHandler<CreateSprinklingAnnouncementCommand, Result<string>>
+    internal class CreateSprinklingAnnouncementHandler(
+        ISprinklingAnnouncementRepository announcementRepository,
+        IParcelRepository parcelRepository
+    ) : IRequestHandler<CreateSprinklingAnnouncementCommand, Result<string>>
     {
         public async Task<Result<string>> Handle(CreateSprinklingAnnouncementCommand request, CancellationToken ct)
         {
             var parcelIdResult = EntityId.Create(request.ParcelId);
             if (parcelIdResult.IsFailure)
+            {
                 return Result<string>.Failure(parcelIdResult.Error!.Message, ErrorType.Validation);
+            }
+
+            var parcel = await parcelRepository.GetByIdAsync(parcelIdResult.Value, ct);
+            if (parcel == null)
+            {
+                return Result<string>.Failure("Target parcel does not exist.", ErrorType.NotFound);
+            }
 
             var announcementResult = SprinklingAnnouncement.Create(
                 request.StartTime,
@@ -43,7 +56,9 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
             );
 
             if (announcementResult.IsFailure)
+            {
                 return Result<string>.Failure(announcementResult.Error!.Message, ErrorType.Validation);
+            }
 
             await announcementRepository.SaveAsync(announcementResult.Value, ct);
 

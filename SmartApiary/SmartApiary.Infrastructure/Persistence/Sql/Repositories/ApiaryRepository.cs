@@ -105,6 +105,18 @@ WHERE Location.STDistance(@targetLocation) <= @Radius;";
                 command.Parameters.Add(new SqlParameter("@Radius", System.Data.SqlDbType.Float) { Value = radiusInMeters });
             }, ct);
         }
+        public async Task<Apiary?> GetByIdAsync(EntityId apiaryId, CancellationToken ct = default)
+        {
+            const string sql = @"
+SELECT Id, Name, Location.Lat AS Latitude, Location.Long AS Longitude, Description, ImageUrl, ThumbnailUrl, BeekeeperId
+FROM dbo.Apiaries
+WHERE Id = @Id;";
+
+            var list = await QueryApiariesAsync(sql, command => {
+                command.Parameters.Add(new SqlParameter("@Id", System.Data.SqlDbType.UniqueIdentifier) { Value = Guid.Parse(apiaryId.Value) });
+            }, ct);
+            return list.FirstOrDefault();
+        }
         private async Task<IReadOnlyCollection<Apiary>> QueryApiariesAsync(string sql, Action<SqlCommand> configureCommand, CancellationToken ct)
         {
             var apiaries = new List<Apiary>();

@@ -1,0 +1,19 @@
+info:
+  name: Generate PDF by announcementIdd
+  type: http
+  seq: 10
+
+http:
+  method: GET
+  url: "{{smart_apiary_api_base_url}}/SprinklingRecords/export?announcementId=73eb9ac0-789f-4834-a7f0-a0f556303d2f"
+  params:
+    - name: announcementId
+      value: 73eb9ac0-789f-4834-a7f0-a0f556303d2f
+      type: query
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

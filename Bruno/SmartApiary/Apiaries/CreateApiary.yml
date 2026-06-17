@@ -5,7 +5,7 @@ info:
 
 http:
   method: POST
-  url: "{{smart_apiary_api_base_url}}/apiaries"
+  url: "{{smart_apiary_api_base_url}}apiaries"
   body:
     type: multipart-form
     data:
@@ -21,6 +21,11 @@ http:
       - name: Description
         type: text
         value: Test apiary
+      - name: ImageFile
+        type: file
+        value:
+          - E:\Users\Documents\MILOS CLOUD\TestingAssets\apiary1.jpg
+        contentType: File
   auth: inherit
 
 runtime:

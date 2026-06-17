@@ -118,6 +118,18 @@ namespace SmartApiary.Domain.Models
                 )
             );
         }
+        public void Cancel()
+        {
+            IsCancelled = true;
+        }
+
+        public void Reschedule(DateTime startTime, double expectedDurationHours, string preparationType)
+        {
+            StartTime = startTime;
+            ExpectedDurationHours = expectedDurationHours;
+            PreparationType = preparationType;
+            IsCancelled = false;
+        }
 
     }
 }

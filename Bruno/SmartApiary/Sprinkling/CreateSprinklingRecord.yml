@@ -8,9 +8,9 @@ http:
   url: "{{smart_apiary_api_base_url}}/sprinklingrecords"
   body:
     type: json
-    data: |+
+    data: |
       {
-        "announcementId": "66666666-6666-6666-6666-666666666666",
+        "announcementId": "ae1ae5de-fd03-466e-93c8-d28306c312f1",
         "actualStartTime": "2026-06-01T06:10:00Z",
         "actualEndTime": "2026-06-01T07:45:00Z",
         "preparationType": "Herbicide A",

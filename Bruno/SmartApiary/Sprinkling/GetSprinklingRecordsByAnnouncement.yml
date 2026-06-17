@@ -5,7 +5,11 @@ info:
 
 http:
   method: GET
-  url: "{{smart_apiary_api_base_url}}/sprinklingrecords?announcementId=66666666-6666-6666-6666-666666666666"
+  url: "{{smart_apiary_api_base_url}}/sprinklingrecords?announcementId=ae1ae5de-fd03-466e-93c8-d28306c312f1"
+  params:
+    - name: announcementId
+      value: ae1ae5de-fd03-466e-93c8-d28306c312f1
+      type: query
   auth: inherit
 
 settings:
