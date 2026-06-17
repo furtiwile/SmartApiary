@@ -32,7 +32,7 @@ function BeehivesPage() {
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">
+          <h1 className="text-2xl font-bold text-black tracking-tight">
             Beehive Collection
           </h1>
           <p className="text-slate-400 text-sm">

@@ -6,7 +6,7 @@ import { useAuth } from "../hooks/AuthHook";
 import { AuthApi } from "../api/AuthApi";
 import { PageLayout } from "../../../layouts/PageLayout";
 import type { UserRole } from "../models/UserRole";
-import { AuthValidation, validateAuthData } from "../helpers/AuthValidation";
+import { AuthValidation } from "../helpers/AuthValidation";
 
 
 const MIN_NAME_LEN = 2;
@@ -51,7 +51,6 @@ export function RegisterPage() {
       );
       return;
     }
-    // const validationResult = validateAuthData(email, password);
   
     if (email.length < MIN_EMAIL_LEN && AuthValidation.isEmailValid(email)) {
       alert(
@@ -105,7 +104,7 @@ export function RegisterPage() {
       <PageLayout>
         <header className="flex justify-between items-end mb-10">
           <div >
-            <h1 className="text-2xl font-bold text-white tracking-tight">
+            <h1 className="text-2xl font-bold text-black tracking-tight">
               Register page
             </h1>
             <p className="text-slate-400 text-sm">
@@ -117,7 +116,7 @@ export function RegisterPage() {
           <form action="" name="register" onSubmit={sendForm} className="space-y-6">
             <div className="p-4 bg-white/70 dark:bg-slate-800/50 backdrop-blur-md rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-white dark:border-slate-700 overflow-hidden">
               {/* First name stuff */}
-              <label htmlFor="first-name" className="block text-sm/6 font-medium text-gray-100">First name </label>
+              <label htmlFor="first-name" className="block text-sm/6 font-medium text-gray-900">First name </label>
               <div className="mt-2">
                 <input
                   id="first-name"
@@ -129,12 +128,12 @@ export function RegisterPage() {
                   required
                   autoFocus
                   tabIndex={1}
-                  className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
+                  className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-black outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
                 />
               </div>
 
               {/* First name stuff */}
-              <label htmlFor="last-name" className="block text-sm/6 font-medium text-gray-100 mt-6">Last name </label>
+              <label htmlFor="last-name" className="block text-sm/6 font-medium text-gray-900 mt-6">Last name </label>
               <div className="mt-2">
                 <input
                   id="last-name"
@@ -146,12 +145,12 @@ export function RegisterPage() {
                   required
                   autoFocus
                   tabIndex={1}
-                  className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
+                  className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-black outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
                 />
               </div>
               
               {/* Email stuff */}
-              <label htmlFor="email" className="block text-sm/6 font-medium text-gray-100 mt-6">Email </label>
+              <label htmlFor="email" className="block text-sm/6 font-medium text-gray-900 mt-6">Email </label>
               <div className="mt-2">
                 <input
                   id="email"
@@ -163,12 +162,12 @@ export function RegisterPage() {
                   required
                   autoFocus
                   tabIndex={1}
-                  className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
+                  className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-black outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
                 />
               </div>
 
               {/* Password stuff */}
-              <label htmlFor="password" className="block text-sm/6 font-medium text-gray-100 mt-6">Password </label>
+              <label htmlFor="password" className="block text-sm/6 font-medium text-gray-900 mt-6">Password </label>
               <div className="mt-2">
                 <input
                   id="password"
@@ -178,12 +177,12 @@ export function RegisterPage() {
                   minLength={MIN_PASSWD_LEN}
                   onChange={(event) => setPassword(event.target.value)}
                   required
-                  className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
+                  className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-black outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
                 />
               </div>
 
               {/* Confirm Password stuff */}
-              <label htmlFor="confirm-password" className="block text-sm/6 font-medium text-gray-100 mt-6">Confirm password </label>
+              <label htmlFor="confirm-password" className="block text-sm/6 font-medium text-gray-900 mt-6">Confirm password </label>
               <div className="mt-2">
                 <input
                   id="confirm-password"
@@ -193,12 +192,12 @@ export function RegisterPage() {
                   minLength={MIN_PASSWD_LEN}
                   onChange={(event) => setConfirmPassword(event.target.value)}
                   required
-                  className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
+                  className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-black outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
                 />
               </div>
 
               {/* Phone Number stuff */}
-              <label htmlFor="phone" className="block text-sm/6 font-medium text-gray-100 mt-6">Phone number </label>
+              <label htmlFor="phone" className="block text-sm/6 font-medium text-gray-900 mt-6">Phone number </label>
               <div className="mt-2">
                 <input
                   id="phone"
@@ -208,12 +207,12 @@ export function RegisterPage() {
                   minLength={6} // idk how many digits one phone number can minimally have
                   onChange={(event) => setPhoneNumber(event.target.value)}
                   required
-                  className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
+                  className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-black outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
                 />
               </div>
 
               {/* Phone Number stuff */}
-              <label htmlFor="role" className="block text-sm/6 font-medium text-gray-100 mt-6">Role </label>
+              <label htmlFor="role" className="block text-sm/6 font-medium text-gray-900 mt-6">Role </label>
               <div className="mt-2">
                 {/*<input
                   id="role"
@@ -223,12 +222,12 @@ export function RegisterPage() {
                   minLength={6} // idk how many digits one phone number can minimally have
                   onChange={(event) => setRole(event.target.value)}
                   required
-                  className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
+                  className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-black outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
                 />*/}
                 <select
                   name="role"
                   id="role"
-                  className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
+                  className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-black outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
                   onChange={(event) => setRole(event.target.value as UserRole)}
                   defaultValue="Unknown"
                 >
@@ -243,7 +242,7 @@ export function RegisterPage() {
               <Link to="/login" className="font-semibold text-indigo-400 hover:text-indigo-300">
                 Already have an account? Log in instead
               </Link>
-              <button type="submit" className="flex w-50 justify-center rounded-md bg-indigo-500 px-3 py-1.5 text-sm/6 font-semibold text-white hover:bg-indigo-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">
+              <button type="submit" className="flex w-50 justify-center rounded-md bg-indigo-500 px-3 py-1.5 text-sm/6 font-semibold text-black hover:bg-indigo-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">
                 Register
               </button>
             </div>

@@ -65,7 +65,7 @@ export function LoginPage() {
     <PageLayout>
       <header className="flex justify-between items-end mb-10">
         <div >
-          <h1 className="text-2xl font-bold text-white tracking-tight">
+          <h1 className="text-2xl font-bold text-black tracking-tight">
             Login page
           </h1>
           <p className="text-slate-400 text-sm">
@@ -78,7 +78,7 @@ export function LoginPage() {
           <div className="p-4 bg-white/70 dark:bg-slate-800/50 backdrop-blur-md rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-white dark:border-slate-700 overflow-hidden">
             
             {/* Email stuff */}
-            <label htmlFor="email" className="block text-sm/6 font-medium text-gray-100">Email </label>
+            <label htmlFor="email" className="block text-sm/6 font-medium text-gray-900">Email </label>
             <div className="mt-2">
               <input
                 id="email"
@@ -97,7 +97,7 @@ export function LoginPage() {
             
             {/* Password stuff */}
             <div className="flex items-center justify-between mt-6">
-              <label htmlFor="password" className="block text-sm/6 font-medium text-gray-100">Password </label>
+              <label htmlFor="password" className="block text-sm/6 font-medium text-gray-900">Password </label>
               <div className="text-sm">
                 <a href="#" className="font-semibold text-indigo-400 hover:text-indigo-300" tabIndex={5}>Forgot password?</a>
               </div>
