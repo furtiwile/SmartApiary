@@ -47,16 +47,18 @@ export function LoginPage() {
       return;
     }
     
-    const result = await AuthApi.login(_email, _password)
-    
-    if (result.success && result.data) {
-      login(result.data);
-      return;
-    }
+    AuthApi.login(_email, _password)
+      .then((result)=>{
+        console.log("Login result: ", result);
+        if (result.data) {
+          login(result.data.token);
+          return;
+        }
 
-    setEmail("");
-    setPassword("");
-    alert("Unknown error: Something went wrong...\n" + result.msg);
+        setEmail("");
+        setPassword("");
+        alert("Unknown error: Something went wrong...\n" + result.message);
+      });
   }
 
 

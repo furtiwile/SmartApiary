@@ -1,29 +1,20 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router";
-
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/AuthHook";
 import { AuthApi } from "../api/AuthApi";
 import { PageLayout } from "../../../layouts/PageLayout";
 import type { UserRole } from "../models/UserRole";
-import { AuthValidation } from "../helpers/AuthValidation";
-
 
 const MIN_NAME_LEN = 2;
 const MIN_EMAIL_LEN = 6;
-const MIN_PASSWD_LEN = 8;
-
-
 
 export function RegisterPage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [role, setRole] = useState<UserRole>("Unknown");
-  const {isAuthed, user, login} = useAuth();
+  const {isAuthed, user} = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -52,28 +43,10 @@ export function RegisterPage() {
       return;
     }
   
-    if (email.length < MIN_EMAIL_LEN && AuthValidation.isEmailValid(email)) {
+    if (email.length < MIN_EMAIL_LEN) {
       alert(
         `Input for email is too short.\nShould be: ${MIN_EMAIL_LEN}; Given: ${email.length}`,
       );
-      return;
-    }
-  
-    if (AuthValidation.isPasswordValid(password)) {
-      alert(
-        `Input for password is too short.\nShould be: ${MIN_PASSWD_LEN}; Given: ${password.length}`,
-      );
-      return;
-    }
-
-    if (AuthValidation.isPasswordValid(confirmPassword)) {
-      alert(
-        `Input for confirmed password is too short.\nShould be: ${MIN_PASSWD_LEN}; Given: ${confirmPassword.length}`,
-      );
-      return;
-    }
-    if (password !== confirmPassword) {
-      alert("Passwords don\'t match");
       return;
     }
 
@@ -82,19 +55,16 @@ export function RegisterPage() {
       return;
     }
 
-    // Role doesn't need to be changed, since I'm form's select options are fine
-  
-    const result = await AuthApi.register(email, password, firstName, lastName, phoneNumber, role);
+    const result = await AuthApi.register(email, firstName, lastName, phoneNumber, role);
 
-    // Once registered, log in automatically with user-inputted parameters
-    if (result.success && result.data) {
-      login(result.data);
+    if (result.success) {
+      alert("Account created. Check your email for activation instructions.");
+      navigate("/login");
       return;
     }
 
     setEmail("");
-    setPassword("");
-    alert("Unknown error: Something went wrong...\n" + result.msg);
+    alert("Unknown error: Something went wrong...\n" + result.message);
   }
   
 
@@ -166,36 +136,6 @@ export function RegisterPage() {
                 />
               </div>
 
-              {/* Password stuff */}
-              <label htmlFor="password" className="block text-sm/6 font-medium text-gray-900 mt-6">Password </label>
-              <div className="mt-2">
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  placeholder="Enter your password"
-                  minLength={MIN_PASSWD_LEN}
-                  onChange={(event) => setPassword(event.target.value)}
-                  required
-                  className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-black outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
-                />
-              </div>
-
-              {/* Confirm Password stuff */}
-              <label htmlFor="confirm-password" className="block text-sm/6 font-medium text-gray-900 mt-6">Confirm password </label>
-              <div className="mt-2">
-                <input
-                  id="confirm-password"
-                  name="confirm-password"
-                  type="password"
-                  placeholder="Confirm your password"
-                  minLength={MIN_PASSWD_LEN}
-                  onChange={(event) => setConfirmPassword(event.target.value)}
-                  required
-                  className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-black outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
-                />
-              </div>
-
               {/* Phone Number stuff */}
               <label htmlFor="phone" className="block text-sm/6 font-medium text-gray-900 mt-6">Phone number </label>
               <div className="mt-2">
@@ -233,7 +173,7 @@ export function RegisterPage() {
                 >
                   <option value="Unknown">Unknown</option>
                   <option value="Farmer">Farmer</option>
-                  <option value="Beekeper">Beekeper</option>
+                  <option value="Beekeeper">Beekeeper</option>
                 </select>
               </div>
             </div>
