@@ -1,1 +1,1 @@
-export type UserRole = "Unknown" | "Admin" | "Farmer" | "Beekeper"
+export type UserRole = "Unknown" | "Admin" | "Farmer" | "Beekeeper"

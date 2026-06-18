@@ -1,5 +1,9 @@
+export type DataToken = {
+  token: string;
+}
+
 export type AuthResult = {
   success: boolean;
-  msg: string;
-  data?: string;
+  message: string;
+  data?: DataToken;
 };
