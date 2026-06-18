@@ -54,13 +54,11 @@ function isTokenExpired(token: string): boolean {
   }
 }
 
-
 // I don't know why this "xyzComponentProps" fuckery
 // is always needed in a not-lambda style
 interface AuthProviderProps {
   children: ReactNode;
 }
-
 
 
 export function AuthProvider({ children }: AuthProviderProps) {
