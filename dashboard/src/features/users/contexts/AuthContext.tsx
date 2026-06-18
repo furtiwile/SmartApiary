@@ -10,29 +10,41 @@ import { LocalStorage } from "../helpers/localStorageHelper";
 
 const AuthContext = createContext<AuthContextData | undefined>(undefined);
 
-
+interface JwtPayload {
+  sub?: string;
+  email?: string;
+  given_name?: string;
+  family_name?: string;
+  exp?: number;
+  ["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"]?: string;
+  [key: string]: unknown;
+}
 
 function decodeJWT(token: string): UserDto | null {
-  let decoded: UserDto;
+  let decoded: JwtPayload;
   try {
-    decoded = jwtDecode<UserDto>(token);
+    decoded = jwtDecode<JwtPayload>(token);
   }
   catch (error) {
     console.error("Error when decoding JWT token", error);
     return null;
   }
 
-  if (decoded.id <= 0 || !decoded.email)
+  if (!decoded.sub || !decoded.email)
     return null;
 
+  const rawRole = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+  const role = rawRole === "Admin" || rawRole === "Farmer" || rawRole === "Beekeeper"
+    ? rawRole
+    : "Unknown";
+
   return {
-    id: decoded.id,
+    id: decoded.sub,
     email: decoded.email,
-    firstName: decoded.firstName,
-    lastName: decoded.lastName,
-    phoneNumber: decoded.phoneNumber,
-    role: decoded.role,
-    // ...decoded
+    firstName: decoded.given_name ?? "",
+    lastName: decoded.family_name ?? "",
+    phoneNumber: "",
+    role,
   };
 }
 

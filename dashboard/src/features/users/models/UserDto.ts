@@ -1,7 +1,7 @@
 import type { UserRole } from "./UserRole";
 
 export type UserDto = {
-  id: number;
+  id: string;
   email: string;
   firstName: string;
   lastName: string;
