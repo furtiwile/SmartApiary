@@ -1,7 +1,7 @@
 import axios from "axios";
 import api from "../../../config/api";
 
-import type { AuthResult } from "../models/AuthResult";
+import type { AuthResult, AdminCreateResult, ActivateResult } from "../models/AuthResult";
 import type { LoginData, AdminCreateData, ActivateData, ForgotPasswordData, ResetPasswordData } from "../models/AuthData";
 import type { UserRole } from "../models/UserRole";
 
@@ -36,20 +36,49 @@ export const AuthApi = {
     );
   },
 
-  async register(email: string, firstName: string, lastName: string, phoneNumber: string, role: UserRole): Promise<AuthResult> {
-    return await tryFetchFromAuthAPI<AdminCreateData>(
-      "/admin-create",
-      "Unknown error occured while registering.",
-      { email, firstName, lastName, phoneNumber, role }
-    );
+  async register(email: string, firstName: string, lastName: string, phoneNumber: string, role: Exclude<UserRole, "Unknown">): Promise<AdminCreateResult> {
+    try {
+      const payload: AdminCreateData = { email, firstName, lastName, phoneNumber, role };
+      const response = (await api.post<AdminCreateResult>(`${AUTH_PATH}/admin-create`, payload)).data;
+
+      return response;
+    }
+    catch (error) {
+      let msg = "Unknown error occured while registering.";
+      let errors: unknown | null = null;
+      if (axios.isAxiosError(error))
+      {
+        msg = error.response?.data?.message ?? msg;
+        errors = error.response?.data?.errors ?? null;
+      }
+
+      return {
+        type: "Failure",
+        errors,
+        message: msg,
+      };
+    }
   },
 
-  async activate(token: string, password: string): Promise<AuthResult> {
-    return await tryFetchFromAuthAPI<ActivateData>(
-      "/activate",
-      "Unknown error occured while activating the account.",
-      { token, password }
-    );
+  async activate(token: string, password: string): Promise<ActivateResult> {
+    try {
+      const payload: ActivateData = { token, password };
+      return (await api.post<ActivateResult>(`${AUTH_PATH}/activate`, payload)).data;
+    }
+    catch (error) {
+      let msg = "Unknown error occured while activating the account.";
+      let errors: unknown | null = null;
+      if (axios.isAxiosError(error)) {
+        msg = error.response?.data?.message ?? msg;
+        errors = error.response?.data?.errors ?? null;
+      }
+
+      return {
+        type: "Failure",
+        errors,
+        message: msg,
+      };
+    }
   },
 
   async forgotPassword(email: string): Promise<AuthResult> {

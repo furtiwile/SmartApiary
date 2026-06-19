@@ -10,8 +10,8 @@ http:
     type: json
     data: |+
       {
-        "token": "0fdb3819cf7c4c2a7bd15b07caa46d075f4bfc50669a6fc435f1c4b7ab774db9",
-        "password": "NewUserPassword"
+        "token": "20839d80167a053c71542a3089b4d456f8c30feb84a29973d94895b7a18caed",
+        "password": "Password123!"
       }
 
   auth: inherit
