@@ -10,6 +10,10 @@ using System.Text.Json.Serialization;
 
 var builder = FunctionsApplication.CreateBuilder(args);
 
+// Load configuration files manually for local/direct debugging
+builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+builder.Configuration.AddEnvironmentVariables();
+
 // HTTP API JSON configuration
 builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
 {
