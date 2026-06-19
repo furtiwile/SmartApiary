@@ -62,7 +62,7 @@ const MainLayout: React.FC = () => {
       {/* Header */}
       <header className="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 shadow-xl">
         <div className="container mx-auto flex items-center justify-between p-4">
-          <Link to="/" className="group">
+          <Link to="/dashboard" className="group">
             <h1 className="text-xl font-black bg-linear-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent group-hover:from-indigo-300 group-hover:to-cyan-300 transition-all">
               GRID.CLOUD
             </h1>
@@ -71,15 +71,7 @@ const MainLayout: React.FC = () => {
             <ul className="flex space-x-8">
               <li>
                 <Link
-                  to="/devices"
-                  className="text-sm font-bold tracking-wide text-slate-400 hover:text-cyan-400 transition-colors duration-200"
-                >
-                  DEVICES
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/beehives"
+                  to="/dashboard"
                   className="text-sm font-bold tracking-wide text-slate-400 hover:text-cyan-400 transition-colors duration-200"
                 >
                   BEEHIVES

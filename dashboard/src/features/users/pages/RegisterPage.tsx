@@ -14,13 +14,13 @@ export function RegisterPage() {
   const [email, setEmail] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [role, setRole] = useState<UserRole>("Unknown");
-  const {isAuthed, user} = useAuth();
+  const { isAuthed, user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (isAuthed && user) 
-      // navigate(`/premium-dashboard`);
+    if (isAuthed && user?.role !== "Admin") {
       navigate(`/dashboard`);
+    }
   }, [isAuthed, navigate, user]);
 
 
