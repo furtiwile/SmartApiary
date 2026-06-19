@@ -1,21 +1,29 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Outlet } from "react-router-dom";
 import MainLayout from "./layouts/MainLayout";
-import Dashboard from "./features/dashboard/pages/Dashboard";
-import DevicesPage from "./features/devices/pages/DevicesPage";
 import BeehivesPage from "./features/beehives/pages/BeehivesPage";
 import { LoginPage } from "./features/users/pages/LoginPage";
 import { RegisterPage } from "./features/users/pages/RegisterPage";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: <MainLayout />,
+    element: <Outlet />,
     children: [
-      { index: true, element: <Dashboard /> },
-      { path: "devices", element: <DevicesPage /> },
-      { path: "beehives", element: <BeehivesPage /> },
+      { index: true, element: <LoginPage /> },
       { path: "login", element: <LoginPage /> },
       { path: "register", element: <RegisterPage /> },
+      {
+        path: "dashboard",
+        element: (
+          <ProtectedRoute>
+            <MainLayout />
+          </ProtectedRoute>
+        ),
+        children: [
+          { index: true, element: <BeehivesPage /> },
+        ],
+      },
     ],
   },
 ]);
