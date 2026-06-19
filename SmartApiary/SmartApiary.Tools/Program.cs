@@ -296,8 +296,11 @@ END";
 }
 async Task EnsureApiarySchemaAsync(string connectionString)
 {
+    await EnsureDatabaseExistsAsync(connectionString);
+    
     await using var connection = new SqlConnection(connectionString);
     await connection.OpenAsync();
+
 
     const string schemaSql = @"
 IF OBJECT_ID('[dbo].[Apiaries]', 'U') IS NULL
