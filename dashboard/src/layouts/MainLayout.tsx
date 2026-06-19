@@ -69,14 +69,6 @@ const MainLayout: React.FC = () => {
           </Link>
           <nav>
             <ul className="flex space-x-8">
-              <li>
-                <Link
-                  to="/dashboard"
-                  className="text-sm font-bold tracking-wide text-slate-400 hover:text-cyan-400 transition-colors duration-200"
-                >
-                  BEEHIVES
-                </Link>
-              </li>
               <AccountActions isAuthed={isAuthed} user={user} logout={logout} />
             </ul>
           </nav>
