@@ -1,15 +1,31 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Outlet } from "react-router-dom";
 import MainLayout from "./layouts/MainLayout";
-import Dashboard from "./features/dashboard/pages/Dashboard";
-import DevicesPage from "./features/devices/pages/DevicesPage";
+import { DashboardPage } from "./features/dashboard/pages/DashboardPage";
+import { FarmsPage } from "./features/farms/pages/FarmsPage";
+import { LoginPage } from "./features/users/pages/LoginPage";
+import { RegisterPage } from "./features/users/pages/RegisterPage";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: <MainLayout />,
+    element: <Outlet />,
     children: [
-      { index: true, element: <Dashboard /> },
-      { path: "devices", element: <DevicesPage /> },
+      { index: true, element: <LoginPage /> },
+      { path: "login", element: <LoginPage /> },
+      { path: "register", element: <RegisterPage /> },
+      {
+        path: "dashboard",
+        element: (
+          <ProtectedRoute>
+            <MainLayout />
+          </ProtectedRoute>
+        ),
+        children: [
+          { index: true, element: <DashboardPage /> },
+          { path: "farms", element: <FarmsPage /> },
+        ],
+      },
     ],
   },
 ]);
