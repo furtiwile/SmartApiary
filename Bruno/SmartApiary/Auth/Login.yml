@@ -18,10 +18,13 @@ http:
 runtime:
   variables:
     - name: smart_apiary_api_base_url
-      value: https://localhost:7262/api
+      value: http://localhost:5062/api
 
 settings:
   encodeUrl: true
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+
+script:post-response: |
+  bru.setGlobalEnvVar("jwt_token", res.body.token);

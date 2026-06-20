@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -7,6 +7,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UserSecretsId>4552ad54-f27f-4299-9a37-51e99a4f1dcd</UserSecretsId>
+    <!-- Disable worker indexing to disallow having more than one function active at a time -->
+    <!-- <FunctionsEnableWorkerIndexing>False</FunctionsEnableWorkerIndexing> -->
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,6 +27,19 @@
     <ProjectReference Include="..\SmartApiary.Application\SmartApiary.Application.csproj" />
     <ProjectReference Include="..\SmartApiary.Domain\SmartApiary.Domain.csproj" />
     <ProjectReference Include="..\SmartApiary.Infrastructure\SmartApiary.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="host.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="local.settings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+    </None>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
