@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { PageLayout } from "../../../layouts/PageLayout";
 import type { Beehive } from "../models/Beehive";

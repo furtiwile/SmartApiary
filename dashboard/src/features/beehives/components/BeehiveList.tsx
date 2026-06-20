@@ -1,4 +1,3 @@
-import React from "react";
 import type { Beehive } from "../models/Beehive";
 import { BeehiveRow } from "./BeehiveRow";
 
