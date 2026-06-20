@@ -68,19 +68,14 @@ export function RegisterPage() {
   
   return (
     <PageLayout>
-      <header className="flex justify-center items-end mb-10">
-      <div>
-        <h1 className="text-2xl font-bold text-center text-slate-900 dark:text-white tracking-tight">
-          Register
-        </h1>
-      </div>
-    </header>
-
-      <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-md">
+      <div className="min-h-[calc(100vh-4rem)] w-full flex flex-col justify-center sm:mx-auto sm:w-full sm:max-w-md">
         <form name="register" onSubmit={sendForm} className="space-y-6">
           <div className="p-6 bg-white dark:bg-slate-800/50 backdrop-blur-md rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-200 dark:border-slate-700 overflow-hidden">
             
-            {/* First Name Field */}
+            <h1 className="text-2xl font-bold text-center text-slate-900 dark:text-white tracking-tight mb-8">
+              Register
+            </h1>
+
             <div>
               <label htmlFor="first-name" className="block text-sm font-medium text-slate-700 dark:text-slate-200">
                 First name
@@ -101,7 +96,6 @@ export function RegisterPage() {
               </div>
             </div>
 
-            {/* Last Name Field */}
             <div className="mt-6">
               <label htmlFor="last-name" className="block text-sm font-medium text-slate-700 dark:text-slate-200">
                 Last name
@@ -121,7 +115,6 @@ export function RegisterPage() {
               </div>
             </div>
             
-            {/* Email Field */}
             <div className="mt-6">
               <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-200">
                 Email
@@ -141,7 +134,6 @@ export function RegisterPage() {
               </div>
             </div>
 
-            {/* Phone Number Field */}
             <div className="mt-6">
               <label htmlFor="phone" className="block text-sm font-medium text-slate-700 dark:text-slate-200">
                 Phone number
@@ -160,7 +152,6 @@ export function RegisterPage() {
               </div>
             </div>
 
-            {/* Role Field */}
             <div className="mt-6">
               <label htmlFor="role" className="block text-sm font-medium text-slate-700 dark:text-slate-200">
                 Role
@@ -179,19 +170,19 @@ export function RegisterPage() {
                 </select>
               </div>
             </div>
-          </div>
-  
-          {/* Form Actions - Changed to full width vertical flex container */}
-          <div className="flex flex-col items-center space-y-4 mt-6">
-            <Link to="/login" className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300">
-              Already have an account? Log in
-            </Link>
-            <button 
-              type="submit" 
-              className="flex w-full justify-center rounded-md bg-indigo-500 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 transition-colors"
-            >
-              Register
-            </button>
+
+            <div className="flex flex-col items-center space-y-4 border-t border-slate-200 dark:border-slate-700/60 pt-6 mt-8">
+              <Link to="/login" className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300">
+                Already have an account? Log in
+              </Link>
+              <button 
+                type="submit" 
+                className="flex w-full items-center justify-center rounded-md bg-indigo-500 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 transition-colors"
+              >
+                Register
+              </button>
+            </div>
+
           </div>
         </form>
       </div>
