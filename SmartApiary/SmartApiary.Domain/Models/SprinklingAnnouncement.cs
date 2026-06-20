@@ -6,22 +6,22 @@ namespace SmartApiary.Domain.Models
 {
     public class SprinklingAnnouncement : AggregateRoot
     {
-        public EntityId Id { get; set; }
-        public DateTime StartTime { get; set; }
-        public double ExpectedDurationHours { get; set; }
+        public EntityId Id { get; private set; }
+        public DateTime StartTime { get; private set; }
+        public double ExpectedDurationHours { get; private set; }
         /// <summary>
         /// Type of preparation used for sprinkling, should be nullable, as it is not required
         /// </summary>
-        public string PreparationType { get; set; } = string.Empty;
-        public bool IsCancelled { get; set; }
-        public EntityId ParcelId { get; set; }
+        public string PreparationType { get; private set; } = string.Empty;
+        public bool IsCancelled { get; private set; }
+        public EntityId ParcelId { get; private set; }
         /// <summary>
         /// Number of beekeepers notified after the announcement was processed via the queue.
         /// Updated by ProcessSprinklingAnnouncementCommandHandler after emails are sent.
         /// </summary>
-        public int NotifiedBeekeepersCount { get; set; }
+        public int NotifiedBeekeepersCount { get; private set; }
 
-        public ICollection<SprinklingRecord> Records { get; set; } = [];
+        public ICollection<SprinklingRecord> Records { get; private set; } = [];
 
         private SprinklingAnnouncement(
             EntityId id,

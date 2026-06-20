@@ -52,7 +52,7 @@ namespace SmartApiary.Application.Features.Apiaries.Commands
             foreach (var hive in hives)
             {
                 // Delete inspections
-                var inspections = await inspectionRepository.GetByHiveIdAsync(hive.Id, ct);
+                var inspections = await inspectionRepository.GetByHiveIdAsync(hive.Id, ct: ct);
                 foreach (var inspection in inspections)
                 {
                     await inspectionRepository.DeleteAsync(inspection, ct);

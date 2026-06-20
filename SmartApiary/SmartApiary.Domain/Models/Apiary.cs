@@ -11,20 +11,20 @@ namespace SmartApiary.Domain.Models
     /// </summary>
     public class Apiary : AggregateRoot
     {
-        public EntityId Id { get; set; }
-        public string Name { get; set; } = string.Empty;
+        public EntityId Id { get; private set; }
+        public string Name { get; private set; } = string.Empty;
 
-        public Point Location { get; set; }
+        public Point Location { get; private set; }
 
         public double Latitude => Location?.Y ?? 0;
         public double Longitude => Location?.X ?? 0;
 
-        public string Description { get; set; } = string.Empty;
-        public string ImageUrl { get; set; } = string.Empty;
-        public string ThumbnailUrl { get; set; } = string.Empty;
-        public EntityId BeekeeperId { get; set; }
+        public string Description { get; private set; } = string.Empty;
+        public string ImageUrl { get; private set; } = string.Empty;
+        public string ThumbnailUrl { get; private set; } = string.Empty;
+        public EntityId BeekeeperId { get; private set; }
 
-        public ICollection<Hive> Hives { get; set; } = [];
+        public ICollection<Hive> Hives { get; private set; } = [];
 
         /// <summary>
         /// Creates an instance of the apiary

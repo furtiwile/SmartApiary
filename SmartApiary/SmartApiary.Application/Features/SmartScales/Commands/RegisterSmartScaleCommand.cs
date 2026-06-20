@@ -21,7 +21,10 @@ namespace SmartApiary.Application.Features.SmartScales.Commands
         {
             RuleFor(x => x.ApiaryId).NotEmpty();
             RuleFor(x => x.HiveId).NotEmpty();
-            RuleFor(x => x.SerialNumber).NotEmpty();
+            RuleFor(x => x.SerialNumber)
+                .NotEmpty()
+                .Matches(@"^SA-\d{4}-\d{5}$")
+                .WithMessage("Serial number must match format SA-YYYY-XXXXX.");
         }
     }
 
@@ -54,7 +57,7 @@ namespace SmartApiary.Application.Features.SmartScales.Commands
 
             await smartScaleRepository.SaveAsync(smartScaleResult.Value, ct);
 
-            hive.SmartScaleId = smartScaleResult.Value.Id;
+            hive.PairSmartScale(smartScaleResult.Value.Id);
             await hiveRepository.UpdateAsync(hive, ct);
 
             return Result<string>.Success(smartScaleResult.Value.Id.Value);

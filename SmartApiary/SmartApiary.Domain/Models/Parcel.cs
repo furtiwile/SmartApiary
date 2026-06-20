@@ -6,15 +6,15 @@ namespace SmartApiary.Domain.Models
 {
     public class Parcel : AggregateRoot
     {
-        public EntityId Id { get; set; }
-        public string Name { get; set; }
+        public EntityId Id { get; private set; }
+        public string Name { get; private set; }
         public double Latitude => Location?.Y ?? 0;
         public double Longitude => Location?.X ?? 0;
-        public EntityId FarmerId { get; set; }
-        public Point Location { get; set; }
-        public ICollection<Crop> Crops { get; set; } = [];
+        public EntityId FarmerId { get; private set; }
+        public Point Location { get; private set; }
+        public ICollection<Crop> Crops { get; private set; } = [];
         
-        public ICollection<SprinklingAnnouncement> Announcements { get; set; } = [];
+        public ICollection<SprinklingAnnouncement> Announcements { get; private set; } = [];
 
         /// <summary>
         /// Creates an instance of the parcel

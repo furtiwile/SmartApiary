@@ -11,5 +11,6 @@ namespace SmartApiary.Application.Interfaces.Repositories
         Task SaveAsync(Parcel parcel, CancellationToken ct = default);
         Task UpdateAsync(Parcel parcel, CancellationToken ct = default);
         Task DeleteAsync(Parcel parcel, CancellationToken ct = default);
+        Task<IReadOnlyCollection<Parcel>> GetParcelsWithinRadiusAsync(double latitude, double longitude, double radiusInMeters, CancellationToken ct = default);
     }
 }

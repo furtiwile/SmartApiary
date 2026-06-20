@@ -6,16 +6,26 @@ namespace SmartApiary.Domain.Models
 {
     public class Hive
     {
-        public EntityId Id { get; set; }
-        public string Designation { get; set; }
-        public HiveType Type { get; set; }
-        public string SuperColor { get; set; }
-        public int QueenAge { get; set; }
-        public string Note { get; set; } = string.Empty;
-        public EntityId ApiaryId { get; set; }
-        public EntityId? SmartScaleId { get; set; }
+        public EntityId Id { get; private set; }
+        public string Designation { get; private set; }
+        public HiveType Type { get; private set; }
+        public string SuperColor { get; private set; }
+        public int QueenAge { get; private set; }
+        public string Note { get; private set; } = string.Empty;
+        public EntityId ApiaryId { get; private set; }
+        public EntityId? SmartScaleId { get; private set; }
 
-        public ICollection<HiveInspection> Inspections { get; set; } = [];
+        public void PairSmartScale(EntityId smartScaleId)
+        {
+            SmartScaleId = smartScaleId;
+        }
+
+        public void MoveToApiary(EntityId apiaryId)
+        {
+            ApiaryId = apiaryId;
+        }
+
+        public ICollection<HiveInspection> Inspections { get; private set; } = [];
 
         /// <summary>
         /// Creates an instance of the hive

@@ -6,11 +6,11 @@ namespace SmartApiary.Domain.Models
 {
     public class Crop
     {
-        public EntityId Id { get; set; }
-        public CropType Type { get; set; }
-        public DateTime ExpectedFloweringTime { get; set; }
-        public string Note { get; set; } = string.Empty;
-        public EntityId ParcelId { get; set; }
+        public EntityId Id { get; private set; }
+        public CropType Type { get; private set; }
+        public DateTime ExpectedFloweringTime { get; private set; }
+        public string Note { get; private set; } = string.Empty;
+        public EntityId ParcelId { get; private set; }
 
         /// <summary>
         /// Creates an instance of the crop
