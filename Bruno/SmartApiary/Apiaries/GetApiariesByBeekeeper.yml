@@ -15,7 +15,7 @@ http:
 runtime:
   variables:
     - name: smart_apiary_api_base_url
-      value: https://localhost:7262/api/
+      value: http://localhost:5062/api
 
 settings:
   encodeUrl: true
