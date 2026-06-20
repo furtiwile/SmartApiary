@@ -1,0 +1,229 @@
+import { useState } from "react";
+import * as Dialog from "@radix-ui/react-dialog";
+import { Leaf, PlusCircle, Trash2, X } from "lucide-react";
+import { CropApi } from "../api/sprayingApi";
+import { useNotify } from "../../../hooks/useNotify";
+import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
+import type { CropDto, CropType } from "../models/Crop";
+import { CROP_OPTIONS } from "../models/Crop";
+
+interface CropManagementModalProps {
+  parcelId: string;
+  parcelName: string;
+}
+
+export function CropManagementModal({ parcelId, parcelName }: CropManagementModalProps) {
+  const [open, setOpen] = useState(false);
+  const [crops, setCrops] = useState<CropDto[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  const [cropType, setCropType] = useState<CropType>("Sunflower");
+  const [bloomDate, setBloomDate] = useState("");
+  const [notes, setNotes] = useState("");
+
+  const { success, error } = useNotify();
+
+
+
+  async function handleAddCrop(e: React.FormEvent) {
+    e.preventDefault();
+    if (!bloomDate) {
+      error("Validation", "Please select an expected bloom date.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const result = await CropApi.create({ parcelId, cropType, expectedBloomDate: bloomDate, notes: notes || undefined });
+      if (result) {
+        setCrops((prev) => [...prev, result]);
+        success("Crop added", `${cropType} has been assigned to "${parcelName}".`);
+        setBloomDate("");
+        setNotes("");
+      } else {
+        error("Failed", "Could not add crop. Please try again.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function confirmDeleteCrop() {
+    if (!confirmDeleteId) return;
+    const deleted = await CropApi.delete(confirmDeleteId);
+    if (deleted) {
+      setCrops((prev) => prev.filter((c) => c.id !== confirmDeleteId));
+      success("Crop removed", "The crop has been removed from the parcel.");
+    } else {
+      error("Failed", "Could not remove crop. Please try again.");
+    }
+    setConfirmDeleteId(null);
+  }
+
+  const todayIso = new Date().toISOString().split("T")[0];
+
+  return (
+    <>
+      <Dialog.Root open={open} onOpenChange={(isOpen) => {
+        setOpen(isOpen);
+        if (isOpen) {
+          setIsLoading(true);
+          CropApi.getByParcel(parcelId)
+            .then(setCrops)
+            .finally(() => setIsLoading(false));
+        }
+      }}>
+        <Dialog.Trigger asChild>
+          <button className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 transition-all">
+            <Leaf className="h-3 w-3" />
+            Crops
+          </button>
+        </Dialog.Trigger>
+
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=open]:fade-in" />
+          <Dialog.Content className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl focus:outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10">
+                  <Leaf className="h-5 w-5 text-emerald-600" />
+                </div>
+                <div>
+                  <Dialog.Title className="text-base font-bold text-slate-900">
+                    Crop Management
+                  </Dialog.Title>
+                  <p className="text-xs text-slate-500">{parcelName}</p>
+                </div>
+              </div>
+              <Dialog.Close asChild>
+                <button className="rounded-lg p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all">
+                  <X className="h-4 w-4" />
+                </button>
+              </Dialog.Close>
+            </div>
+
+            {/* Existing crops list */}
+            <div className="mb-5">
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-2">
+                Current Crops
+              </p>
+              {isLoading ? (
+                <div className="flex items-center gap-2 py-4 text-slate-400 text-sm">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-emerald-500" />
+                  Loading…
+                </div>
+              ) : crops.length === 0 ? (
+                <p className="text-sm text-slate-400 py-3">No crops assigned yet.</p>
+              ) : (
+                <ul className="divide-y divide-slate-100 rounded-xl border border-slate-200 overflow-hidden">
+                  {crops.map((crop) => {
+                    const opt = CROP_OPTIONS.find((o) => o.value === crop.cropType);
+                    return (
+                      <li key={crop.id} className="flex items-center justify-between px-4 py-2.5 bg-white hover:bg-slate-50 transition-colors">
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">{opt?.emoji ?? "🌱"}</span>
+                          <div>
+                            <p className="text-sm font-medium text-slate-800">{crop.cropType}</p>
+                            <p className="text-xs text-slate-400">
+                              Bloom: {new Date(crop.expectedBloomDate).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => setConfirmDeleteId(crop.id)}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-all"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+
+            {/* Add crop form */}
+            <div className="border-t border-slate-100 pt-5">
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-3">
+                Add Crop
+              </p>
+              <form onSubmit={handleAddCrop} className="space-y-3">
+                {/* Crop type selector */}
+                <div className="grid grid-cols-3 gap-2">
+                  {CROP_OPTIONS.map(({ value, label, emoji }) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setCropType(value)}
+                      className={`flex flex-col items-center justify-center gap-1 rounded-xl border py-2.5 text-xs font-medium transition-all ${
+                        cropType === value
+                          ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                          : "border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-slate-50"
+                      }`}
+                    >
+                      <span className="text-xl">{emoji}</span>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1.5">
+                      Expected Bloom Date
+                    </label>
+                    <input
+                      type="date"
+                      min={todayIso}
+                      value={bloomDate}
+                      onChange={(e) => setBloomDate(e.target.value)}
+                      required
+                      className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1.5">
+                      Notes (optional)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Early variety"
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500 disabled:opacity-60 transition-colors"
+                >
+                  {isSubmitting ? (
+                    <span className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <PlusCircle className="h-4 w-4" />
+                  )}
+                  {isSubmitting ? "Adding…" : "Add Crop"}
+                </button>
+              </form>
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+
+      <ConfirmDialog
+        open={confirmDeleteId !== null}
+        onOpenChange={(open) => { if (!open) setConfirmDeleteId(null); }}
+        title="Remove crop?"
+        description="This crop will be permanently removed from the parcel. This cannot be undone."
+        confirmLabel="Remove Crop"
+        onConfirm={confirmDeleteCrop}
+      />
+    </>
+  );
+}
