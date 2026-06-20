@@ -56,5 +56,15 @@ namespace SmartApiary.WebApi.Controllers
             var result = await mediator.Send(new GetSprinklingAnnouncementsByParcelQuery(parcelId), ct);
             return result.ToActionResult();
         }
+
+        [Authorize(Roles = "Beekeeper")]
+        [HttpGet("nearby")]
+        public async Task<IActionResult> GetNearby(
+            [FromQuery] double radiusKm = 5,
+            CancellationToken ct = default)
+        {
+            var result = await mediator.Send(new GetSprinklingAnnouncementsNearApiariesQuery(radiusKm), ct);
+            return result.ToActionResult();
+        }
     }
 }

@@ -5,13 +5,14 @@ namespace SmartApiary.Domain.Models
 {
     public class SprinklingRecord
     {
-        public EntityId Id { get; set; }
-        public DateTime ActualStartTime { get; set; }
-        public DateTime ActualEndTime { get; set; }
-        public string PreparationType { get; set; } = string.Empty;
-        public double WindSpeed { get; set; }
-        public double Precipitation { get; set; }
-        public EntityId AnnouncementId { get; set; }
+        public EntityId Id { get; private set; }
+        public DateTime ActualStartTime { get; private set; }
+        public DateTime ActualEndTime { get; private set; }
+        public string PreparationType { get; private set; } = string.Empty;
+        public double WindSpeed { get; private set; }
+        public double Precipitation { get; private set; }
+        public EntityId AnnouncementId { get; private set; }
+        public string WeatherCondition { get; private set; } = string.Empty;
 
         /// <summary>
         /// Creates an instance of the sprinkling record
@@ -30,6 +31,7 @@ namespace SmartApiary.Domain.Models
             string preparationType, 
             double windSpeed, 
             double precipitation, 
+            string weatherCondition,
             EntityId announcementId
         )
         {
@@ -39,6 +41,7 @@ namespace SmartApiary.Domain.Models
             PreparationType = preparationType;
             WindSpeed = windSpeed;
             Precipitation = precipitation;
+            WeatherCondition = weatherCondition;
             AnnouncementId = announcementId;
         }
 
@@ -58,6 +61,7 @@ namespace SmartApiary.Domain.Models
             string preparationType,
             double windSpeed,
             double precipitation,
+            string weatherCondition,
             EntityId announcementId
         )
         {
@@ -84,6 +88,7 @@ namespace SmartApiary.Domain.Models
                     preparationType,
                     windSpeed,
                     precipitation,
+                    weatherCondition,
                     announcementId
                 )
             );
@@ -108,6 +113,7 @@ namespace SmartApiary.Domain.Models
             string preparationType,
             double windSpeed,
             double precipitation,
+            string weatherCondition,
             string announcementId
         )
         {
@@ -127,6 +133,7 @@ namespace SmartApiary.Domain.Models
                     preparationType,
                     windSpeed,
                     precipitation,
+                    weatherCondition,
                     announcementIdResult.Value
                 )
             );

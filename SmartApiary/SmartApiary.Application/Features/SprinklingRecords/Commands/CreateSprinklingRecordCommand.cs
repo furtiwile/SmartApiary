@@ -20,6 +20,7 @@ namespace SmartApiary.Application.Features.SprinklingRecords.Commands
         public string PreparationType { get; init; } = string.Empty;
         public double WindSpeed { get; init; }
         public double Precipitation { get; init; }
+        public string WeatherCondition { get; init; } = "Manual entry";
     }
 
     public class CreateSprinklingRecordValidator : AbstractValidator<CreateSprinklingRecordCommand>
@@ -61,6 +62,7 @@ namespace SmartApiary.Application.Features.SprinklingRecords.Commands
                 request.PreparationType,
                 request.WindSpeed,
                 request.Precipitation,
+                request.WeatherCondition,
                 announcementIdResult.Value
             );
 

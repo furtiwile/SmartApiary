@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.Extensions.Logging;
 using SmartApiary.Application.Interfaces;
 using SmartApiary.Application.Interfaces.Repositories;
@@ -56,6 +56,7 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
 
                     double windSpeed = 0.0;
                     double precipitation = 0.0;
+                    string weatherCondition = "Unknown";
 
                     var weatherResult = await weatherService.GetWeatherAsync(parcel.Latitude, parcel.Longitude, ct);
 
@@ -63,10 +64,11 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
                     {
                         windSpeed = weatherResult.Value.WindSpeed;
                         precipitation = weatherResult.Value.Precipitation;
+                        weatherCondition = weatherResult.Value.Description;
                     }
                     else
                     {
-                        logger.LogWarning("[WEATHER] Failed to fetch weather data for parcel {ParcelId}. Defaulting to fallback parameters (0.0).", parcel.Id);
+                        logger.LogWarning("[WEATHER] Failed to fetch weather data for parcel {ParcelId}. Defaulting to fallback parameters.", parcel.Id);
                     }
 
                     var actualEndTime = announcement.StartTime.AddHours(announcement.ExpectedDurationHours);
@@ -77,6 +79,7 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
                         announcement.PreparationType,
                         windSpeed,
                         precipitation,
+                        weatherCondition,
                         announcement.Id
                     );
 

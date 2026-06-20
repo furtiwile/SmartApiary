@@ -6,14 +6,30 @@ namespace SmartApiary.Domain.Models
 {
     public class User : AggregateRoot
     {
-        public EntityId Id { get; set; }
-        public string Email { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string PhoneNumber { get; set; }
-        public string PasswordHash { get; set; }
-        public RoleType Role { get; set; }
-        public bool IsActive { get; set; }
+        public EntityId Id { get; private set; }
+        public string Email { get; private set; }
+        public string FirstName { get; private set; }
+        public string LastName { get; private set; }
+        public string PhoneNumber { get; private set; }
+        public string PasswordHash { get; private set; }
+        public RoleType Role { get; private set; }
+        public bool IsActive { get; private set; }
+
+        public void Activate(string passwordHash)
+        {
+            PasswordHash = passwordHash;
+            IsActive = true;
+        }
+
+        public void ResetPassword(string passwordHash)
+        {
+            PasswordHash = passwordHash;
+        }
+
+        public void ToggleActive()
+        {
+            IsActive = !IsActive;
+        }
 
         /// <summary>
         /// Creates an instance of the user

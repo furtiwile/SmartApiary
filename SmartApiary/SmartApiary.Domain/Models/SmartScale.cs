@@ -6,23 +6,51 @@ namespace SmartApiary.Domain.Models
 {
     public class SmartScale : AggregateRoot
     {
-        public EntityId Id { get; set; }
-        public string SerialNumber { get; set; } = string.Empty;
-        public string HardwareId { get; set; } = string.Empty;
-        public string DeviceToken { get; set; } = string.Empty;
-        public DeviceStatusEnum Status { get; set; }
+        public EntityId Id { get; private set; }
+        public string SerialNumber { get; private set; } = string.Empty;
+        public string HardwareId { get; private set; } = string.Empty;
+        public string DeviceToken { get; private set; } = string.Empty;
+        public DeviceStatusEnum Status { get; private set; }
+
+        public void Activate(string hardwareId, string deviceToken)
+        {
+            HardwareId = hardwareId;
+            DeviceToken = deviceToken;
+            Status = DeviceStatusEnum.Paired;
+        }
+
+        public void UpdateStatus(DeviceStatusEnum status)
+        {
+            Status = status;
+        }
+
+        public void RefreshDeviceToken(string deviceToken)
+        {
+            DeviceToken = deviceToken;
+        }
 
         // > maybe save a series of listings?
         // > maybe have a whole separate entity for readings, with a timestamp and a value, and a foreign key to the smart scale?
         // > so a seperate table ig?
-        // > public List<Tuple<DateTime, double>> Readings { get; set; } = new List<Tuple<DateTime, double>>();
+        // > public List<Tuple<DateTime, double>> Readings { get; private set; } = new List<Tuple<DateTime, double>>();
 
         // > but for now, just save the latest reading and the timestamp of that reading
         // reply: maybe create model for listings and have ICollection<Listing> rather than tuples
-        public double LatestReading { get; set; }
-        public DateTime TimeOfLastReading { get; set; }
-        public bool IsBatteryWarningSent { get; set; }
-        public double WeightDropThreshold { get; set; } = 10.0;
+        public double LatestReading { get; private set; }
+        public DateTime TimeOfLastReading { get; private set; }
+        public bool IsBatteryWarningSent { get; private set; }
+        public double WeightDropThreshold { get; private set; } = 10.0;
+
+        public void UpdateReading(double reading, DateTime timestamp)
+        {
+            LatestReading = reading;
+            TimeOfLastReading = timestamp;
+        }
+
+        public void UpdateBatteryWarningStatus(bool isSent)
+        {
+            IsBatteryWarningSent = isSent;
+        }
 
         /// <summary>
         /// Creates an instance of the smart scale

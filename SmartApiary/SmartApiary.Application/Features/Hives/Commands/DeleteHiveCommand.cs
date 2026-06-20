@@ -51,7 +51,7 @@ namespace SmartApiary.Application.Features.Hives.Commands
                 return Result.Failure("Unauthorized - you do not own this hive's apiary.", ErrorType.Unauthorized);
 
             // Cascade delete inspections
-            var inspections = await inspectionRepository.GetByHiveIdAsync(hive.Id, ct);
+            var inspections = await inspectionRepository.GetByHiveIdAsync(hive.Id, ct: ct);
             foreach (var inspection in inspections)
             {
                 await inspectionRepository.DeleteAsync(inspection, ct);

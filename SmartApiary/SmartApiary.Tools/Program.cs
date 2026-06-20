@@ -1,4 +1,4 @@
-﻿using Azure.Data.Tables;
+using Azure.Data.Tables;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Queues;
@@ -11,25 +11,19 @@ const string defaultSqlConnectionString = "Server=localhost,1433;Database=SmartA
 
 var tables = new[]
 {
-    "Users",
-    "Apiaries",
     "Hives",
     "HiveInspections",
-    "Parcels",
     "Crops",
     "SmartScales",
     "SprinklingAnnouncements",
     "SprinklingRecords",
     "Telemetries",
-    "Devices",
-    "DeviceStatuses",
-    "Firmwares",
     "ActivationTokens",
     "PasswordResetTokens"
 };
 
-var blobContainers = new[] { "firmware-updates" };
-var queueNames = new[] { "alert-queue", "device-status-queue", "telemetry-queue" };
+var blobContainers = new[] { "apiary-images" };
+var queueNames = new[] { "alert-queue", "telemetry-queue", "announcement-queue" };
 
 Console.WriteLine("--- SmartApiary Tools ---");
 Console.WriteLine($"Storage connection: {defaultStorageConnectionString}");
@@ -38,9 +32,9 @@ Console.WriteLine();
 Console.WriteLine("1) Clear Azure Tables");
 Console.WriteLine("2) Clear Azure Blobs");
 Console.WriteLine("3) Clear Azure Queues");
-Console.WriteLine("4) Clear SQL Users table");
+Console.WriteLine("4) Clear SQL Tables");
 Console.WriteLine("5) Insert test users into SQL");
-Console.WriteLine("6) Initialize SQL Schema for Apiaries/Parcels");
+Console.WriteLine("6) Initialize SQL Schema (Users, Apiaries, Parcels)");
 Console.WriteLine("0) Exit");
 Console.WriteLine();
 
@@ -63,13 +57,13 @@ while (true)
                 await ClearQueuesAsync(defaultStorageConnectionString, queueNames);
                 break;
             case "4":
-                await ClearUsersTableAsync(GetSqlConnectionString());
+                await ClearSqlTablesAsync(GetSqlConnectionString());
                 break;
             case "5":
                 await InsertUsersAsync(GetSqlConnectionString());
                 break;
             case "6":
-                await EnsureApiarySchemaAsync(GetSqlConnectionString());
+                await EnsureSqlSchemaAsync(GetSqlConnectionString());
                 break;
             case "0":
                 return;
@@ -184,28 +178,39 @@ async Task ClearQueuesAsync(string connectionString, IReadOnlyCollection<string>
     }
 }
 
-async Task ClearUsersTableAsync(string connectionString)
+async Task ClearSqlTablesAsync(string connectionString)
 {
     await EnsureDatabaseExistsAsync(connectionString);
 
     await using var connection = new SqlConnection(connectionString);
     await connection.OpenAsync();
 
-    const string script = "IF OBJECT_ID('[dbo].[Users]', 'U') IS NOT NULL DELETE FROM [dbo].[Users];";
-    await using var command = new SqlCommand(script, connection);
-    var rows = await command.ExecuteNonQueryAsync();
-
-    Console.ForegroundColor = ConsoleColor.Green;
-    Console.WriteLine(rows >= 0 ? "[OK] SQL Users table cleared." : "[OK]");
-    Console.ResetColor();
+    var sqlTablesToClear = new[] { "Parcels", "Apiaries", "Users" };
+    foreach (var tableName in sqlTablesToClear)
+    {
+        try
+        {
+            Console.Write($"Clearing SQL table {tableName}...");
+            var script = $"IF OBJECT_ID('[dbo].[{tableName}]', 'U') IS NOT NULL DELETE FROM [dbo].[{tableName}];";
+            await using var command = new SqlCommand(script, connection);
+            await command.ExecuteNonQueryAsync();
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine(" [CLEARED]");
+            Console.ResetColor();
+        }
+        catch (Exception ex)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($" [FAILED] - {ex.Message}");
+            Console.ResetColor();
+        }
+    }
 }
 
 async Task InsertUsersAsync(string connectionString)
 {
     await EnsureDatabaseExistsAsync(connectionString);
-
-    await EnsureUsersTableAsync(connectionString);
-    await EnsureApiarySchemaAsync(connectionString);
+    await EnsureSqlSchemaAsync(connectionString);
 
     var password = PromptPassword();
     var adminHash = BCrypt.Net.BCrypt.HashPassword(password);
@@ -248,30 +253,6 @@ VALUES
     Console.ResetColor();
 }
 
-async Task EnsureUsersTableAsync(string connectionString)
-{
-    await using var connection = new SqlConnection(connectionString);
-    await connection.OpenAsync();
-
-    const string createSql = @"
-IF OBJECT_ID('[dbo].[Users]', 'U') IS NULL
-BEGIN
-    CREATE TABLE [dbo].[Users] (
-        Id UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
-        Email NVARCHAR(256) NOT NULL,
-        FirstName NVARCHAR(100) NOT NULL,
-        LastName NVARCHAR(100) NOT NULL,
-        PhoneNumber NVARCHAR(50) NOT NULL,
-        PasswordHash NVARCHAR(200) NOT NULL,
-        Role INT NOT NULL,
-        IsActive BIT NOT NULL
-    );
-END";
-
-    await using var command = new SqlCommand(createSql, connection);
-    await command.ExecuteNonQueryAsync();
-}
-
 async Task EnsureDatabaseExistsAsync(string connectionString)
 {
     var builder = new SqlConnectionStringBuilder(connectionString);
@@ -294,15 +275,30 @@ END";
     await using var command = new SqlCommand(script, connection);
     await command.ExecuteNonQueryAsync();
 }
-async Task EnsureApiarySchemaAsync(string connectionString)
+
+async Task EnsureSqlSchemaAsync(string connectionString)
 {
     await EnsureDatabaseExistsAsync(connectionString);
     
     await using var connection = new SqlConnection(connectionString);
     await connection.OpenAsync();
 
+    const string usersSchemaSql = @"
+IF OBJECT_ID('[dbo].[Users]', 'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[Users] (
+        Id UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
+        Email NVARCHAR(256) NOT NULL,
+        FirstName NVARCHAR(100) NOT NULL,
+        LastName NVARCHAR(100) NOT NULL,
+        PhoneNumber NVARCHAR(50) NOT NULL,
+        PasswordHash NVARCHAR(200) NOT NULL,
+        Role INT NOT NULL,
+        IsActive BIT NOT NULL
+    );
+END";
 
-    const string schemaSql = @"
+    const string apiarySchemaSql = @"
 IF OBJECT_ID('[dbo].[Apiaries]', 'U') IS NULL
 BEGIN
     CREATE TABLE [dbo].[Apiaries] (
@@ -314,8 +310,9 @@ BEGIN
         [ThumbnailUrl] NVARCHAR(1000) NOT NULL,
         [BeekeeperId] UNIQUEIDENTIFIER NOT NULL
     );
-END
+END";
 
+    const string parcelsSchemaSql = @"
 IF OBJECT_ID('[dbo].[Parcels]', 'U') IS NULL
 BEGIN
     CREATE TABLE [dbo].[Parcels] (
@@ -326,9 +323,32 @@ BEGIN
     );
 END";
 
-    await using var command = new SqlCommand(schemaSql, connection);
-    await command.ExecuteNonQueryAsync();
-    Console.WriteLine("[OK] SQL Apiaries and Parcels schema verified.");
+    Console.Write("Verifying Users schema...");
+    await using (var cmd = new SqlCommand(usersSchemaSql, connection))
+    {
+        await cmd.ExecuteNonQueryAsync();
+    }
+    Console.ForegroundColor = ConsoleColor.Green;
+    Console.WriteLine(" [OK]");
+    Console.ResetColor();
+
+    Console.Write("Verifying Apiaries schema...");
+    await using (var cmd = new SqlCommand(apiarySchemaSql, connection))
+    {
+        await cmd.ExecuteNonQueryAsync();
+    }
+    Console.ForegroundColor = ConsoleColor.Green;
+    Console.WriteLine(" [OK]");
+    Console.ResetColor();
+
+    Console.Write("Verifying Parcels schema...");
+    await using (var cmd = new SqlCommand(parcelsSchemaSql, connection))
+    {
+        await cmd.ExecuteNonQueryAsync();
+    }
+    Console.ForegroundColor = ConsoleColor.Green;
+    Console.WriteLine(" [OK]");
+    Console.ResetColor();
 }
 string PromptPassword()
 {

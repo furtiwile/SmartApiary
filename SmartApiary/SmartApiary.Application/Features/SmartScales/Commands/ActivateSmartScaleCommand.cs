@@ -40,7 +40,7 @@ namespace SmartApiary.Application.Features.SmartScales.Commands
                     return Result<string>.Success(smartScale.DeviceToken);
 
                 // Edge case: paired but missing token - generate one
-                smartScale.DeviceToken = tokenGenerator.GenerateToken();
+                smartScale.RefreshDeviceToken(tokenGenerator.GenerateToken());
                 await smartScaleRepository.UpdateAsync(smartScale, ct);
                 return Result<string>.Success(smartScale.DeviceToken);
             }
@@ -50,9 +50,7 @@ namespace SmartApiary.Application.Features.SmartScales.Commands
                 await smartScaleRepository.DeleteAsync(smartScale, ct);
             }
 
-            smartScale.HardwareId = request.HardwareId;
-            smartScale.DeviceToken = tokenGenerator.GenerateToken();
-            smartScale.Status = DeviceStatusEnum.Paired;
+            smartScale.Activate(request.HardwareId, tokenGenerator.GenerateToken());
 
             await smartScaleRepository.SaveAsync(smartScale, ct);
 

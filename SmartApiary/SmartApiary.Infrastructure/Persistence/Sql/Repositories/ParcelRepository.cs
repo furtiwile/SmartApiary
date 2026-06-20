@@ -1,4 +1,4 @@
-﻿using Microsoft.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using SmartApiary.Application.Interfaces.Repositories;
 using SmartApiary.Domain.Models;
 using SmartApiary.Domain.ValueObjects;
@@ -92,6 +92,22 @@ WHERE Id = @Id;";
             await using var command = new SqlCommand(sql, connection);
             command.Parameters.Add(new SqlParameter("@Id", System.Data.SqlDbType.UniqueIdentifier) { Value = Guid.Parse(parcel.Id.Value) });
             await command.ExecuteNonQueryAsync(ct);
+        }
+
+        public async Task<IReadOnlyCollection<Parcel>> GetParcelsWithinRadiusAsync(double latitude, double longitude, double radiusInMeters, CancellationToken ct = default)
+        {
+            const string sql = @"
+DECLARE @targetLocation geography = geography::STGeomFromText(@LocationWkt, 4326);
+
+SELECT Id, Name, Location.Lat AS Latitude, Location.Long AS Longitude, FarmerId
+FROM dbo.Parcels
+WHERE Location.STDistance(@targetLocation) <= @Radius;";
+
+            return await QueryParcelsAsync(sql, command => {
+                string wkt = $"POINT({longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)} {latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)})";
+                command.Parameters.Add(new SqlParameter("@LocationWkt", System.Data.SqlDbType.NVarChar, -1) { Value = wkt });
+                command.Parameters.Add(new SqlParameter("@Radius", System.Data.SqlDbType.Float) { Value = radiusInMeters });
+            }, ct);
         }
 
         private async Task<IReadOnlyCollection<Parcel>> QueryParcelsAsync(string sql, Action<SqlCommand> configureCommand, CancellationToken ct)

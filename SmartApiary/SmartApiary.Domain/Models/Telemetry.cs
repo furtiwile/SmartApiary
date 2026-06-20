@@ -6,14 +6,14 @@ namespace SmartApiary.Domain.Models
 {
     public class Telemetry : AggregateRoot
     {
-        public EntityId Id { get; set; }
-        public EntityId SmartScaleId { get; set; }
-        public EntityId HiveId { get; set; }
-        public DateTime Timestamp { get; set; }
-        public double WeightKg { get; set; }
-        public double TemperatureC { get; set; }
-        public double HumidityPercent { get; set; }
-        public double BatteryPercent { get; set; }
+        public EntityId Id { get; private set; }
+        public EntityId SmartScaleId { get; private set; }
+        public EntityId HiveId { get; private set; }
+        public DateTime Timestamp { get; private set; }
+        public double WeightKg { get; private set; }
+        public double TemperatureC { get; private set; }
+        public double HumidityPercent { get; private set; }
+        public double BatteryPercent { get; private set; }
 
         private Telemetry(
             EntityId id,

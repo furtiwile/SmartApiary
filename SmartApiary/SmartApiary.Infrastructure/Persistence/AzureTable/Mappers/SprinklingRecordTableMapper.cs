@@ -1,4 +1,4 @@
-﻿using SmartApiary.Domain.Models;
+using SmartApiary.Domain.Models;
 using SmartApiary.Infrastructure.Persistence.AzureTable.Common;
 using SmartApiary.Infrastructure.Persistence.AzureTable.Entities;
 
@@ -15,6 +15,7 @@ namespace SmartApiary.Infrastructure.Persistence.AzureTable.Mappers
                 PreparationType = domain.PreparationType,
                 WindSpeed = domain.WindSpeed,
                 Precipitation = domain.Precipitation,
+                WeatherCondition = domain.WeatherCondition,
                 AnnouncementId = domain.AnnouncementId.Value
             };
         }
@@ -28,6 +29,7 @@ namespace SmartApiary.Infrastructure.Persistence.AzureTable.Mappers
                 entity.PreparationType,
                 entity.WindSpeed,
                 entity.Precipitation,
+                entity.WeatherCondition,
                 entity.AnnouncementId
             );
 
