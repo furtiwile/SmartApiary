@@ -1,68 +1,57 @@
 import { useState } from "react";
+import { z } from "zod";
+import { useForm, type Resolver } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import * as Dialog from "@radix-ui/react-dialog";
 import { PlusCircle, X, MapPin } from "lucide-react";
 import { FarmApi } from "../api/farmApi";
 import { useNotify } from "../../../hooks/useNotify";
 import type { ParcelDto } from "../models/Parcel";
 
+const schema = z.object({
+  name: z.string().min(1, "Name is required"),
+  latitude: z.coerce.number({ message: "Invalid latitude" }).min(-90, "Invalid latitude").max(90, "Invalid latitude"),
+  longitude: z.coerce.number({ message: "Invalid longitude" }).min(-180, "Invalid longitude").max(180, "Invalid longitude"),
+});
+
+type SchemaType = z.infer<typeof schema>;
+
 interface CreateParcelModalProps {
-  farmerId: string;
-  onCreated: (parcel: ParcelDto) => void;
+  onCreated: (parcel: Omit<ParcelDto, "id" | "farmerId"> & { id?: string }) => void;
 }
 
-export function CreateParcelModal({ farmerId, onCreated }: CreateParcelModalProps) {
+export function CreateParcelModal({ onCreated }: CreateParcelModalProps) {
   const [open, setOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [form, setForm] = useState({
-    name: "",
-    latitude: "",
-    longitude: "",
-  });
-
   const { success, error } = useNotify();
 
-  function updateField(key: keyof typeof form, value: string) {
-    setForm((prev) => ({ ...prev, [key]: value }));
-  }
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<SchemaType>({
+    resolver: zodResolver(schema) as unknown as Resolver<SchemaType>,
+    defaultValues: { name: "", latitude: "" as unknown as number, longitude: "" as unknown as number },
+  });
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-
-    const lat = parseFloat(form.latitude);
-    const lng = parseFloat(form.longitude);
-
-    if (!form.name.trim()) {
-      error("Validation", "Parcel name is required.");
-      return;
-    }
-    if (isNaN(lat) || isNaN(lng)) {
-      error("Validation", "Please enter valid latitude and longitude coordinates.");
-      return;
-    }
-    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-      error("Validation", "Coordinates are out of valid range.");
-      return;
-    }
-
-    setIsSubmitting(true);
+  async function onSubmit(data: SchemaType) {
     try {
       const result = await FarmApi.createParcel({
-        name: form.name,
-        latitude: lat,
-        longitude: lng,
-        farmerId,
+        name: data.name,
+        latitude: data.latitude,
+        longitude: data.longitude,
       });
 
       if (result) {
         success("Parcel created", `"${result.name}" has been added to your farm.`);
         onCreated(result);
         setOpen(false);
-        setForm({ name: "", latitude: "", longitude: "" });
+        reset();
       } else {
         error("Failed to create parcel", "The server returned an error. Please try again.");
       }
-    } finally {
-      setIsSubmitting(false);
+    } catch {
+      error("Failed to create parcel", "An unexpected error occurred.");
     }
   }
 
@@ -92,18 +81,17 @@ export function CreateParcelModal({ farmerId, onCreated }: CreateParcelModalProp
             </Dialog.Close>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1.5">Parcel Name</label>
               <input
                 type="text"
                 placeholder="e.g. North Field"
-                value={form.name}
-                onChange={(e) => updateField("name", e.target.value)}
-                required
+                {...register("name")}
                 autoFocus
                 className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
+              {errors.name && <p className="mt-1.5 text-xs text-rose-500">{errors.name.message}</p>}
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -113,11 +101,10 @@ export function CreateParcelModal({ farmerId, onCreated }: CreateParcelModalProp
                   type="number"
                   step="any"
                   placeholder="45.2500"
-                  value={form.latitude}
-                  onChange={(e) => updateField("latitude", e.target.value)}
-                  required
+                  {...register("latitude")}
                   className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
+                {errors.latitude && <p className="mt-1.5 text-xs text-rose-500">{errors.latitude.message}</p>}
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1.5">Longitude</label>
@@ -125,11 +112,10 @@ export function CreateParcelModal({ farmerId, onCreated }: CreateParcelModalProp
                   type="number"
                   step="any"
                   placeholder="19.8420"
-                  value={form.longitude}
-                  onChange={(e) => updateField("longitude", e.target.value)}
-                  required
+                  {...register("longitude")}
                   className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
+                {errors.longitude && <p className="mt-1.5 text-xs text-rose-500">{errors.longitude.message}</p>}
               </div>
             </div>
 

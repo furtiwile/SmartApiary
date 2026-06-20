@@ -1,9 +1,13 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { z } from "zod";
+import { useForm, useWatch, type Resolver } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { ClipboardList, PlusCircle, Trash2, Check, ChevronDown, ChevronUp } from "lucide-react";
 import { InspectionApi } from "../api/telemetryApi";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import { useNotify } from "../../../hooks/useNotify";
-import type { InspectionEntry, CreateInspectionPayload } from "../models/Inspection";
+import type { InspectionEntry } from "../models/Inspection";
 import { BOARD_COLORS } from "../models/Inspection";
 
 interface HiveDiaryProps {
@@ -13,53 +17,78 @@ interface HiveDiaryProps {
 
 const todayIso = () => new Date().toISOString().slice(0, 16);
 
-const blankForm = (): Omit<CreateInspectionPayload, "hiveId"> => ({
-  inspectedAt: todayIso(),
-  boardColor: undefined,
-  framesOfHoney: undefined,
-  honeyKg: undefined,
-  framesOfBrood: undefined,
-  queenSeen: false,
-  queenLayingEggs: undefined,
-  notes: "",
+const schema = z.object({
+  inspectedAt: z.string().min(1, "Date is required."),
+  boardColor: z.string().optional(),
+  framesOfHoney: z.coerce.number().min(0).optional(),
+  honeyKg: z.coerce.number().min(0).optional(),
+  framesOfBrood: z.coerce.number().min(0).optional(),
+  queenSeen: z.boolean(),
+  queenLayingEggs: z.boolean().optional(),
+  notes: z.string().optional(),
 });
 
+type SchemaType = z.infer<typeof schema>;
+
 export function HiveDiary({ hiveId, hiveName }: HiveDiaryProps) {
-  const [entries, setEntries] = useState<InspectionEntry[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
+
+  const { data: entries = [], isLoading } = useQuery({
+    queryKey: ["inspections", hiveId],
+    queryFn: () =>
+      InspectionApi.getByHive(hiveId).then((data) =>
+        data.sort((a, b) => b.inspectedAt.localeCompare(a.inspectedAt))
+      ),
+    enabled: !!hiveId,
+  });
+
   const [showForm, setShowForm] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [form, setForm] = useState(blankForm());
 
   const { success, error } = useNotify();
 
-  useEffect(() => {
-    InspectionApi.getByHive(hiveId)
-      .then((data) => setEntries(data.sort((a, b) => b.inspectedAt.localeCompare(a.inspectedAt))))
-      .finally(() => setIsLoading(false));
-  }, [hiveId]);
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    reset,
+    control,
+    formState: { errors, isSubmitting },
+  } = useForm<SchemaType>({
+    resolver: zodResolver(schema) as unknown as Resolver<SchemaType>,
+    defaultValues: {
+      inspectedAt: todayIso(),
+      boardColor: undefined,
+      framesOfHoney: "" as unknown as number,
+      honeyKg: "" as unknown as number,
+      framesOfBrood: "" as unknown as number,
+      queenSeen: false,
+      queenLayingEggs: false,
+      notes: "",
+    },
+  });
 
-  function updateField<K extends keyof typeof form>(key: K, value: typeof form[K]) {
-    setForm((prev) => ({ ...prev, [key]: value }));
-  }
+  const watchBoardColor = useWatch({ control, name: "boardColor" });
+  const watchQueenSeen = useWatch({ control, name: "queenSeen" });
+  const watchQueenLayingEggs = useWatch({ control, name: "queenLayingEggs" });
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setIsSubmitting(true);
+  async function onSubmit(data: SchemaType) {
     try {
-      const result = await InspectionApi.create({ ...form, hiveId });
+      const result = await InspectionApi.create({ ...data, hiveId });
       if (result) {
-        setEntries((prev) => [result, ...prev]);
+        queryClient.setQueryData<InspectionEntry[]>(["inspections", hiveId], (old) => [
+          result,
+          ...(old || []),
+        ]);
         success("Inspection logged", `Entry added to the diary of "${hiveName}".`);
-        setForm(blankForm());
+        reset();
         setShowForm(false);
       } else {
         error("Save failed", "Could not save the inspection. Please try again.");
       }
-    } finally {
-      setIsSubmitting(false);
+    } catch {
+      error("Save failed", "An unexpected error occurred.");
     }
   }
 
@@ -67,7 +96,9 @@ export function HiveDiary({ hiveId, hiveName }: HiveDiaryProps) {
     if (!confirmDeleteId) return;
     const ok = await InspectionApi.delete(confirmDeleteId);
     if (ok) {
-      setEntries((prev) => prev.filter((e) => e.id !== confirmDeleteId));
+      queryClient.setQueryData<InspectionEntry[]>(["inspections", hiveId], (old) =>
+        old?.filter((e) => e.id !== confirmDeleteId)
+      );
       success("Entry removed", "The inspection entry has been deleted.");
     } else {
       error("Delete failed", "Could not remove the entry. Please try again.");
@@ -99,7 +130,7 @@ export function HiveDiary({ hiveId, hiveName }: HiveDiaryProps) {
 
       {/* Add inspection form */}
       {showForm && (
-        <form onSubmit={handleSubmit} className="rounded-2xl border border-slate-700 bg-slate-800/80 p-5 space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="rounded-2xl border border-slate-700 bg-slate-800/80 p-5 space-y-4">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">New Inspection</p>
 
           {/* Date/time */}
@@ -107,10 +138,10 @@ export function HiveDiary({ hiveId, hiveName }: HiveDiaryProps) {
             <label className="block text-xs text-slate-500 mb-1">Date & Time</label>
             <input
               type="datetime-local"
-              value={form.inspectedAt}
-              onChange={(e) => updateField("inspectedAt", e.target.value)}
+              {...register("inspectedAt")}
               className="block w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500"
             />
+            {errors.inspectedAt && <p className="mt-1.5 text-xs text-rose-500">{errors.inspectedAt.message}</p>}
           </div>
 
           {/* Board colour */}
@@ -121,9 +152,9 @@ export function HiveDiary({ hiveId, hiveName }: HiveDiaryProps) {
                 <button
                   key={value}
                   type="button"
-                  onClick={() => updateField("boardColor", form.boardColor === value ? undefined : value)}
+                  onClick={() => setValue("boardColor", watchBoardColor === value ? undefined : value)}
                   className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-all ${
-                    form.boardColor === value
+                    watchBoardColor === value
                       ? "border-amber-500 bg-amber-500/10 text-amber-300"
                       : "border-slate-700 text-slate-400 hover:border-slate-600"
                   }`}
@@ -148,8 +179,7 @@ export function HiveDiary({ hiveId, hiveName }: HiveDiaryProps) {
                   type="number"
                   min={0}
                   step={key === "honeyKg" ? "0.1" : "1"}
-                  value={form[key] ?? ""}
-                  onChange={(e) => updateField(key, e.target.value ? parseFloat(e.target.value) : undefined)}
+                  {...register(key)}
                   className="block w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500"
                 />
               </div>
@@ -165,14 +195,14 @@ export function HiveDiary({ hiveId, hiveName }: HiveDiaryProps) {
               <label key={key} className="flex items-center gap-2 cursor-pointer">
                 <button
                   type="button"
-                  onClick={() => updateField(key, !form[key])}
+                  onClick={() => setValue(key, key === "queenSeen" ? !watchQueenSeen : !watchQueenLayingEggs)}
                   className={`h-5 w-5 rounded border flex items-center justify-center transition-colors ${
-                    form[key]
+                    (key === "queenSeen" ? watchQueenSeen : watchQueenLayingEggs)
                       ? "bg-amber-500 border-amber-500 text-slate-900"
                       : "bg-slate-900 border-slate-700"
                   }`}
                 >
-                  {form[key] && <Check className="h-3 w-3" />}
+                  {(key === "queenSeen" ? watchQueenSeen : watchQueenLayingEggs) && <Check className="h-3 w-3" />}
                 </button>
                 <span className="text-xs text-slate-400">{label}</span>
               </label>
@@ -185,8 +215,7 @@ export function HiveDiary({ hiveId, hiveName }: HiveDiaryProps) {
             <textarea
               rows={2}
               placeholder="Observations, treatments applied, etc."
-              value={form.notes ?? ""}
-              onChange={(e) => updateField("notes", e.target.value)}
+              {...register("notes")}
               className="block w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"
             />
           </div>

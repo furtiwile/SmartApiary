@@ -1,10 +1,19 @@
 import { useState } from "react";
+import { z } from "zod";
+import { useForm, useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Link2, X, ShieldCheck } from "lucide-react";
 import { DevicePairingApi } from "../api/telemetryApi";
 import { useNotify } from "../../../hooks/useNotify";
 
 const SERIAL_REGEX = /^SA-\d{4}-\d{5}$/;
+
+const schema = z.object({
+  serialNumber: z.string().toUpperCase().regex(SERIAL_REGEX, "Format must be SA-YYYY-XXXXX (e.g. SA-2024-00123)"),
+});
+
+type SchemaType = z.infer<typeof schema>;
 
 interface DevicePairingModalProps {
   hiveId: string;
@@ -22,41 +31,45 @@ export function DevicePairingModal({
   onUnpaired,
 }: DevicePairingModalProps) {
   const [open, setOpen] = useState(false);
-  const [serialNumber, setSerialNumber] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmittingUnpair, setIsSubmittingUnpair] = useState(false);
   const { success, error } = useNotify();
 
-  const isValidSerial = SERIAL_REGEX.test(serialNumber);
+  const {
+    register,
+    handleSubmit,
+    reset,
+    control,
+    formState: { errors, isSubmitting },
+  } = useForm<SchemaType>({
+    resolver: zodResolver(schema),
+    defaultValues: { serialNumber: "" },
+  });
 
-  async function handlePair(e: React.FormEvent) {
-    e.preventDefault();
-    if (!isValidSerial) {
-      error("Invalid serial", "Format must be SA-YYYY-XXXXX (e.g. SA-2024-00123).");
-      return;
-    }
+  const watchSerialNumber = useWatch({ control, name: "serialNumber" });
+  const isValidSerial = SERIAL_REGEX.test(watchSerialNumber || "");
 
-    setIsSubmitting(true);
+  async function onSubmit(data: SchemaType) {
     try {
-      const ok = await DevicePairingApi.pair(hiveId, serialNumber);
+      const ok = await DevicePairingApi.pair(hiveId, data.serialNumber);
       if (ok) {
         success(
           "Device paired",
-          `SmartScale ${serialNumber} is now linked to "${hiveName}". Telemetry will begin shortly.`,
+          `SmartScale ${data.serialNumber} is now linked to "${hiveName}". Telemetry will begin shortly.`,
           { duration: 7000 }
         );
-        setSerialNumber("");
+        reset();
         setOpen(false);
         onPaired();
       } else {
         error("Pairing failed", "Check the serial number and ensure the device is powered on.");
       }
-    } finally {
-      setIsSubmitting(false);
+    } catch {
+      error("Pairing failed", "An unexpected error occurred.");
     }
   }
 
   async function handleUnpair() {
-    setIsSubmitting(true);
+    setIsSubmittingUnpair(true);
     try {
       const ok = await DevicePairingApi.unpair(hiveId);
       if (ok) {
@@ -67,7 +80,7 @@ export function DevicePairingModal({
         error("Unpair failed", "Could not remove the device. Please try again.");
       }
     } finally {
-      setIsSubmitting(false);
+      setIsSubmittingUnpair(false);
     }
   }
 
@@ -122,20 +135,20 @@ export function DevicePairingModal({
               </div>
               <button
                 onClick={handleUnpair}
-                disabled={isSubmitting}
+                disabled={isSubmittingUnpair}
                 className="flex w-full items-center justify-center gap-2 rounded-lg border border-rose-700 bg-rose-500/10 px-4 py-2.5 text-sm font-semibold text-rose-400 hover:bg-rose-500/20 disabled:opacity-60 transition-all"
               >
-                {isSubmitting ? (
+                {isSubmittingUnpair ? (
                   <span className="h-4 w-4 border-2 border-rose-400/30 border-t-rose-400 rounded-full animate-spin" />
                 ) : (
                   <Link2 className="h-4 w-4" />
                 )}
-                {isSubmitting ? "Unpairing…" : "Unpair Device"}
+                {isSubmittingUnpair ? "Unpairing…" : "Unpair Device"}
               </button>
             </div>
           ) : (
             /* Pair view */
-            <form onSubmit={handlePair} className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">
                   SmartScale Serial Number
@@ -143,21 +156,21 @@ export function DevicePairingModal({
                 <input
                   type="text"
                   placeholder="SA-2024-00123"
-                  value={serialNumber}
-                  onChange={(e) => setSerialNumber(e.target.value.toUpperCase())}
+                  {...register("serialNumber")}
                   autoFocus
                   maxLength={14}
                   className={`block w-full rounded-lg border bg-slate-800 px-3 py-2 text-sm font-mono text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 transition-all ${
-                    serialNumber && !isValidSerial
+                    watchSerialNumber && !isValidSerial
                       ? "border-rose-500/60 focus:ring-rose-500"
                       : "border-slate-700 focus:ring-indigo-500"
                   }`}
                 />
                 <p className={`mt-1.5 text-xs ${
-                  serialNumber && !isValidSerial ? "text-rose-400" : "text-slate-500"
+                  watchSerialNumber && !isValidSerial ? "text-rose-400" : "text-slate-500"
                 }`}>
                   Format: SA-YYYY-XXXXX (found on the device label)
                 </p>
+                {errors.serialNumber && <p className="mt-1.5 text-xs text-rose-500">{errors.serialNumber.message}</p>}
               </div>
 
               <div className="flex gap-3 pt-1">

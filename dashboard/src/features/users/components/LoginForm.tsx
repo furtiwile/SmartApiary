@@ -1,26 +1,40 @@
-import { useState } from "react";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { LogIn, Mail, Lock } from "lucide-react";
 import { AuthApi } from "../api/AuthApi";
 import { useNotify } from "../../../hooks/useNotify";
 
+const loginSchema = z.object({
+  email: z.string().email("Please enter a valid email address."),
+  password: z.string().min(8, "Password must be at least 8 characters."),
+});
 
-const MIN_EMAIL_LEN = 6;
-const MIN_PASSWD_LEN = 8;
+type LoginSchemaType = z.infer<typeof loginSchema>;
 
 interface LoginFormProps {
   onSuccess: (token: string) => void;
 }
 
 export function LoginForm({ onSuccess }: LoginFormProps) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    getValues,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginSchemaType>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: "", password: "" },
+  });
+
   const { notify } = useNotify();
 
   async function handleForgotPassword(event: React.MouseEvent<HTMLAnchorElement>) {
     event.preventDefault();
+    const currentEmail = getValues("email");
 
-    if (!email || email.length < MIN_EMAIL_LEN) {
+    if (!currentEmail || currentEmail.length < 6) {
       notify({
         type: "warning",
         title: "Email required",
@@ -29,7 +43,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
       return;
     }
 
-    const result = await AuthApi.forgotPassword(email);
+    const result = await AuthApi.forgotPassword(currentEmail);
 
     if (result.success) {
       notify({
@@ -46,32 +60,9 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
     }
   }
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    const _email = email;
-    const _password = password;
-
-    if (_email.length < MIN_EMAIL_LEN) {
-      notify({ type: "error", title: "Invalid email", message: "Email address is too short." });
-      return;
-    }
-
-    if (_password.length < MIN_PASSWD_LEN) {
-      notify({
-        type: "error",
-        title: "Invalid password",
-        message: `Password must be at least ${MIN_PASSWD_LEN} characters.`,
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
-    setEmail("");
-    setPassword("");
-
+  async function onSubmit(data: LoginSchemaType) {
     try {
-      const result = await AuthApi.login(_email, _password);
+      const result = await AuthApi.login(data.email, data.password);
       if (result.data) {
         onSuccess(result.data.token);
       } else {
@@ -81,13 +72,18 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
           message: result.message ?? "Something went wrong. Please try again.",
         });
       }
-    } finally {
-      setIsSubmitting(false);
+    } catch (err) {
+      console.error(err);
+      notify({
+        type: "error",
+        title: "Login failed",
+        message: "An unexpected error occurred.",
+      });
     }
   }
 
   return (
-    <form name="login" onSubmit={handleSubmit} className="space-y-6">
+    <form name="login" onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="p-8 bg-white dark:bg-slate-800/50 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
         {/* Header */}
         <div className="text-center mb-8">
@@ -109,18 +105,19 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <input
               id="email"
-              name="email"
               type="email"
               placeholder="you@example.com"
-              minLength={MIN_EMAIL_LEN}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
+              {...register("email")}
               autoFocus
               tabIndex={1}
-              className="block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 pl-10 pr-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow"
+              className={`block w-full rounded-lg border ${
+                errors.email
+                  ? "border-rose-300 dark:border-rose-600 focus:ring-rose-500"
+                  : "border-slate-300 dark:border-slate-600 focus:ring-indigo-500"
+              } bg-white dark:bg-slate-700 pl-10 pr-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-shadow`}
             />
           </div>
+          {errors.email && <p className="mt-1.5 text-xs text-rose-500">{errors.email.message}</p>}
         </div>
 
         {/* Password */}
@@ -142,18 +139,19 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <input
               id="password"
-              name="password"
               type="password"
               placeholder="••••••••"
-              minLength={MIN_PASSWD_LEN}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
+              {...register("password")}
               tabIndex={2}
               autoComplete="current-password"
-              className="block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 pl-10 pr-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow"
+              className={`block w-full rounded-lg border ${
+                errors.password
+                  ? "border-rose-300 dark:border-rose-600 focus:ring-rose-500"
+                  : "border-slate-300 dark:border-slate-600 focus:ring-indigo-500"
+              } bg-white dark:bg-slate-700 pl-10 pr-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-shadow`}
             />
           </div>
+          {errors.password && <p className="mt-1.5 text-xs text-rose-500">{errors.password.message}</p>}
         </div>
 
         {/* Actions */}

@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Tractor, X, MapPin, User } from "lucide-react";
 import { PageLayout } from "../../../layouts/PageLayout";
 import { useAuth } from "../../users/hooks/AuthHook";
@@ -13,18 +15,15 @@ import { useNotify } from "../../../hooks/useNotify";
 
 export const FarmsPage: React.FC = () => {
   const { user } = useAuth();
-  const [parcels, setParcels] = useState<ParcelDto[]>([]);
+  const queryClient = useQueryClient();
   const [selectedParcel, setSelectedParcel] = useState<ParcelDto | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const { success, error } = useNotify();
 
-  useEffect(() => {
-    if (user?.id) {
-      FarmApi.getParcelsByFarmer(user.id)
-        .then(setParcels)
-        .finally(() => setIsLoading(false));
-    }
-  }, [user?.id]);
+  const { data: parcels = [], isLoading } = useQuery({
+    queryKey: ["parcels", user?.id],
+    queryFn: () => (user?.id ? FarmApi.getParcelsByFarmer(user.id) : Promise.resolve([])),
+    enabled: !!user?.id,
+  });
 
   const handleEdit = (parcel: ParcelDto) => {
     setSelectedParcel(parcel);
@@ -33,7 +32,9 @@ export const FarmsPage: React.FC = () => {
   const handleDelete = async (parcelId: string) => {
     const deleted = await FarmApi.deleteParcel(parcelId);
     if (deleted) {
-      setParcels((current) => current.filter((p) => p.id !== parcelId));
+      queryClient.setQueryData<ParcelDto[]>(["parcels", user?.id], (old) =>
+        old?.filter((p) => p.id !== parcelId)
+      );
       if (selectedParcel?.id === parcelId) setSelectedParcel(null);
       success("Parcel removed", "The parcel has been successfully deleted.");
     } else {
@@ -45,7 +46,11 @@ export const FarmsPage: React.FC = () => {
     <PageLayout>
       <div className="space-y-6">
         {/* Page Header */}
-        <div className="flex items-center justify-between rounded-3xl border border-slate-200 bg-slate-50 p-6 shadow-sm">
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center justify-between rounded-3xl border border-slate-200 bg-slate-50 p-6 shadow-sm"
+        >
           <div className="flex items-center gap-4">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-500/10">
               <Tractor className="h-6 w-6 text-emerald-600" />
@@ -60,11 +65,15 @@ export const FarmsPage: React.FC = () => {
           </div>
           {user?.id && (
             <CreateParcelModal
-              farmerId={user.id}
-              onCreated={(parcel) => setParcels((prev) => [...prev, parcel])}
+              onCreated={(parcel) =>
+                queryClient.setQueryData<ParcelDto[]>(["parcels", user?.id], (old) => [
+                  ...(old || []),
+                  parcel as ParcelDto,
+                ])
+              }
             />
           )}
-        </div>
+        </motion.div>
 
         {/* Parcels table */}
         {isLoading ? (
@@ -77,8 +86,15 @@ export const FarmsPage: React.FC = () => {
         )}
 
         {/* Selected parcel detail panel */}
-        {selectedParcel && (
-          <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <AnimatePresence mode="popLayout">
+          {selectedParcel && (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden"
+            >
             {/* Detail header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50">
               <div className="flex items-center gap-3">
@@ -134,8 +150,9 @@ export const FarmsPage: React.FC = () => {
                 parcelName={selectedParcel.name}
               />
             </div>
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </PageLayout>
   );

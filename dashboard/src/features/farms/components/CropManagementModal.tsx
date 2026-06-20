@@ -1,11 +1,23 @@
 import { useState } from "react";
+import { z } from "zod";
+import { useForm, useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Leaf, PlusCircle, Trash2, X } from "lucide-react";
 import { CropApi } from "../api/sprayingApi";
 import { useNotify } from "../../../hooks/useNotify";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
-import type { CropDto, CropType } from "../models/Crop";
+import type { CropType } from "../models/Crop";
 import { CROP_OPTIONS } from "../models/Crop";
+
+const schema = z.object({
+  cropType: z.enum(["Sunflower", "Rapeseed", "Lavender", "Linden", "Acacia", "Other"] as const),
+  expectedBloomDate: z.string().min(1, "Please select an expected bloom date."),
+  notes: z.string().optional(),
+});
+
+type SchemaType = z.infer<typeof schema>;
 
 interface CropManagementModalProps {
   parcelId: string;
@@ -14,39 +26,49 @@ interface CropManagementModalProps {
 
 export function CropManagementModal({ parcelId, parcelName }: CropManagementModalProps) {
   const [open, setOpen] = useState(false);
-  const [crops, setCrops] = useState<CropDto[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-
-  const [cropType, setCropType] = useState<CropType>("Sunflower");
-  const [bloomDate, setBloomDate] = useState("");
-  const [notes, setNotes] = useState("");
-
+  const queryClient = useQueryClient();
   const { success, error } = useNotify();
 
+  const { data: crops = [], isLoading } = useQuery({
+    queryKey: ["crops", parcelId],
+    queryFn: () => CropApi.getByParcel(parcelId),
+    enabled: open,
+  });
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    reset,
+    control,
+    formState: { errors, isSubmitting },
+  } = useForm<SchemaType>({
+    resolver: zodResolver(schema),
+    defaultValues: { cropType: "Other", expectedBloomDate: "", notes: "" },
+  });
+
+  const selectedCropType = useWatch({ control, name: "cropType" });
 
 
-  async function handleAddCrop(e: React.FormEvent) {
-    e.preventDefault();
-    if (!bloomDate) {
-      error("Validation", "Please select an expected bloom date.");
-      return;
-    }
 
-    setIsSubmitting(true);
+  async function onSubmit(data: SchemaType) {
     try {
-      const result = await CropApi.create({ parcelId, cropType, expectedBloomDate: bloomDate, notes: notes || undefined });
+      const result = await CropApi.create({
+        parcelId,
+        type: data.cropType as CropType,
+        expectedFloweringTime: data.expectedBloomDate,
+        note: data.notes || "",
+      });
       if (result) {
-        setCrops((prev) => [...prev, result]);
-        success("Crop added", `${cropType} has been assigned to "${parcelName}".`);
-        setBloomDate("");
-        setNotes("");
+        queryClient.setQueryData<typeof crops>(["crops", parcelId], (old) => [...(old || []), result]);
+        success("Crop added", `${data.cropType} has been assigned to "${parcelName}".`);
+        reset();
       } else {
         error("Failed", "Could not add crop. Please try again.");
       }
-    } finally {
-      setIsSubmitting(false);
+    } catch {
+      error("Failed", "An unexpected error occurred.");
     }
   }
 
@@ -54,7 +76,7 @@ export function CropManagementModal({ parcelId, parcelName }: CropManagementModa
     if (!confirmDeleteId) return;
     const deleted = await CropApi.delete(confirmDeleteId);
     if (deleted) {
-      setCrops((prev) => prev.filter((c) => c.id !== confirmDeleteId));
+      queryClient.setQueryData<typeof crops>(["crops", parcelId], (old) => old?.filter((c) => c.id !== confirmDeleteId));
       success("Crop removed", "The crop has been removed from the parcel.");
     } else {
       error("Failed", "Could not remove crop. Please try again.");
@@ -66,15 +88,7 @@ export function CropManagementModal({ parcelId, parcelName }: CropManagementModa
 
   return (
     <>
-      <Dialog.Root open={open} onOpenChange={(isOpen) => {
-        setOpen(isOpen);
-        if (isOpen) {
-          setIsLoading(true);
-          CropApi.getByParcel(parcelId)
-            .then(setCrops)
-            .finally(() => setIsLoading(false));
-        }
-      }}>
+      <Dialog.Root open={open} onOpenChange={setOpen}>
         <Dialog.Trigger asChild>
           <button className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 transition-all">
             <Leaf className="h-3 w-3" />
@@ -150,16 +164,16 @@ export function CropManagementModal({ parcelId, parcelName }: CropManagementModa
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-3">
                 Add Crop
               </p>
-              <form onSubmit={handleAddCrop} className="space-y-3">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
                 {/* Crop type selector */}
                 <div className="grid grid-cols-3 gap-2">
                   {CROP_OPTIONS.map(({ value, label, emoji }) => (
                     <button
                       key={value}
                       type="button"
-                      onClick={() => setCropType(value)}
+                      onClick={() => setValue("cropType", value)}
                       className={`flex flex-col items-center justify-center gap-1 rounded-xl border py-2.5 text-xs font-medium transition-all ${
-                        cropType === value
+                        selectedCropType === value
                           ? "border-emerald-500 bg-emerald-50 text-emerald-700"
                           : "border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-slate-50"
                       }`}
@@ -178,11 +192,10 @@ export function CropManagementModal({ parcelId, parcelName }: CropManagementModa
                     <input
                       type="date"
                       min={todayIso}
-                      value={bloomDate}
-                      onChange={(e) => setBloomDate(e.target.value)}
-                      required
+                      {...register("expectedBloomDate")}
                       className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     />
+                    {errors.expectedBloomDate && <p className="mt-1.5 text-xs text-rose-500">{errors.expectedBloomDate.message}</p>}
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1.5">
@@ -191,8 +204,7 @@ export function CropManagementModal({ parcelId, parcelName }: CropManagementModa
                     <input
                       type="text"
                       placeholder="e.g. Early variety"
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
+                      {...register("notes")}
                       className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     />
                   </div>

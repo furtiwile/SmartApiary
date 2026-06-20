@@ -1,21 +1,18 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 import { DeviceList } from "../components/DeviceList";
 import { PageLayout } from "../../../layouts/PageLayout";
 import { getDevices } from "../api/getDevices";
-import type { Device } from "../models/Device";
 import { FirmwareUploadModal } from "../components/FirmwareUploadModal";
 
 const DevicesPage: React.FC = () => {
-  const [devices, setDevices] = useState<Device[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isFirmwareModalOpen, setIsFirmwareModalOpen] = useState(false);
 
-  useEffect(() => {
-    getDevices()
-      .then(setDevices)
-      .finally(() => setIsLoading(false));
-  }, []);
+  const { data: devices = [], isLoading } = useQuery({
+    queryKey: ["devices"],
+    queryFn: getDevices,
+  });
 
   if (isLoading)
     return (

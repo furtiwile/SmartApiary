@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { z } from "zod";
+import { useForm, useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
 import { UserPlus, Mail, Phone, User, Shield } from "lucide-react";
 import { AuthApi } from "../api/AuthApi";
@@ -6,67 +8,60 @@ import { useNotify } from "../../../hooks/useNotify";
 import type { UserRole } from "../models/UserRole";
 
 const MIN_NAME_LEN = 2;
-const MIN_EMAIL_LEN = 6;
 
 const ROLE_OPTIONS: { value: UserRole; label: string }[] = [
   { value: "Farmer", label: "🌾 Farmer" },
   { value: "Beekeeper", label: "🐝 Beekeeper" },
 ];
 
-export function RegisterForm() {
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [role, setRole] = useState<UserRole>("Farmer");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+const schema = z.object({
+  firstName: z.string().min(MIN_NAME_LEN, `First name must be at least ${MIN_NAME_LEN} characters.`),
+  lastName: z.string().min(MIN_NAME_LEN, `Last name must be at least ${MIN_NAME_LEN} characters.`),
+  email: z.string().email("Please enter a valid email address."),
+  phoneNumber: z.string().min(6, "Please enter a valid phone number."),
+  role: z.enum(["Farmer", "Beekeeper", "Admin"] as const),
+});
 
+type SchemaType = z.infer<typeof schema>;
+
+export function RegisterForm() {
   const { success, error } = useNotify();
   const navigate = useNavigate();
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    control,
+    formState: { errors, isSubmitting },
+  } = useForm<SchemaType>({
+    resolver: zodResolver(schema),
+    defaultValues: { firstName: "", lastName: "", email: "", phoneNumber: "", role: "Farmer" },
+  });
 
-    if (firstName.length < MIN_NAME_LEN) {
-      error("Validation error", `First name must be at least ${MIN_NAME_LEN} characters.`);
-      return;
-    }
-    if (lastName.length < MIN_NAME_LEN) {
-      error("Validation error", `Last name must be at least ${MIN_NAME_LEN} characters.`);
-      return;
-    }
-    if (email.length < MIN_EMAIL_LEN) {
-      error("Validation error", "Please enter a valid email address.");
-      return;
-    }
-    if (phoneNumber.length < 6) {
-      error("Validation error", "Please enter a valid phone number.");
-      return;
-    }
+  const watchRole = useWatch({ control, name: "role" });
 
-    setIsSubmitting(true);
-
+  async function onSubmit(data: SchemaType) {
     try {
-      const result = await AuthApi.register(email, firstName, lastName, phoneNumber, role);
+      const result = await AuthApi.register(data.email, data.firstName, data.lastName, data.phoneNumber, data.role as "Farmer" | "Beekeeper" | "Admin");
 
       if (result.success) {
         success(
           "Account created",
-          `An activation email has been sent to ${email}. The user must check their inbox to activate the account.`,
+          `An activation email has been sent to ${data.email}. The user must check their inbox to activate the account.`,
           { duration: 8000 }
         );
         navigate("/dashboard");
       } else {
         error("Registration failed", result.message ?? "Something went wrong. Please try again.");
-        setEmail("");
       }
-    } finally {
-      setIsSubmitting(false);
+    } catch {
+      error("Registration failed", "An unexpected error occurred.");
     }
   }
 
   return (
-    <form name="register" onSubmit={handleSubmit} className="space-y-6">
+    <form name="register" onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="p-8 bg-white dark:bg-slate-800/50 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
         {/* Header */}
         <div className="text-center mb-8">
@@ -91,14 +86,12 @@ export function RegisterForm() {
                 id="first-name"
                 type="text"
                 placeholder="Jane"
-                minLength={MIN_NAME_LEN}
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                required
+                {...register("firstName")}
                 autoFocus
                 className="block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 pl-10 pr-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow"
               />
             </div>
+            {errors.firstName && <p className="mt-1 text-xs text-rose-500">{errors.firstName.message}</p>}
           </div>
 
           {/* Last Name */}
@@ -112,13 +105,11 @@ export function RegisterForm() {
                 id="last-name"
                 type="text"
                 placeholder="Doe"
-                minLength={MIN_NAME_LEN}
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                required
+                {...register("lastName")}
                 className="block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 pl-10 pr-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow"
               />
             </div>
+            {errors.lastName && <p className="mt-1 text-xs text-rose-500">{errors.lastName.message}</p>}
           </div>
         </div>
 
@@ -133,13 +124,11 @@ export function RegisterForm() {
               id="email"
               type="email"
               placeholder="user@example.com"
-              minLength={MIN_EMAIL_LEN}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
+              {...register("email")}
               className="block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 pl-10 pr-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow"
             />
           </div>
+          {errors.email && <p className="mt-1 text-xs text-rose-500">{errors.email.message}</p>}
         </div>
 
         {/* Phone */}
@@ -153,12 +142,11 @@ export function RegisterForm() {
               id="phone"
               type="tel"
               placeholder="+381 60 000 0000"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              required
+              {...register("phoneNumber")}
               className="block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 pl-10 pr-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow"
             />
           </div>
+          {errors.phoneNumber && <p className="mt-1 text-xs text-rose-500">{errors.phoneNumber.message}</p>}
         </div>
 
         {/* Role */}
@@ -171,9 +159,9 @@ export function RegisterForm() {
               <button
                 key={value}
                 type="button"
-                onClick={() => setRole(value)}
+                onClick={() => setValue("role", value as "Farmer" | "Beekeeper" | "Admin")}
                 className={`flex items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-medium transition-all ${
-                  role === value
+                  watchRole === value
                     ? "border-indigo-500 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
                     : "border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-500"
                 }`}

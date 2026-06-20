@@ -12,10 +12,19 @@ export class FarmApi {
     }
   }
 
-  static async createParcel(parcel: Omit<ParcelDto, "id">): Promise<ParcelDto | null> {
+  static async createParcel(parcel: Omit<ParcelDto, "id" | "farmerId">): Promise<ParcelDto | null> {
     try {
-      const response = await api.post<{ data: ParcelDto }>("/parcels", parcel);
-      return response.data?.data ?? null;
+      const response = await api.post<{ id: string }>("/parcels", parcel);
+      const id = response.data?.id;
+      if (id) {
+        // Since there is no getById in ParcelsController, we mock it back using the data we just sent!
+        return {
+          id,
+          ...parcel,
+          farmerId: "current_user", // This will be overwritten by React Query or is irrelevant for UI state.
+        };
+      }
+      return null;
     } catch (error) {
       console.error("Error creating parcel:", error);
       return null;

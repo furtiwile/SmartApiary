@@ -1,9 +1,22 @@
 import { useState } from "react";
+import { z } from "zod";
+import { useForm, type Resolver } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import * as Dialog from "@radix-ui/react-dialog";
 import { PlusCircle, X, Hexagon } from "lucide-react";
 import { ApiaryApi } from "../api/apiaryApi";
 import { useNotify } from "../../../hooks/useNotify";
 import type { ApiaryDto } from "../models/Apiary";
+
+const schema = z.object({
+  Name: z.string().min(1, "Apiary name is required."),
+  Latitude: z.coerce.number().min(-90, "Invalid latitude").max(90, "Invalid latitude"),
+  Longitude: z.coerce.number().min(-180, "Invalid longitude").max(180, "Invalid longitude"),
+  Description: z.string().min(1, "Description is required."),
+  ImageFile: z.any(),
+});
+
+type SchemaType = z.infer<typeof schema>;
 
 interface CreateApiaryModalProps {
   onCreated: (apiary: ApiaryDto) => void;
@@ -11,46 +24,37 @@ interface CreateApiaryModalProps {
 
 export function CreateApiaryModal({ onCreated }: CreateApiaryModalProps) {
   const [open, setOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [form, setForm] = useState({ name: "", latitude: "", longitude: "" });
   const { success, error } = useNotify();
 
-  function updateField(key: keyof typeof form, value: string) {
-    setForm((prev) => ({ ...prev, [key]: value }));
-  }
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<SchemaType>({
+    resolver: zodResolver(schema) as unknown as Resolver<SchemaType>,
+    defaultValues: { Name: "", Latitude: "" as unknown as number, Longitude: "" as unknown as number, Description: "" },
+  });
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-
-    const lat = parseFloat(form.latitude);
-    const lng = parseFloat(form.longitude);
-
-    if (!form.name.trim()) {
-      error("Validation", "Apiary name is required.");
-      return;
-    }
-    if (isNaN(lat) || isNaN(lng)) {
-      error("Validation", "Please enter valid coordinates.");
-      return;
-    }
-    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-      error("Validation", "Coordinates are out of valid geographic range.");
-      return;
-    }
-
-    setIsSubmitting(true);
+  async function onSubmit(data: SchemaType) {
     try {
-      const result = await ApiaryApi.create({ name: form.name.trim(), latitude: lat, longitude: lng });
+      const result = await ApiaryApi.create({ 
+        Name: data.Name.trim(), 
+        Latitude: data.Latitude, 
+        Longitude: data.Longitude,
+        Description: data.Description.trim(),
+        ImageFile: (data.ImageFile as FileList)[0],
+      });
       if (result) {
         success("Apiary created", `"${result.name}" has been added to your account.`);
         onCreated(result);
         setOpen(false);
-        setForm({ name: "", latitude: "", longitude: "" });
+        reset();
       } else {
         error("Failed to create apiary", "The server returned an error. Please try again.");
       }
-    } finally {
-      setIsSubmitting(false);
+    } catch {
+      error("Failed to create apiary", "An unexpected error occurred.");
     }
   }
 
@@ -80,20 +84,19 @@ export function CreateApiaryModal({ onCreated }: CreateApiaryModalProps) {
             </Dialog.Close>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">
                 Apiary Name
               </label>
               <input
                 type="text"
-                placeholder="e.g. Hillside Apiary"
-                value={form.name}
-                onChange={(e) => updateField("name", e.target.value)}
-                required
+                placeholder="e.g. Apiary North"
+                {...register("Name")}
                 autoFocus
-                className="block w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="block w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
+              {errors.Name && <p className="mt-1.5 text-xs text-rose-500">{errors.Name.message}</p>}
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -101,35 +104,55 @@ export function CreateApiaryModal({ onCreated }: CreateApiaryModalProps) {
                 <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">
                   Latitude
                 </label>
-                <input
-                  type="number"
-                  step="any"
-                  placeholder="45.2500"
-                  value={form.latitude}
-                  onChange={(e) => updateField("latitude", e.target.value)}
-                  required
-                  className="block w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-amber-500"
-                />
+                  <input
+                    type="number"
+                    step="any"
+                    placeholder="45.2500"
+                    {...register("Latitude")}
+                    className="block w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                  {errors.Latitude && <p className="mt-1.5 text-xs text-rose-500">{errors.Latitude.message}</p>}
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">
                   Longitude
                 </label>
-                <input
-                  type="number"
-                  step="any"
-                  placeholder="19.8420"
-                  value={form.longitude}
-                  onChange={(e) => updateField("longitude", e.target.value)}
-                  required
-                  className="block w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-amber-500"
-                />
+                  <input
+                    type="number"
+                    step="any"
+                    placeholder="19.8420"
+                    {...register("Longitude")}
+                    className="block w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                  {errors.Longitude && <p className="mt-1.5 text-xs text-rose-500">{errors.Longitude.message}</p>}
               </div>
             </div>
 
             <p className="text-xs text-slate-500">
               After creating the apiary you can add hives and pair SmartScale devices to them.
             </p>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">Description</label>
+              <textarea
+                placeholder="Describe the apiary..."
+                {...register("Description")}
+                rows={2}
+                className="block w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+              />
+              {errors.Description && <p className="mt-1.5 text-xs text-rose-500">{errors.Description.message}</p>}
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">Apiary Image</label>
+              <input
+                type="file"
+                accept=".jpg,.jpeg,.png,.webp,.gif"
+                {...register("ImageFile")}
+                className="block w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              {errors.ImageFile && <p className="mt-1.5 text-xs text-rose-500">{errors.ImageFile.message as string}</p>}
+            </div>
 
             <div className="flex gap-3 pt-2">
               <Dialog.Close asChild>
