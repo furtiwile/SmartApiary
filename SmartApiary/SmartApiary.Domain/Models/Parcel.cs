@@ -90,5 +90,10 @@ namespace SmartApiary.Domain.Models
             );
         }
 
+        public void Update(string name, Point location)
+        {
+            Name = name;
+            Location = location;
+        }
     }
 }

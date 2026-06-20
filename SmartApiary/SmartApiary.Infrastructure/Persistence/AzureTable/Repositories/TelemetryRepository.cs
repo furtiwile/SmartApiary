@@ -41,11 +41,20 @@ namespace SmartApiary.Infrastructure.Persistence.AzureTable.Repositories
         {
             await base.AddAsync(telemetry, ct);
         }
+
         public async Task<Telemetry?> GetPreviousTelemetryAsync(EntityId smartScaleId, CancellationToken ct = default)
         {
             var items = await base.QueryByPartitionKeyAsync(smartScaleId.Value, ct);
-
             return items.OrderByDescending(item => item.Timestamp).Skip(1).FirstOrDefault();
+        }
+
+        public async Task DeleteAllBySmartScaleIdAsync(EntityId smartScaleId, CancellationToken ct = default)
+        {
+            var items = await base.QueryByPartitionKeyAsync(smartScaleId.Value, ct);
+            foreach (var item in items)
+            {
+                await base.DeleteAsync(item, ct);
+            }
         }
     }
 }

@@ -1,5 +1,6 @@
 using FluentValidation;
 using MediatR;
+using SmartApiary.Application.Interfaces;
 using SmartApiary.Application.Interfaces.Repositories;
 using SmartApiary.Domain.Common;
 using SmartApiary.Domain.Enums;
@@ -24,14 +25,29 @@ namespace SmartApiary.Application.Features.Crops.Commands
         }
     }
 
-    internal class CreateCropHandler(ICropRepository cropRepository)
+    internal class CreateCropHandler(
+        ICropRepository cropRepository,
+        IParcelRepository parcelRepository,
+        ICurrentUserContext currentUser
+    )
         : IRequestHandler<CreateCropCommand, Result<string>>
     {
         public async Task<Result<string>> Handle(CreateCropCommand request, CancellationToken ct)
         {
+            if (!currentUser.IsAuthenticated || string.IsNullOrWhiteSpace(currentUser.UserId))
+                return Result<string>.Failure("Unauthorized", ErrorType.Unauthorized);
+
             var parcelIdResult = EntityId.Create(request.ParcelId);
             if (parcelIdResult.IsFailure)
                 return Result<string>.Failure(parcelIdResult.Error!.Message, ErrorType.Validation);
+
+            // Verify parcel ownership
+            var parcel = await parcelRepository.GetByIdAsync(parcelIdResult.Value, ct);
+            if (parcel == null)
+                return Result<string>.Failure("Parcel not found", ErrorType.NotFound);
+
+            if (parcel.FarmerId.Value != currentUser.UserId)
+                return Result<string>.Failure("Unauthorized - you do not own this parcel.", ErrorType.Unauthorized);
 
             var cropResult = Crop.Create(
                 request.Type,

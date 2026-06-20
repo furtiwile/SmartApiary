@@ -149,5 +149,14 @@ namespace SmartApiary.Domain.Models
                 )
             );
         }
+
+        public void Update(string name, Point location, string description, string imageUrl, string thumbnailUrl)
+        {
+            Name = name;
+            Location = location;
+            Description = description;
+            ImageUrl = imageUrl;
+            ThumbnailUrl = thumbnailUrl;
+        }
     }
 }

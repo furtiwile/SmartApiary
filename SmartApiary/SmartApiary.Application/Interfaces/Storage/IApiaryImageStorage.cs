@@ -8,5 +8,6 @@ namespace SmartApiary.Application.Interfaces.Storage
     public interface IApiaryImageStorage
     {
         Task<Result<ApiaryImageUploadResult>> SaveAsync(EntityId apiaryId, UploadedApiaryImageFile file, CancellationToken ct = default);
+        Task DeleteAsync(EntityId apiaryId, CancellationToken ct = default);
     }
 }

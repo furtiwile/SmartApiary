@@ -90,6 +90,27 @@ namespace SmartApiary.Infrastructure.Persistence.AzureBlob.Storages
             }
         }
 
+        public async Task DeleteAsync(EntityId apiaryId, CancellationToken ct = default)
+        {
+            if (apiaryId is null || string.IsNullOrWhiteSpace(apiaryId.Value))
+                return;
+
+            var prefix = $"apiaries/{apiaryId.Value}/";
+            
+            try
+            {
+                var blobs = _containerClient.GetBlobsAsync(Azure.Storage.Blobs.Models.BlobTraits.None, Azure.Storage.Blobs.Models.BlobStates.None, prefix: prefix, cancellationToken: ct);
+                await foreach (var blob in blobs)
+                {
+                    await _containerClient.DeleteBlobIfExistsAsync(blob.Name, cancellationToken: ct);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to delete apiary images for {ApiaryId}", apiaryId.Value);
+            }
+        }
+
         private static bool IsAllowedExtension(string extension)
         {
             return extension is ".jpg" or ".jpeg" or ".png" or ".webp" or ".gif";

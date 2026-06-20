@@ -1,4 +1,3 @@
-
 using SmartApiary.Domain.Common;
 using SmartApiary.Domain.Enums;
 using SmartApiary.Domain.ValueObjects;
@@ -16,25 +15,22 @@ namespace SmartApiary.Domain.Models
         public string PreparationType { get; set; } = string.Empty;
         public bool IsCancelled { get; set; }
         public EntityId ParcelId { get; set; }
+        /// <summary>
+        /// Number of beekeepers notified after the announcement was processed via the queue.
+        /// Updated by ProcessSprinklingAnnouncementCommandHandler after emails are sent.
+        /// </summary>
+        public int NotifiedBeekeepersCount { get; set; }
 
         public ICollection<SprinklingRecord> Records { get; set; } = [];
 
-        /// <summary>
-        /// Creates an instance of the sprinkling announcement
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="startTime"></param>
-        /// <param name="expectedDurationHours"></param>
-        /// <param name="preparationType"></param>
-        /// <param name="isCancelled"></param>
-        /// <param name="parcelId"></param>
         private SprinklingAnnouncement(
             EntityId id,
             DateTime startTime,
             double expectedDurationHours,
             string preparationType,
             bool isCancelled,
-            EntityId parcelId
+            EntityId parcelId,
+            int notifiedBeekeepersCount = 0
         )
         {
             Id = id;
@@ -43,17 +39,12 @@ namespace SmartApiary.Domain.Models
             PreparationType = preparationType;
             IsCancelled = isCancelled;
             ParcelId = parcelId;
+            NotifiedBeekeepersCount = notifiedBeekeepersCount;
         }
 
         /// <summary>
-        /// Validates the sprinkling announcemant data and creates the sprinkling announcement
+        /// Validates and creates a new sprinkling announcement.
         /// </summary>
-        /// <param name="startTime"></param>
-        /// <param name="expectedDurationHours"></param>
-        /// <param name="preparationType"></param>
-        /// <param name="isCancelled"></param>
-        /// <param name="parcelId"></param>
-        /// <returns>Sprinkling announcement if all data is valid, error details otherwise</returns>
         public static Result<SprinklingAnnouncement> Create(
             DateTime startTime,
             double expectedDurationHours,
@@ -66,7 +57,7 @@ namespace SmartApiary.Domain.Models
                 return Result<SprinklingAnnouncement>.Failure("Invalid expected duration hours");
 
             if (parcelId == null || string.IsNullOrWhiteSpace(parcelId.Value))
-                return Result<SprinklingAnnouncement>.Failure("Beekeper's ID is required");
+                return Result<SprinklingAnnouncement>.Failure("Parcel ID is required");
 
             return Result<SprinklingAnnouncement>.Success(
                 new SprinklingAnnouncement(
@@ -81,22 +72,16 @@ namespace SmartApiary.Domain.Models
         }
 
         /// <summary>
-        /// Loads the existing sprinkling announcement
+        /// Loads an existing sprinkling announcement from storage.
         /// </summary>
-        /// <param name="id"></param>
-        /// <param name="startTime"></param>
-        /// <param name="expectedDurationHours"></param>
-        /// <param name="preparationType"></param>
-        /// <param name="isCancelled"></param>
-        /// <param name="parcelId"></param>
-        /// <returns>Sprinkling announcement if all parameters are valid, error details otherwise</returns>
         public static Result<SprinklingAnnouncement> Load(
             string id,
             DateTime startTime,
             double expectedDurationHours,
             string preparationType,
             bool isCancelled,
-            string parcelId
+            string parcelId,
+            int notifiedBeekeepersCount = 0
         )
         {
             var idResult = EntityId.Create(id);
@@ -114,10 +99,12 @@ namespace SmartApiary.Domain.Models
                     expectedDurationHours,
                     preparationType,
                     isCancelled,
-                    parcelIdResult.Value
+                    parcelIdResult.Value,
+                    notifiedBeekeepersCount
                 )
             );
         }
+
         public void Cancel()
         {
             IsCancelled = true;
@@ -131,5 +118,12 @@ namespace SmartApiary.Domain.Models
             IsCancelled = false;
         }
 
+        /// <summary>
+        /// Updates the count of beekeepers notified about this announcement.
+        /// </summary>
+        public void SetNotifiedCount(int count)
+        {
+            NotifiedBeekeepersCount = count;
+        }
     }
 }

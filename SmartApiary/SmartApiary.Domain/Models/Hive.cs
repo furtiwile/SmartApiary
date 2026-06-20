@@ -13,7 +13,7 @@ namespace SmartApiary.Domain.Models
         public int QueenAge { get; set; }
         public string Note { get; set; } = string.Empty;
         public EntityId ApiaryId { get; set; }
-        public EntityId SmartScaleId { get; set; } ///< note, maybe make it nullable if smart scale devices are not enforced
+        public EntityId? SmartScaleId { get; set; }
 
         public ICollection<HiveInspection> Inspections { get; set; } = [];
 
@@ -36,7 +36,7 @@ namespace SmartApiary.Domain.Models
             int queenAge, 
             string note,
             EntityId apiaryId,
-            EntityId smartScaleId
+            EntityId? smartScaleId
         )
         {
             Id = id;
@@ -67,7 +67,7 @@ namespace SmartApiary.Domain.Models
             int queenAge,
             string note,
             EntityId apiaryId,
-            EntityId smartScaleId
+            EntityId? smartScaleId
         )
         {
             if (string.IsNullOrWhiteSpace(designation))
@@ -82,8 +82,7 @@ namespace SmartApiary.Domain.Models
             if (apiaryId == null || string.IsNullOrWhiteSpace(apiaryId.Value))
                 return Result<Hive>.Failure("Apiary ID is required");
 
-            if (smartScaleId == null || string.IsNullOrWhiteSpace(smartScaleId.Value))
-                return Result<Hive>.Failure("Smart Scale ID is required");
+            // SmartScaleId is optional — a hive may not have a paired scale
 
             return Result<Hive>.Success(
                 new Hive(
@@ -119,7 +118,7 @@ namespace SmartApiary.Domain.Models
             int queenAge,
             string note,
             string apiaryId,
-            string smartScaleId
+            string? smartScaleId
         )
         {
             var idResult = EntityId.Create(id);
@@ -130,9 +129,14 @@ namespace SmartApiary.Domain.Models
             if (apiaryIdResult.IsFailure)
                 return Result<Hive>.Failure("Invalid apiary id");
 
-            var smartScaleIdResult = EntityId.Create(smartScaleId);
-            if (smartScaleIdResult.IsFailure)
-                return Result<Hive>.Failure("Invalid smart scale id");
+            EntityId? parsedSmartScaleId = null;
+            if (!string.IsNullOrWhiteSpace(smartScaleId))
+            {
+                var smartScaleIdResult = EntityId.Create(smartScaleId);
+                if (smartScaleIdResult.IsFailure)
+                    return Result<Hive>.Failure("Invalid smart scale id");
+                parsedSmartScaleId = smartScaleIdResult.Value;
+            }
 
             return Result<Hive>.Success(
                 new Hive(
@@ -143,9 +147,19 @@ namespace SmartApiary.Domain.Models
                     queenAge,
                     note,
                     apiaryIdResult.Value,
-                    smartScaleIdResult.Value
+                    parsedSmartScaleId
                 )
             );
+        }
+
+        public void Update(string designation, HiveType type, string superColor, int queenAge, string note, EntityId? smartScaleId)
+        {
+            Designation = designation;
+            Type = type;
+            SuperColor = superColor;
+            QueenAge = queenAge;
+            Note = note;
+            SmartScaleId = smartScaleId;
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace SmartApiary.Infrastructure.Persistence.AzureTable.Entities
+namespace SmartApiary.Infrastructure.Persistence.AzureTable.Entities
 {
     internal class SprinklingAnnouncementEntity : BaseTableEntity
     {
@@ -7,5 +7,6 @@
         public string PreparationType { get; set; } = default!;
         public bool IsCancelled { get; set; } = false;
         public string ParcelId { get; set; } = default!;
+        public int NotifiedBeekeepersCount { get; set; } = 0;
     }
 }

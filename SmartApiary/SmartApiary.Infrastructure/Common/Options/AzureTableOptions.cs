@@ -1,4 +1,4 @@
-﻿namespace SmartApiary.Infrastructure.Common.Options
+namespace SmartApiary.Infrastructure.Common.Options
 {
     internal class AzureTableOptions
     {
@@ -13,9 +13,7 @@
         public string SprinklingAnnouncementsTable { get; init; } = string.Empty;
         public string SprinklingRecordsTable { get; init; } = string.Empty;
         public string TelemetriesTable { get; init; } = string.Empty;
-        public string DevicesTable { get; init; } = string.Empty;
-        public string DeviceStatusesTable { get; init; } = string.Empty;
-        public string FirmwaresTable { get; init; } = string.Empty;
+
         public string ActivationTokensTable { get; init; } = "ActivationTokens";
         public string PasswordResetTokensTable { get; init; } = "PasswordResetTokens";
     }

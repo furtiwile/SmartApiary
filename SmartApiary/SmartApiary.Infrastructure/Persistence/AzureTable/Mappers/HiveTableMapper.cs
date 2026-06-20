@@ -1,4 +1,4 @@
-﻿using SmartApiary.Domain.Enums;
+using SmartApiary.Domain.Enums;
 using SmartApiary.Domain.Models;
 using SmartApiary.Infrastructure.Persistence.AzureTable.Common;
 using SmartApiary.Infrastructure.Persistence.AzureTable.Entities;
@@ -17,7 +17,7 @@ namespace SmartApiary.Infrastructure.Persistence.AzureTable.Mappers
                 QueenAge = domain.QueenAge,
                 Note = domain.Note,
                 ApiaryId = domain.ApiaryId.Value,
-                SmartScaleId = domain.SmartScaleId.Value
+                SmartScaleId = domain.SmartScaleId?.Value
             };
         }
 

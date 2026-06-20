@@ -41,10 +41,14 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
             if (!apiaries.Any())
             {
                 logger.LogInformation("No apiaries found within 5km radius for announcement {Id}.", request.AnnouncementId);
+                // Persist zero count and return success
+                announcement.SetNotifiedCount(0);
+                await announcementRepository.UpdateAsync(announcement, ct);
                 return Result.Success();
             }
 
             var userIds = apiaries.Select(a => a.BeekeeperId.Value).Distinct().ToList();
+            int notifiedCount = 0;
 
             foreach (var userIdString in userIds)
             {
@@ -68,9 +72,16 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
                         );
 
                         await emailSender.SendAsync(emailMessage, ct);
+                        notifiedCount++;
                     }
                 }
             }
+
+            // Persist the count of beekeepers actually notified
+            announcement.SetNotifiedCount(notifiedCount);
+            await announcementRepository.UpdateAsync(announcement, ct);
+
+            logger.LogInformation("Notified {Count} beekeepers for announcement {Id}.", notifiedCount, request.AnnouncementId);
 
             return Result.Success();
         }

@@ -27,5 +27,19 @@ namespace SmartApiary.WebApi.Controllers
             var result = await mediator.Send(new GetHiveInspectionsByHiveQuery(hiveId), ct);
             return result.ToActionResult();
         }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(string id, [FromBody] SmartApiary.WebApi.DTOs.UpdateHiveInspectionRequest request, CancellationToken ct)
+        {
+            var result = await mediator.Send(request.ToCommand(id), ct);
+            return result.ToActionResult();
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(string id, [FromQuery] string hiveId, CancellationToken ct)
+        {
+            var result = await mediator.Send(new DeleteHiveInspectionCommand(hiveId, id), ct);
+            return result.ToActionResult();
+        }
     }
 }

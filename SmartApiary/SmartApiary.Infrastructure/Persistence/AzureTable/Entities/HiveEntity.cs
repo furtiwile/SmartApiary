@@ -1,4 +1,4 @@
-﻿namespace SmartApiary.Infrastructure.Persistence.AzureTable.Entities
+namespace SmartApiary.Infrastructure.Persistence.AzureTable.Entities
 {
     internal class HiveEntity : BaseTableEntity
     {
@@ -8,6 +8,6 @@
         public int QueenAge { get; set; } = default;
         public string Note { get; set; } = default!;
         public string ApiaryId { get; set; } = default!;
-        public string SmartScaleId { get; set; } = default!;
+        public string? SmartScaleId { get; set; } = null;
     }
 }

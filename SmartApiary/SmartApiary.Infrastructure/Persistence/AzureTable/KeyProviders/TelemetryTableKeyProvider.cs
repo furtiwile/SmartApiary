@@ -12,7 +12,7 @@ namespace SmartApiary.Infrastructure.Persistence.AzureTable.KeyProviders
 
         public string GetRowKey(Telemetry model)
         {
-            return model.Id.Value;
+            return string.Format("{0:D19}", DateTime.MaxValue.Ticks - model.Timestamp.Ticks);
         }
     }
 }
