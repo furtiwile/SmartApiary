@@ -23,3 +23,4 @@ Notes:
 - Activation and password reset tokens are stored in Azure Table Storage (ActivationTokens, PasswordResetTokens).
 - Admin creates users via `/api/auth/admin-create` (requires an Admin JWT). In local dev with `ReturnLinkInResponse=true`, the activation link is returned in the API response.
 - If you want a non-default SQL connection string for the tool, set `SMARTAPIARY_SQL_CONNECTION_STRING` before running it.
+- If you have problems with running MSSQL server in Docker (constant restarts), inside `compose.yml`, replace `MSSQL_SA_PASSWORD` value with `"P@ssw0rd!"` (from `"DATABASE_PASSWORD:-P@ssw0rd!"`, line 8) and `MSSQL_PID` value with `Developer` (from `"DATABASE_PID:-Developer"`, line 9)
