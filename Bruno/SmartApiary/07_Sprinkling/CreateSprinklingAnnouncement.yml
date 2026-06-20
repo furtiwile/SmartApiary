@@ -1,0 +1,38 @@
+info:
+  name: Create Sprinkling Announcement
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{smart_apiary_api_base_url}}/sprinklingannouncements"
+  body:
+    type: json
+    data: |
+      {
+        "startTime": "{{sprinkling_start_time}}",
+        "expectedDurationHours": 2.0,
+        "preparationType": "Copper Sulfate Premium",
+        "parcelId": "{{parcel_id}}"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        bru.setGlobalEnvVar("jwt_token", bru.getGlobalEnvVar("farmer_token"));
+        
+        const startTime = new Date();
+        startTime.setHours(startTime.getHours() + 1);
+        bru.setGlobalEnvVar("sprinkling_start_time", startTime.toISOString());
+    - type: after-response
+      code: |-
+        console.log("DEBUG RESPONSE [CreateSprinklingAnnouncement.yml] status:", res.status, "body:", JSON.stringify(res.body));
+        bru.setGlobalEnvVar("announcement_id", res.body.id);

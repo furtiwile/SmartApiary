@@ -1,0 +1,33 @@
+info:
+  name: Update Crop
+  type: http
+  seq: 6
+
+http:
+  method: PUT
+  url: "{{smart_apiary_api_base_url}}/crops/{{crop_id}}"
+  body:
+    type: json
+    data: |
+      {
+        "parcelId": "{{parcel_id}}",
+        "type": "Lavender",
+        "expectedFloweringTime": "2026-07-01T00:00:00Z",
+        "note": "Updated crop to Lavender"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        console.log("DEBUG RESPONSE [UpdateCrop.yml] status:", res.status, "body:", JSON.stringify(res.body));
+    - type: before-request
+      code: |-
+        bru.setGlobalEnvVar("jwt_token", bru.getGlobalEnvVar("farmer_token"));

@@ -1,0 +1,43 @@
+info:
+  name: Admin Create User
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{smart_apiary_api_base_url}}/auth/admin-create"
+  body:
+    type: json
+    data: |
+      {
+        "email": "{{new_user_email}}",
+        "firstName": "New",
+        "lastName": "User",
+        "phoneNumber": "+10000000003",
+        "role": "Beekeeper"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        console.log("DEBUG: admin_token =", bru.getGlobalEnvVar("admin_token"));
+        const email = "newuser_" + Date.now() + "@example.local";
+        bru.setGlobalEnvVar("new_user_email", email);
+        bru.setGlobalEnvVar("jwt_token", bru.getGlobalEnvVar("admin_token"));
+        console.log("DEBUG: jwt_token set to =", bru.getGlobalEnvVar("jwt_token"));
+    - type: after-response
+      code: |-
+        console.log("DEBUG RESPONSE [AdminCreate.yml] status:", res.status, "body:", JSON.stringify(res.body));
+        const link = res.body.data.activationLink;
+        if (link && link.indexOf("token=") !== -1) {
+        const token = link.split("token=")[1];
+        bru.setGlobalEnvVar("activation_token", token);
+        }

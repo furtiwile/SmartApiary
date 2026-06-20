@@ -1,0 +1,28 @@
+info:
+  name: Delete Crop
+  type: http
+  seq: 4
+
+http:
+  method: DELETE
+  url: "{{smart_apiary_api_base_url}}/crops/{{crop_id}}?parcelId={{parcel_id}}"
+  params:
+    - name: parcelId
+      value: "{{parcel_id}}"
+      type: query
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        console.log("DEBUG RESPONSE [DeleteCrop.yml] status:", res.status, "body:", JSON.stringify(res.body));
+    - type: before-request
+      code: |-
+        bru.setGlobalEnvVar("jwt_token", bru.getGlobalEnvVar("farmer_token"));

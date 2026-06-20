@@ -7,3 +7,9 @@ request:
   auth:
     type: bearer
     token: "{{jwt_token}}"
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        console.log("DEBUG RESPONSE [folder.yml] status:", res.status, "body:", JSON.stringify(res.body));
