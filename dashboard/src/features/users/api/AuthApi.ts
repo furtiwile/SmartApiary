@@ -5,7 +5,7 @@ import type { AuthResult } from "../models/AuthResult";
 import type { LoginData, AdminCreateData, ActivateData, ForgotPasswordData, ResetPasswordData } from "../models/AuthData";
 import type { UserRole } from "../models/UserRole";
 
-const AUTH_PATH = "/auth";
+const AUTH_PATH = "/api/Auth";
 
 async function tryFetchFromAuthAPI<T>(subpath: string, errMsg: string, data: T): Promise<AuthResult> {
   try {
