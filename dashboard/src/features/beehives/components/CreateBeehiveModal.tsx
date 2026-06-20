@@ -1,9 +1,22 @@
 import { useState } from "react";
+import { z } from "zod";
+import { useForm, type Resolver } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import * as Dialog from "@radix-ui/react-dialog";
 import { PlusCircle, X, Hexagon } from "lucide-react";
-import { BeehiveApi, type CreateBeehivePayload } from "../api/beehiveApi";
+import { BeehiveApi } from "../api/beehiveApi";
 import { useNotify } from "../../../hooks/useNotify";
 import type { Beehive } from "../models/Beehive";
+
+const schema = z.object({
+  designation: z.string().min(1, "Designation is required"),
+  type: z.string().min(1, "Type is required"),
+  superColor: z.string().min(1, "Super Color is required"),
+  queenAge: z.coerce.number().min(1, "Queen age must be at least 1").max(10, "Invalid queen age"),
+  note: z.string().optional(),
+});
+
+type SchemaType = z.infer<typeof schema>;
 
 interface CreateBeehiveModalProps {
   apiaryId: string;
@@ -12,43 +25,35 @@ interface CreateBeehiveModalProps {
 
 export function CreateBeehiveModal({ apiaryId, onCreated }: CreateBeehiveModalProps) {
   const [open, setOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [form, setForm] = useState<Omit<CreateBeehivePayload, "apiaryId">>({
-    name: "",
-    type: "Langstroth",
-    designation: "",
-    terrainDescription: "",
-    latitude: undefined,
-    longitude: undefined,
-  });
-
   const { success, error } = useNotify();
 
-  function updateField<K extends keyof typeof form>(key: K, value: typeof form[K]) {
-    setForm((prev) => ({ ...prev, [key]: value }));
-  }
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<SchemaType>({
+    resolver: zodResolver(schema) as unknown as Resolver<SchemaType>,
+    defaultValues: { designation: "", type: "LR", superColor: "", queenAge: 1, note: "" },
+  });
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-
-    if (!form.name.trim()) {
-      error("Validation", "Hive name is required.");
-      return;
-    }
-
-    setIsSubmitting(true);
+  async function onSubmit(data: SchemaType) {
     try {
-      const result = await BeehiveApi.create({ ...form, apiaryId });
+      const result = await BeehiveApi.create({
+        ...data,
+        apiaryId,
+        note: data.note || "",
+      });
       if (result) {
-        success("Hive created", `"${result.name}" has been added to the apiary.`);
+        success("Hive created", `Hive "${result.designation}" has been added to the apiary.`);
         onCreated(result);
         setOpen(false);
-        setForm({ name: "", type: "Langstroth", designation: "", terrainDescription: "" });
+        reset();
       } else {
         error("Failed to create hive", "The server returned an error. Please try again.");
       }
-    } finally {
-      setIsSubmitting(false);
+    } catch {
+      error("Failed to create hive", "An unexpected error occurred.");
     }
   }
 
@@ -78,61 +83,63 @@ export function CreateBeehiveModal({ apiaryId, onCreated }: CreateBeehiveModalPr
             </Dialog.Close>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">Hive Name</label>
-              <input
-                type="text"
-                placeholder="e.g. Hive Alpha"
-                value={form.name}
-                onChange={(e) => updateField("name", e.target.value)}
-                required
-                className="block w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
-
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">Designation</label>
               <input
                 type="text"
-                placeholder="e.g. Row A, Position 3"
-                value={form.designation}
-                onChange={(e) => updateField("designation", e.target.value)}
+                placeholder="e.g. Hive Alpha"
+                {...register("designation")}
+                autoFocus
                 className="block w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
+              {errors.designation && <p className="mt-1.5 text-xs text-rose-500">{errors.designation.message}</p>}
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">Latitude</label>
-                <input
-                  type="number"
-                  step="any"
-                  placeholder="45.2500"
-                  value={form.latitude ?? ""}
-                  onChange={(e) => updateField("latitude", e.target.value ? parseFloat(e.target.value) : undefined)}
-                  className="block w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">Type</label>
+                <select
+                  {...register("type")}
+                  className="block w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option value="LR">Langstroth (LR)</option>
+                  <option value="DB">Dadant-Blatt (DB)</option>
+                  <option value="Poloska">Poloska</option>
+                  <option value="Farrar">Farrar</option>
+                  <option value="Other">Other</option>
+                </select>
+                {errors.type && <p className="mt-1.5 text-xs text-rose-500">{errors.type.message}</p>}
               </div>
+
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">Longitude</label>
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">Queen Age</label>
                 <input
                   type="number"
-                  step="any"
-                  placeholder="19.8420"
-                  value={form.longitude ?? ""}
-                  onChange={(e) => updateField("longitude", e.target.value ? parseFloat(e.target.value) : undefined)}
+                  placeholder="e.g. 1"
+                  {...register("queenAge")}
                   className="block w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
+                {errors.queenAge && <p className="mt-1.5 text-xs text-rose-500">{errors.queenAge.message}</p>}
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">Terrain description</label>
+              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">Super Color</label>
+              <input
+                type="text"
+                placeholder="e.g. Yellow"
+                {...register("superColor")}
+                className="block w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              {errors.superColor && <p className="mt-1.5 text-xs text-rose-500">{errors.superColor.message}</p>}
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">Note</label>
               <textarea
-                placeholder="Describe the surrounding terrain…"
-                value={form.terrainDescription ?? ""}
-                onChange={(e) => updateField("terrainDescription", e.target.value)}
+                placeholder="Optional note..."
+                {...register("note")}
                 rows={2}
                 className="block w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
               />

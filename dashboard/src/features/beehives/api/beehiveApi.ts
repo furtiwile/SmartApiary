@@ -2,13 +2,13 @@ import api from "../../../config/api";
 import type { Beehive } from "../models/Beehive";
 
 export type CreateBeehivePayload = {
-  name: string;
-  type: string;
-  designation: string;
-  latitude?: number;
-  longitude?: number;
-  terrainDescription?: string;
   apiaryId: string;
+  designation: string;
+  type: string;
+  superColor: string;
+  queenAge: number;
+  note: string;
+  smartScaleId?: string;
 };
 
 export type UpdateBeehivePayload = Partial<CreateBeehivePayload> & { id: string };
@@ -54,8 +54,21 @@ export class BeehiveApi {
   /** Create a new hive within an apiary */
   static async create(payload: CreateBeehivePayload): Promise<Beehive | null> {
     try {
-      const response = await api.post<{ data: Beehive }>("/hives", payload);
-      return response.data?.data ?? null;
+      const response = await api.post<{ id: string }>("/hives", payload);
+      const id = response.data?.id;
+      if (id) {
+        return {
+          id,
+          apiaryId: payload.apiaryId,
+          name: payload.designation, // Frontend uses name, payload uses designation
+          type: payload.type,
+          superColor: payload.superColor,
+          queenAge: payload.queenAge,
+          note: payload.note,
+          smartScaleId: payload.smartScaleId,
+        };
+      }
+      return null;
     } catch (error) {
       console.error("Error creating beehive:", error);
       return null;

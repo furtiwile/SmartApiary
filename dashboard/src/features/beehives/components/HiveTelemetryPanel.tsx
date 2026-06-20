@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { TelemetryApi } from "../api/telemetryApi";
 import { TelemetryStatusCards } from "./TelemetryStatusCards";
 import { NectarDeltaChart, TemperatureHumidityChart } from "./TelemetryCharts";
 import { HiveDiary } from "./HiveDiary";
 import { DevicePairingModal } from "./DevicePairingModal";
-import { useApiarySignalR } from "../contexts/ApiarySignalRContext";
+import { useApiarySignalR } from "../hooks/useApiarySignalR";
 import type { TelemetryReading } from "../models/Telemetry";
 import type { Beehive } from "../models/Beehive";
 
@@ -13,35 +14,33 @@ interface HiveTelemetryPanelProps {
 }
 
 export function HiveTelemetryPanel({ hive }: HiveTelemetryPanelProps) {
-  const [history, setHistory] = useState<TelemetryReading[]>([]);
-  const [latest, setLatest] = useState<TelemetryReading | null>(null);
-  const [isLoading, setIsLoading] = useState(!!hive.smartScaleId);
+  const queryClient = useQueryClient();
+
   const [isPaired, setIsPaired] = useState(!!hive.smartScaleId);
   const [isLive, setIsLive] = useState(false);
 
-  const { onTelemetry, latestReadings } = useApiarySignalR();
+  const { data: history = [], isLoading } = useQuery({
+    queryKey: ["telemetry", hive.id],
+    queryFn: () => TelemetryApi.getByHive(hive.id),
+    enabled: isPaired,
+  });
 
-  // Load historical data
-  useEffect(() => {
-    if (!isPaired) return;
-    TelemetryApi.getByHive(hive.id).then((data) => {
-      setHistory(data);
-      if (data.length > 0) setLatest(data[data.length - 1]);
-    }).finally(() => setIsLoading(false));
-  }, [hive.id, isPaired]);
+  const { onTelemetry, latestReadings } = useApiarySignalR();
 
   // Subscribe to live updates from the SignalR context
   useEffect(() => {
     const unsub = onTelemetry((reading) => {
       if (reading.hiveId !== hive.id) return;
       setIsLive(true);
-      setLatest(reading);
-      setHistory((prev) => [...prev.slice(-499), reading]); // keep last 500 points
+      queryClient.setQueryData<TelemetryReading[]>(["telemetry", hive.id], (old) => [
+        ...(old || []).slice(-499),
+        reading,
+      ]);
     });
     return unsub;
-  }, [hive.id, onTelemetry]);
+  }, [hive.id, onTelemetry, queryClient]);
 
-  const displayLatest = latest || latestReadings[hive.id];
+  const displayLatest = latestReadings[hive.id] || (history.length > 0 ? history[history.length - 1] : null);
 
   if (!isPaired) {
     return (
@@ -51,8 +50,8 @@ export function HiveTelemetryPanel({ hive }: HiveTelemetryPanelProps) {
           hiveId={hive.id}
           hiveName={hive.name}
           isPaired={false}
-          onPaired={() => { setIsPaired(true); setIsLoading(true); }}
-          onUnpaired={() => { setIsPaired(false); setLatest(null); setHistory([]); }}
+          onPaired={() => { setIsPaired(true); }}
+          onUnpaired={() => { setIsPaired(false); queryClient.setQueryData(["telemetry", hive.id], []); }}
         />
       </div>
     );
@@ -66,8 +65,8 @@ export function HiveTelemetryPanel({ hive }: HiveTelemetryPanelProps) {
           hiveId={hive.id}
           hiveName={hive.name}
           isPaired={isPaired}
-          onPaired={() => { setIsPaired(true); setIsLoading(true); }}
-          onUnpaired={() => { setIsPaired(false); setLatest(null); setHistory([]); }}
+          onPaired={() => { setIsPaired(true); }}
+          onUnpaired={() => { setIsPaired(false); queryClient.setQueryData(["telemetry", hive.id], []); }}
         />
       </div>
 

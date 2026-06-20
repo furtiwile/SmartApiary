@@ -1,10 +1,14 @@
 import { useState } from "react";
+import { z } from "zod";
+import { useForm, type Resolver } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Siren, PlusCircle, X, XCircle, CheckCircle, Clock, AlertTriangle } from "lucide-react";
 import { SprayingApi } from "../api/sprayingApi";
 import { useNotify } from "../../../hooks/useNotify";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
-import type { SprinklingAnnouncementDto, SprinklingStatus } from "../models/Sprinkling";
+import type { SprinklingStatus } from "../models/Sprinkling";
 
 const PESTICIDE_TYPES = [
   "Herbicide", "Fungicide", "Insecticide", "Rodenticide", "Nematicide", "Other",
@@ -22,41 +26,51 @@ interface SprayingAnnouncementModalProps {
   parcelName: string;
 }
 
+const schema = z.object({
+  pesticideType: z.string().min(1, "Please specify the pesticide."),
+  durationHours: z.coerce.number({ message: "Invalid duration" }).min(0.5, "Minimum duration is 0.5 hours."),
+  scheduledAt: z.string().min(1, "Date and time are required.").refine(
+    (val) => new Date(val) > new Date(),
+    { message: "Scheduled time must be in the future." }
+  ),
+  notes: z.string().optional(),
+});
+
+type SchemaType = z.infer<typeof schema>;
+
 export function SprayingAnnouncementModal({ parcelId, parcelName }: SprayingAnnouncementModalProps) {
   const [open, setOpen] = useState(false);
-  const [announcements, setAnnouncements] = useState<SprinklingAnnouncementDto[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [cancelTarget, setCancelTarget] = useState<string | null>(null);
-
-  const [pesticideType, setPesticideType] = useState(PESTICIDE_TYPES[0]);
-  const [scheduledAt, setScheduledAt] = useState("");
-  const [durationHours, setDurationHours] = useState(1);
-  const [notes, setNotes] = useState("");
-
+  const queryClient = useQueryClient();
   const { success, error, warning } = useNotify();
 
-  async function handleSchedule(e: React.FormEvent) {
-    e.preventDefault();
+  const { data: announcements = [], isLoading } = useQuery({
+    queryKey: ["announcements", parcelId],
+    queryFn: () => SprayingApi.getByParcel(parcelId),
+    enabled: open,
+  });
 
-    if (!scheduledAt) {
-      error("Validation", "Please pick a scheduled date and time.");
-      return;
-    }
-    if (new Date(scheduledAt) <= new Date()) {
-      error("Validation", "Scheduled time must be in the future.");
-      return;
-    }
-    if (durationHours < 0.5 || durationHours > 24) {
-      error("Validation", "Duration must be between 0.5 and 24 hours.");
-      return;
-    }
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<SchemaType>({
+    resolver: zodResolver(schema) as unknown as Resolver<SchemaType>,
+    defaultValues: { pesticideType: PESTICIDE_TYPES[0], durationHours: 1, scheduledAt: "", notes: "" },
+  });
 
-    setIsSubmitting(true);
+  async function onSubmit(data: SchemaType) {
     try {
-      const result = await SprayingApi.create({ parcelId, pesticideType, scheduledAt, durationMinutes: Math.round(durationHours * 60), notes: notes || undefined });
+      const result = await SprayingApi.create({
+        parcelId,
+        preparationType: data.pesticideType,
+        startTime: data.scheduledAt,
+        expectedDurationHours: data.durationHours,
+      });
+
       if (result) {
-        setAnnouncements((prev) => [result.announcement, ...prev]);
+        queryClient.setQueryData<typeof announcements>(["announcements", parcelId], (old) => [result.announcement, ...(old || [])]);
         const notified = result.beekeepersNotified;
         
         if (result.weatherWarning) {
@@ -78,14 +92,12 @@ export function SprayingAnnouncementModal({ parcelId, parcelName }: SprayingAnno
             { duration: 8000 }
           );
         }
-        setScheduledAt("");
-        setNotes("");
-        setDurationHours(1);
+        reset();
       } else {
         error("Failed to schedule", "The server returned an error. Please try again.");
       }
-    } finally {
-      setIsSubmitting(false);
+    } catch {
+      error("Failed to schedule", "An unexpected error occurred.");
     }
   }
 
@@ -93,8 +105,8 @@ export function SprayingAnnouncementModal({ parcelId, parcelName }: SprayingAnno
     if (!cancelTarget) return;
     const ok = await SprayingApi.cancel(cancelTarget);
     if (ok) {
-      setAnnouncements((prev) =>
-        prev.map((a) => a.id === cancelTarget ? { ...a, status: "Cancelled" } : a)
+      queryClient.setQueryData<typeof announcements>(["announcements", parcelId], (old) =>
+        old?.map((a) => a.id === cancelTarget ? { ...a, status: "Cancelled" } : a)
       );
       success("Announcement cancelled", "The spraying event has been cancelled.");
     } else {
@@ -109,15 +121,7 @@ export function SprayingAnnouncementModal({ parcelId, parcelName }: SprayingAnno
 
   return (
     <>
-      <Dialog.Root open={open} onOpenChange={(isOpen) => {
-        setOpen(isOpen);
-        if (isOpen) {
-          setIsLoading(true);
-          SprayingApi.getByParcel(parcelId)
-            .then(setAnnouncements)
-            .finally(() => setIsLoading(false));
-        }
-      }}>
+      <Dialog.Root open={open} onOpenChange={setOpen}>
         <Dialog.Trigger asChild>
           <button className="inline-flex items-center gap-1.5 rounded-lg bg-rose-50 border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-100 transition-all">
             <Siren className="h-3 w-3" />
@@ -199,15 +203,14 @@ export function SprayingAnnouncementModal({ parcelId, parcelName }: SprayingAnno
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-3">
                 Schedule New Spraying
               </p>
-              <form onSubmit={handleSchedule} className="space-y-3">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1.5">
                       Pesticide Type
                     </label>
                     <select
-                      value={pesticideType}
-                      onChange={(e) => setPesticideType(e.target.value)}
+                      {...register("pesticideType")}
                       className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500"
                     >
                       {PESTICIDE_TYPES.map((pt) => (
@@ -224,10 +227,10 @@ export function SprayingAnnouncementModal({ parcelId, parcelName }: SprayingAnno
                       min={0.5}
                       step={0.5}
                       max={24}
-                      value={durationHours}
-                      onChange={(e) => setDurationHours(parseFloat(e.target.value))}
+                      {...register("durationHours")}
                       className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500"
                     />
+                    {errors.durationHours && <p className="mt-1.5 text-xs text-rose-500">{errors.durationHours.message}</p>}
                   </div>
                 </div>
 
@@ -238,11 +241,10 @@ export function SprayingAnnouncementModal({ parcelId, parcelName }: SprayingAnno
                   <input
                     type="datetime-local"
                     min={minDateTime}
-                    value={scheduledAt}
-                    onChange={(e) => setScheduledAt(e.target.value)}
-                    required
+                    {...register("scheduledAt")}
                     className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500"
                   />
+                  {errors.scheduledAt && <p className="mt-1.5 text-xs text-rose-500">{errors.scheduledAt.message}</p>}
                 </div>
 
                 <div>
@@ -251,8 +253,7 @@ export function SprayingAnnouncementModal({ parcelId, parcelName }: SprayingAnno
                   </label>
                   <textarea
                     placeholder="e.g. Preventive treatment, windy conditions expected"
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
+                    {...register("notes")}
                     rows={2}
                     className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-500 resize-none"
                   />

@@ -1,4 +1,4 @@
-export type CropType = "Sunflower" | "Rapeseed" | "Lavender" | "Clover" | "Acacia" | "Other";
+export type CropType = "Sunflower" | "Rapeseed" | "Lavender" | "Linden" | "Acacia" | "Other";
 
 export type CropDto = {
   id: string;
@@ -10,16 +10,16 @@ export type CropDto = {
 
 export type CreateCropPayload = {
   parcelId: string;
-  cropType: CropType;
-  expectedBloomDate: string;
-  notes?: string;
+  type: CropType;
+  expectedFloweringTime: string;
+  note: string;
 };
 
 export const CROP_OPTIONS: { value: CropType; label: string; emoji: string }[] = [
   { value: "Sunflower",  label: "Sunflower",  emoji: "🌻" },
   { value: "Rapeseed",   label: "Rapeseed",   emoji: "🌼" },
   { value: "Lavender",   label: "Lavender",   emoji: "💜" },
-  { value: "Clover",     label: "Clover",     emoji: "🍀" },
+  { value: "Linden",     label: "Linden",     emoji: "🌳" },
   { value: "Acacia",     label: "Acacia",     emoji: "🌿" },
   { value: "Other",      label: "Other",      emoji: "🌱" },
 ];

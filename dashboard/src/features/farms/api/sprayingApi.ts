@@ -22,8 +22,18 @@ export class CropApi {
 
   static async create(payload: CreateCropPayload): Promise<CropDto | null> {
     try {
-      const res = await api.post<{ data: CropDto }>("/crops", payload);
-      return res.data?.data ?? null;
+      const res = await api.post<{ id: string }>("/crops", payload);
+      const id = res.data?.id;
+      if (id) {
+        return {
+          id,
+          ...payload,
+          // Map backend expected property names to frontend DTO names for local cache
+          cropType: payload.type as unknown as CropDto["cropType"],
+          expectedBloomDate: payload.expectedFloweringTime,
+        } as unknown as CropDto;
+      }
+      return null;
     } catch (e) {
       console.error("Error creating crop:", e);
       return null;
@@ -58,8 +68,23 @@ export class SprayingApi {
 
   static async create(payload: CreateSprinklingPayload): Promise<CreateSprinklingResult | null> {
     try {
-      const res = await api.post<{ data: CreateSprinklingResult }>("/sprinklingannouncements", payload);
-      return res.data?.data ?? null;
+      const res = await api.post<{ id: string }>("/sprinklingannouncements", payload);
+      const id = res.data?.id;
+      if (id) {
+        return {
+          announcement: {
+            id,
+            parcelId: payload.parcelId,
+            pesticideType: payload.preparationType,
+            scheduledAt: payload.startTime,
+            durationMinutes: payload.expectedDurationHours * 60,
+            status: "Scheduled",
+            createdAt: new Date().toISOString(),
+          },
+          beekeepersNotified: 0, // Backend notifies asynchronously
+        };
+      }
+      return null;
     } catch (e) {
       console.error("Error creating sprinkling announcement:", e);
       return null;

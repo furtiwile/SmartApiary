@@ -15,10 +15,9 @@ export type SprinklingAnnouncementDto = {
 
 export type CreateSprinklingPayload = {
   parcelId: string;
-  pesticideType: string;
-  scheduledAt: string;
-  durationMinutes: number;
-  notes?: string;
+  preparationType: string;
+  startTime: string;
+  expectedDurationHours: number;
 };
 
 /** Returned by the backend after creation — tells the farmer how many beekeepers were alerted */

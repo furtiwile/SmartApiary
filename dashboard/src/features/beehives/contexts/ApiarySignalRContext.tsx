@@ -1,25 +1,11 @@
-import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from "react";
+import React, { useRef, useState, useCallback, useEffect } from "react";
 import { HubConnectionState } from "@microsoft/signalr";
 import { createSignalRConnection } from "../../../shared/signalr/signalr";
 import { CONFIG } from "../../../config/config";
 import { useNotify } from "../../../hooks/useNotify";
 import type { TelemetryReading } from "../models/Telemetry";
 
-// ─── Context shape ──────────────────────────────────────────────────────────
-
-interface ApiarySRContextValue {
-  connectionState: HubConnectionState;
-  /** Join the SignalR group for a specific apiary to receive its telemetry */
-  joinApiaryGroup: (apiaryId: string) => Promise<void>;
-  /** Leave a previously joined apiary group */
-  leaveApiaryGroup: (apiaryId: string) => Promise<void>;
-  /** Subscribe to incoming telemetry readings from the current group */
-  onTelemetry: (handler: (reading: TelemetryReading) => void) => () => void;
-  /** Latest reading per hiveId (live-updated state) */
-  latestReadings: Record<string, TelemetryReading>;
-}
-
-const ApiarySRContext = createContext<ApiarySRContextValue | null>(null);
+import { ApiarySRContext } from "./ApiarySRContextDef";
 
 // ─── Provider ───────────────────────────────────────────────────────────────
 
@@ -113,11 +99,4 @@ export function ApiarySignalRProvider({ children }: { children: React.ReactNode 
   );
 }
 
-// ─── Consumer hook ───────────────────────────────────────────────────────────
 
-// eslint-disable-next-line react-refresh/only-export-components
-export function useApiarySignalR() {
-  const ctx = useContext(ApiarySRContext);
-  if (!ctx) throw new Error("useApiarySignalR must be used inside ApiarySignalRProvider");
-  return ctx;
-}

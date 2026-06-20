@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { FileText, Download, RefreshCw } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { SprayingApi } from "../api/sprayingApi";
-import type { SprinklingRecord } from "../models/Sprinkling";
 
 interface SprayingRecordTableProps {
   parcelId: string;
@@ -26,17 +26,15 @@ function SortIcon({ currentField, sortField, sortDir }: { currentField: SortFiel
 }
 
 export function SprayingRecordTable({ parcelId, parcelName }: SprayingRecordTableProps) {
-  const [records, setRecords] = useState<SprinklingRecord[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: records = [], isLoading, refetch } = useQuery({
+    queryKey: ["sprayingRecords", parcelId],
+    queryFn: () => SprayingApi.getRecordsByParcel(parcelId),
+    enabled: !!parcelId,
+  });
+
   const [sortField, setSortField] = useState<SortField>("executedAt");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [isExporting, setIsExporting] = useState(false);
-
-  useEffect(() => {
-    SprayingApi.getRecordsByParcel(parcelId)
-      .then(setRecords)
-      .finally(() => setIsLoading(false));
-  }, [parcelId]);
 
   function toggleSort(field: SortField) {
     if (sortField === field) {
@@ -122,12 +120,7 @@ export function SprayingRecordTable({ parcelId, parcelName }: SprayingRecordTabl
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => {
-              setIsLoading(true);
-              SprayingApi.getRecordsByParcel(parcelId)
-                .then(setRecords)
-                .finally(() => setIsLoading(false));
-            }}
+            onClick={() => refetch()}
             className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all"
             title="Refresh"
           >

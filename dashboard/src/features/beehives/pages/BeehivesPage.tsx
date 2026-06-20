@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as Tabs from "@radix-ui/react-tabs";
 import { Hexagon, Trash2, ChevronRight, ChevronDown } from "lucide-react";
 import { PageLayout } from "../../../layouts/PageLayout";
@@ -13,47 +15,46 @@ import { HiveTelemetryPanel } from "../components/HiveTelemetryPanel";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import { useNotify } from "../../../hooks/useNotify";
 import { useAuth } from "../../users/hooks/AuthHook";
-import { useApiarySignalR } from "../contexts/ApiarySignalRContext";
+import { useApiarySignalR } from "../hooks/useApiarySignalR";
 
 function BeehivesPage() {
   const { user } = useAuth();
   const { success, error } = useNotify();
   const { joinApiaryGroup, leaveApiaryGroup } = useApiarySignalR();
 
-  const [apiaries, setApiaries] = useState<ApiaryDto[]>([]);
-  const [hivesByApiary, setHivesByApiary] = useState<Record<string, Beehive[]>>({});
-  const [isLoadingApiaries, setIsLoadingApiaries] = useState(true);
+  const queryClient = useQueryClient();
+
+  const { data: apiaries = [], isLoading: isLoadingApiaries } = useQuery({
+    queryKey: ["apiaries", user?.id],
+    queryFn: () => (user?.id ? ApiaryApi.getByBeekeeper(user.id) : Promise.resolve([])),
+    enabled: !!user?.id,
+  });
 
   const [activeApiaryId, setActiveApiaryId] = useState<string | null>(null);
   const [expandedHiveId, setExpandedHiveId] = useState<string | null>(null);
-  const fetchedApiaries = useRef<Set<string>>(new Set());
+
+  const { data: currentHives = [], isLoading: isLoadingHives } = useQuery({
+    queryKey: ["hives", activeApiaryId],
+    queryFn: () => (activeApiaryId ? BeehiveApi.getByApiaryId(activeApiaryId) : Promise.resolve([])),
+    enabled: !!activeApiaryId,
+  });
 
   const [deleteHiveTarget, setDeleteHiveTarget] = useState<string | null>(null);
   const [deleteApiaryTarget, setDeleteApiaryTarget] = useState<string | null>(null);
 
-  // Load apiaries on mount
+  // Set default active apiary if none selected
   useEffect(() => {
-    if (!user?.id) return;
-    ApiaryApi.getByBeekeeper(user.id)
-      .then((data) => {
-        setApiaries(data);
-        if (data.length > 0) setActiveApiaryId(data[0].id);
-      })
-      .finally(() => setIsLoadingApiaries(false));
-  }, [user?.id]);
+    if (apiaries.length > 0 && !activeApiaryId) {
+      queueMicrotask(() => setActiveApiaryId(apiaries[0].id));
+    }
+  }, [apiaries, activeApiaryId]);
 
-  // Lazy-load hives + switch SignalR group when tab changes
+  // Join SignalR group when tab changes
   useEffect(() => {
     if (!activeApiaryId) return;
 
     // Join the new group
     joinApiaryGroup(activeApiaryId);
-
-    if (!fetchedApiaries.current.has(activeApiaryId)) {
-      fetchedApiaries.current.add(activeApiaryId);
-      BeehiveApi.getByApiaryId(activeApiaryId)
-        .then((hives) => setHivesByApiary((prev) => ({ ...prev, [activeApiaryId]: hives })));
-    }
 
     return () => {
       leaveApiaryGroup(activeApiaryId);
@@ -64,10 +65,9 @@ function BeehivesPage() {
     if (!deleteHiveTarget || !activeApiaryId) return;
     const deleted = await BeehiveApi.delete(deleteHiveTarget);
     if (deleted) {
-      setHivesByApiary((prev) => ({
-        ...prev,
-        [activeApiaryId]: (prev[activeApiaryId] ?? []).filter((h) => h.id !== deleteHiveTarget),
-      }));
+      queryClient.setQueryData<Beehive[]>(["hives", activeApiaryId], (old) =>
+        old?.filter((h) => h.id !== deleteHiveTarget)
+      );
       if (expandedHiveId === deleteHiveTarget) setExpandedHiveId(null);
       success("Hive removed", "The hive has been deleted.");
     } else {
@@ -81,8 +81,7 @@ function BeehivesPage() {
     const deleted = await ApiaryApi.delete(deleteApiaryTarget);
     if (deleted) {
       const remaining = apiaries.filter((a) => a.id !== deleteApiaryTarget);
-      setApiaries(remaining);
-      setHivesByApiary((prev) => { const n = { ...prev }; delete n[deleteApiaryTarget]; return n; });
+      queryClient.setQueryData<ApiaryDto[]>(["apiaries", user?.id], remaining);
       setActiveApiaryId(remaining.length > 0 ? remaining[0].id : null);
       success("Apiary deleted", "The apiary has been removed.");
     } else {
@@ -91,8 +90,7 @@ function BeehivesPage() {
     setDeleteApiaryTarget(null);
   }
 
-  const currentHives = activeApiaryId ? (hivesByApiary[activeApiaryId] ?? []) : [];
-  const isLoadingHives = activeApiaryId ? hivesByApiary[activeApiaryId] === undefined : false;
+
 
   if (isLoadingApiaries) {
     return (
@@ -108,7 +106,11 @@ function BeehivesPage() {
   return (
     <PageLayout>
       {/* Page header */}
-      <div className="flex items-center justify-between mb-6">
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center justify-between mb-6"
+      >
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10">
             <Hexagon className="h-5 w-5 text-amber-400" />
@@ -124,26 +126,31 @@ function BeehivesPage() {
         </div>
         <CreateApiaryModal
           onCreated={(a) => {
-            setApiaries((prev) => [...prev, a]);
+            queryClient.setQueryData<ApiaryDto[]>(["apiaries", user?.id], (old) => [...(old || []), a]);
             setActiveApiaryId(a.id);
           }}
         />
-      </div>
+      </motion.div>
 
       {/* Empty state */}
       {apiaries.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-24 text-center rounded-2xl border border-dashed border-slate-700 bg-slate-900/30">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="flex flex-col items-center justify-center py-24 text-center rounded-2xl border border-dashed border-slate-700 bg-slate-900/30"
+        >
           <Hexagon className="h-16 w-16 text-slate-700 mb-4" />
           <p className="text-slate-300 font-semibold text-lg">No apiaries yet</p>
           <p className="text-slate-500 text-sm mt-1 mb-6">Create your first apiary to start tracking hives and telemetry.</p>
-          <CreateApiaryModal onCreated={(a) => { setApiaries([a]); setActiveApiaryId(a.id); }} />
-        </div>
+          <CreateApiaryModal onCreated={(a) => { queryClient.setQueryData(["apiaries", user?.id], [a]); setActiveApiaryId(a.id); }} />
+        </motion.div>
       )}
 
       {/* Apiary tabs */}
       {apiaries.length > 0 && activeApiaryId && (
         <Tabs.Root value={activeApiaryId} onValueChange={setActiveApiaryId}>
-          <Tabs.List className="flex gap-1 overflow-x-auto mb-4 rounded-xl border border-slate-800 bg-slate-900/50 p-1">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
+            <Tabs.List className="flex gap-1 overflow-x-auto mb-4 rounded-xl border border-slate-800 bg-slate-900/50 p-1">
             {apiaries.map((apiary) => (
               <Tabs.Trigger
                 key={apiary.id}
@@ -159,7 +166,12 @@ function BeehivesPage() {
 
           {apiaries.map((apiary) => (
             <Tabs.Content key={apiary.id} value={apiary.id}>
-              {/* Apiary sub-header */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                {/* Apiary sub-header */}
               <div className="flex items-center justify-between mb-4 px-1">
                 <div>
                   <h2 className="text-lg font-semibold text-slate-200">{apiary.name}</h2>
@@ -170,10 +182,7 @@ function BeehivesPage() {
                 <div className="flex items-center gap-2">
                   <CreateBeehiveModal
                     apiaryId={apiary.id}
-                    onCreated={(hive) => setHivesByApiary((prev) => ({
-                      ...prev,
-                      [apiary.id]: [...(prev[apiary.id] ?? []), hive],
-                    }))}
+                    onCreated={(hive) => queryClient.setQueryData<Beehive[]>(["hives", apiary.id], (old) => [...(old || []), hive])}
                   />
                   <button
                     onClick={() => setDeleteApiaryTarget(apiary.id)}
@@ -209,7 +218,7 @@ function BeehivesPage() {
                   {currentHives.map((hive) => {
                     const isExpanded = expandedHiveId === hive.id;
                     return (
-                      <div key={hive.id} className="rounded-2xl border border-slate-700/60 bg-slate-900/60 overflow-hidden">
+                      <motion.div key={hive.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl border border-slate-700/60 bg-slate-900/60 overflow-hidden">
                         <button
                           className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-slate-800/50 transition-colors"
                           onClick={() => setExpandedHiveId(isExpanded ? null : hive.id)}
@@ -227,18 +236,22 @@ function BeehivesPage() {
                             ? <ChevronDown className="h-4 w-4 text-slate-600" />
                             : <ChevronRight className="h-4 w-4 text-slate-600" />}
                         </button>
+                        <AnimatePresence>
                         {isExpanded && (
-                          <div className="border-t border-slate-800 px-5 py-5">
+                          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="border-t border-slate-800 px-5 py-5">
                             <HiveTelemetryPanel hive={hive} />
-                          </div>
+                          </motion.div>
                         )}
-                      </div>
+                        </AnimatePresence>
+                      </motion.div>
                     );
                   })}
                 </div>
               )}
+              </motion.div>
             </Tabs.Content>
           ))}
+          </motion.div>
         </Tabs.Root>
       )}
 
