@@ -1,0 +1,24 @@
+info:
+  name: Get Table Content
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: "{{smart_apiary_api_base_url}}/debug/tables/Hives"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        bru.setGlobalEnvVar("jwt_token", bru.getGlobalEnvVar("admin_token"));
+    - type: after-response
+      code: |-
+        console.log("DEBUG RESPONSE [GetTableContent.yml] status:", res.status, "body:", JSON.stringify(res.body));
