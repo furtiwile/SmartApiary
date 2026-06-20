@@ -22,9 +22,9 @@ namespace SmartApiary.WebApi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetByHive([FromQuery] string hiveId, CancellationToken ct)
+        public async Task<IActionResult> GetByHive([FromQuery] string hiveId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, CancellationToken ct = default)
         {
-            var result = await mediator.Send(new GetHiveInspectionsByHiveQuery(hiveId), ct);
+            var result = await mediator.Send(new GetHiveInspectionsByHiveQuery(hiveId, pageNumber, pageSize), ct);
             return result.ToActionResult();
         }
 

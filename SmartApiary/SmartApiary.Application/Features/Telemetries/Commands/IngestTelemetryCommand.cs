@@ -96,7 +96,7 @@ namespace SmartApiary.Application.Features.Telemetries.Commands
                         if (alertResult.IsSuccess)
                         {
                             await alertQueueService.SendAlertAsync(alertResult.Value, ct);
-                            smartScale.IsBatteryWarningSent = true;
+                            smartScale.UpdateBatteryWarningStatus(true);
                         }
                     }
                 }
@@ -106,12 +106,11 @@ namespace SmartApiary.Application.Features.Telemetries.Commands
                 // Reset battery warning flag if recharged
                 if (smartScale.IsBatteryWarningSent && request.BatteryPercent > 15)
                 {
-                    smartScale.IsBatteryWarningSent = false;
+                    smartScale.UpdateBatteryWarningStatus(false);
                 }
             }
 
-            smartScale.LatestReading = request.WeightKg;
-            smartScale.TimeOfLastReading = request.Timestamp;
+            smartScale.UpdateReading(request.WeightKg, request.Timestamp);
             await smartScaleRepository.UpdateAsync(smartScale, ct);
 
             return Result.Success();

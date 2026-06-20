@@ -18,7 +18,10 @@ namespace SmartApiary.Application.Features.SprinklingRecords.Queries
         DateTime ActualEndTime,
         string PreparationType,
         double WindSpeed,
-        double Precipitation
+        double Precipitation,
+        string WeatherCondition,
+        string ParcelName,
+        string CropType
     );
 
     public record GetSprinklingRecordsByAnnouncementQuery(
@@ -30,7 +33,9 @@ namespace SmartApiary.Application.Features.SprinklingRecords.Queries
 
     internal class GetSprinklingRecordsByAnnouncementHandler(
         ISprinklingRecordRepository recordRepository,
-        ISprinklingAnnouncementRepository announcementRepository
+        ISprinklingAnnouncementRepository announcementRepository,
+        IParcelRepository parcelRepository,
+        ICropRepository cropRepository
     ) : IRequestHandler<GetSprinklingRecordsByAnnouncementQuery, Result<IReadOnlyCollection<SprinklingRecordDto>>>
     {
         public async Task<Result<IReadOnlyCollection<SprinklingRecordDto>>> Handle(GetSprinklingRecordsByAnnouncementQuery request, CancellationToken ct)
@@ -71,6 +76,15 @@ namespace SmartApiary.Application.Features.SprinklingRecords.Queries
                 var entityId = EntityId.Create(annId);
                 if (entityId.IsFailure) continue;
 
+                var announcement = await announcementRepository.GetByIdAsync(entityId.Value, ct);
+                if (announcement == null) continue;
+
+                var parcel = await parcelRepository.GetByIdAsync(announcement.ParcelId, ct);
+                var parcelName = parcel?.Name ?? "Unknown Parcel";
+
+                var crops = await cropRepository.GetByParcelIdAsync(announcement.ParcelId, ct);
+                var cropTypeStr = crops.Any() ? string.Join(", ", crops.Select(c => c.Type.ToString())) : "None";
+
                 var records = await recordRepository.GetByAnnouncementIdAsync(entityId.Value, ct);
                 var query = records.AsQueryable();
 
@@ -84,14 +98,17 @@ namespace SmartApiary.Application.Features.SprinklingRecords.Queries
                     query = query.Where(x => x.ActualEndTime <= request.ToDate.Value);
                 }
 
-                var filteredDtos = query.Select(x => new SprinklingRecordDto(
+                var filteredDtos = query.ToList().Select(x => new SprinklingRecordDto(
                     x.Id.Value,
                     x.AnnouncementId.Value,
                     x.ActualStartTime,
                     x.ActualEndTime,
                     x.PreparationType,
                     x.WindSpeed,
-                    x.Precipitation));
+                    x.Precipitation,
+                    x.WeatherCondition,
+                    parcelName,
+                    cropTypeStr));
 
                 allRecords.AddRange(filteredDtos);
             }

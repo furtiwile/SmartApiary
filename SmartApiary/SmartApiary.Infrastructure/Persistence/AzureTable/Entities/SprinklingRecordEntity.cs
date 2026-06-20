@@ -1,4 +1,4 @@
-﻿using SmartApiary.Domain.ValueObjects;
+using SmartApiary.Domain.ValueObjects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +14,7 @@ namespace SmartApiary.Infrastructure.Persistence.AzureTable.Entities
         public string PreparationType { get; set; } = default!;
         public double WindSpeed { get; set; } = default;
         public double Precipitation { get; set; } = default;
+        public string WeatherCondition { get; set; } = default!;
         public string AnnouncementId { get; set; } = default!;
     }
 }

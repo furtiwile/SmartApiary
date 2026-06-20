@@ -1,4 +1,4 @@
-﻿
+
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using SmartApiary.Application.Features.Auth.Commands;
@@ -61,6 +61,30 @@ namespace SmartApiary.WebApi.Controllers
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordCommand cmd, CancellationToken ct)
         {
             var result = await mediator.Send(cmd, ct);
+            return result.ToActionResult();
+        }
+
+        [HttpGet("users")]
+        [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetUsers(CancellationToken ct)
+        {
+            var result = await mediator.Send(new SmartApiary.Application.Features.Auth.Queries.GetUsersQuery(), ct);
+            return result.ToActionResult();
+        }
+
+        [HttpPost("users/{userId}/suspend")]
+        [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+        public async Task<IActionResult> SuspendUser(string userId, CancellationToken ct)
+        {
+            var result = await mediator.Send(new SuspendUserCommand(userId), ct);
+            return result.ToActionResult();
+        }
+
+        [HttpDelete("users/{userId}")]
+        [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteUser(string userId, CancellationToken ct)
+        {
+            var result = await mediator.Send(new DeleteUserCommand(userId), ct);
             return result.ToActionResult();
         }
     }

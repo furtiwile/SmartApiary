@@ -6,10 +6,15 @@ namespace SmartApiary.Domain.Models
 {
     public class ActivationToken : AggregateRoot
     {
-        public string TokenHash { get; set; }
-        public EntityId UserId { get; set; }
-        public DateTime ExpiresAtUtc { get; set; }
-        public DateTime? UsedAtUtc { get; set; }
+        public string TokenHash { get; private set; }
+        public EntityId UserId { get; private set; }
+        public DateTime ExpiresAtUtc { get; private set; }
+        public DateTime? UsedAtUtc { get; private set; }
+
+        public void MarkAsUsed(DateTime usedAtUtc)
+        {
+            UsedAtUtc = usedAtUtc;
+        }
 
         private ActivationToken(
             string tokenHash,

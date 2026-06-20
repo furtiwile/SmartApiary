@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 using SmartApiary.ITSimulator.Models;
 using SmartApiary.ITSimulator.Services;
 using SmartApiary.ITSimulator.UI;
@@ -12,7 +12,6 @@ var configuration = new ConfigurationBuilder()
 
 // Get settings
 var delayMs = int.Parse(configuration["SimulatorSettings:DelayMilliseconds"] ?? "10000");
-var maxVariation = double.Parse(configuration["SimulatorSettings:MaxPowerVariation"] ?? "50");
 
 // Initialize services
 ConsoleUI.PrintHeader();

@@ -19,7 +19,7 @@ namespace SmartApiary.Application.Features.HiveInspections.Queries
         string Note
     );
 
-    public record GetHiveInspectionsByHiveQuery(string HiveId) : IRequest<Result<IReadOnlyCollection<HiveInspectionDto>>>;
+    public record GetHiveInspectionsByHiveQuery(string HiveId, int PageNumber = 1, int PageSize = 10) : IRequest<Result<IReadOnlyCollection<HiveInspectionDto>>>;
 
     internal class GetHiveInspectionsByHiveHandler(IHiveInspectionRepository inspectionRepository)
         : IRequestHandler<GetHiveInspectionsByHiveQuery, Result<IReadOnlyCollection<HiveInspectionDto>>>
@@ -30,10 +30,9 @@ namespace SmartApiary.Application.Features.HiveInspections.Queries
             if (hiveIdResult.IsFailure)
                 return Result<IReadOnlyCollection<HiveInspectionDto>>.Failure(hiveIdResult.Error!.Message, ErrorType.Validation);
 
-            var items = await inspectionRepository.GetByHiveIdAsync(hiveIdResult.Value, ct);
+            var items = await inspectionRepository.GetByHiveIdAsync(hiveIdResult.Value, request.PageNumber, request.PageSize, ct);
 
             var result = items
-                .OrderByDescending(x => x.InspectionDate)
                 .Select(x => new HiveInspectionDto(
                     x.Id.Value,
                     x.HiveId.Value,

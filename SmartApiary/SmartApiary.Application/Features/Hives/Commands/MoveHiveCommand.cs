@@ -72,7 +72,7 @@ namespace SmartApiary.Application.Features.Hives.Commands
 
             // Delete from old partition, then re-insert into new partition with same HiveId
             await hiveRepository.DeleteAsync(hive, ct);
-            hive.ApiaryId = targetApiaryIdResult.Value;
+            hive.MoveToApiary(targetApiaryIdResult.Value);
             await hiveRepository.SaveAsync(hive, ct);
 
             return Result.Success();

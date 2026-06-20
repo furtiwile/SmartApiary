@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using SmartApiary.Application.Interfaces;
 using SmartApiary.Application.Interfaces.Repositories;
 using SmartApiary.Domain.Common;
@@ -22,6 +22,8 @@ namespace SmartApiary.Application.Features.SprinklingRecords.Queries
     internal class ExportSprinklingRecordsToPdfHandler(
         ISprinklingRecordRepository recordRepository,
         ISprinklingAnnouncementRepository announcementRepository,
+        IParcelRepository parcelRepository,
+        ICropRepository cropRepository,
         IPdfService pdfService
     ) : IRequestHandler<ExportSprinklingRecordsToPdfQuery, Result<byte[]>>
     {
@@ -63,6 +65,15 @@ namespace SmartApiary.Application.Features.SprinklingRecords.Queries
                 var entityId = EntityId.Create(annId);
                 if (entityId.IsFailure) continue;
 
+                var announcement = await announcementRepository.GetByIdAsync(entityId.Value, ct);
+                if (announcement == null) continue;
+
+                var parcel = await parcelRepository.GetByIdAsync(announcement.ParcelId, ct);
+                var parcelName = parcel?.Name ?? "Unknown Parcel";
+
+                var crops = await cropRepository.GetByParcelIdAsync(announcement.ParcelId, ct);
+                var cropTypeStr = crops.Any() ? string.Join(", ", crops.Select(c => c.Type.ToString())) : "None";
+
                 var records = await recordRepository.GetByAnnouncementIdAsync(entityId.Value, ct);
                 var query = records.AsQueryable();
 
@@ -76,14 +87,17 @@ namespace SmartApiary.Application.Features.SprinklingRecords.Queries
                     query = query.Where(x => x.ActualEndTime <= request.ToDate.Value);
                 }
 
-                var filteredDtos = query.Select(x => new SprinklingRecordDto(
+                var filteredDtos = query.ToList().Select(x => new SprinklingRecordDto(
                     x.Id.Value,
                     x.AnnouncementId.Value,
                     x.ActualStartTime,
                     x.ActualEndTime,
                     x.PreparationType,
                     x.WindSpeed,
-                    x.Precipitation));
+                    x.Precipitation,
+                    x.WeatherCondition,
+                    parcelName,
+                    cropTypeStr));
 
                 allRecords.AddRange(filteredDtos);
             }
