@@ -15,12 +15,6 @@ http:
       }
   auth: inherit
 
-settings:
-  encodeUrl: true
-  timeout: 0
-  followRedirects: true
-  maxRedirects: 5
-
 runtime:
   scripts:
     - type: before-request
@@ -47,3 +41,9 @@ runtime:
             console.log("SET FARMER USER ID TO:", userId);
           }
         }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

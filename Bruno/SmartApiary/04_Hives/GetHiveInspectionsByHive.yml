@@ -10,6 +10,12 @@ http:
     - name: hiveId
       value: "{{hive_id}}"
       type: query
+    - name: pageNumber
+      value: "1"
+      type: query
+    - name: pageSize
+      value: "10"
+      type: query
   auth: inherit
 
 settings:
