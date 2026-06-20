@@ -83,5 +83,11 @@ namespace SmartApiary.Domain.Models
             );
         }
 
+        public void Update(CropType type, DateTime expectedFloweringTime, string note)
+        {
+            Type = type;
+            ExpectedFloweringTime = expectedFloweringTime;
+            Note = note;
+        }
     }
 }

@@ -16,7 +16,7 @@ namespace SmartApiary.Application.Features.Hives.Queries
         string SuperColor,
         int QueenAge,
         string Note,
-        string SmartScaleId
+        string? SmartScaleId
     );
 
     public record GetHivesByApiaryQuery(string ApiaryId) : IRequest<Result<IReadOnlyCollection<HiveDto>>>;
@@ -56,7 +56,7 @@ namespace SmartApiary.Application.Features.Hives.Queries
                     h.SuperColor,
                     h.QueenAge,
                     h.Note,
-                    h.SmartScaleId.Value))
+                    h.SmartScaleId?.Value))
                 .ToList();
 
             return Result<IReadOnlyCollection<HiveDto>>.Success(result);

@@ -26,9 +26,7 @@ namespace SmartApiary.Infrastructure.Services
                 options.Value.SprinklingAnnouncementsTable,
                 options.Value.SprinklingRecordsTable,
                 options.Value.TelemetriesTable,
-                options.Value.DevicesTable,
-                options.Value.DeviceStatusesTable,
-                options.Value.FirmwaresTable,
+
                 options.Value.ActivationTokensTable,
                 options.Value.PasswordResetTokensTable
             };

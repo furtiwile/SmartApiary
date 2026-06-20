@@ -13,7 +13,8 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Queries
         DateTime StartTime,
         double ExpectedDurationHours,
         string PreparationType,
-        bool IsCancelled
+        bool IsCancelled,
+        int NotifiedBeekeepersCount
     );
 
     public record GetSprinklingAnnouncementsByParcelQuery(string ParcelId) : IRequest<Result<IReadOnlyCollection<SprinklingAnnouncementDto>>>;
@@ -37,7 +38,8 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Queries
                     x.StartTime,
                     x.ExpectedDurationHours,
                     x.PreparationType,
-                    x.IsCancelled))
+                    x.IsCancelled,
+                    x.NotifiedBeekeepersCount))
                 .ToList();
 
             return Result<IReadOnlyCollection<SprinklingAnnouncementDto>>.Success(result);

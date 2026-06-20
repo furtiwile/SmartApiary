@@ -1,4 +1,4 @@
-﻿using SmartApiary.Domain.Models;
+using SmartApiary.Domain.Models;
 using SmartApiary.Infrastructure.Persistence.AzureTable.Common;
 using SmartApiary.Infrastructure.Persistence.AzureTable.Entities;
 
@@ -14,7 +14,8 @@ namespace SmartApiary.Infrastructure.Persistence.AzureTable.Mappers
                 ExpectedDurationHours = domain.ExpectedDurationHours,
                 PreparationType = domain.PreparationType,
                 IsCancelled = domain.IsCancelled,
-                ParcelId = domain.ParcelId.Value
+                ParcelId = domain.ParcelId.Value,
+                NotifiedBeekeepersCount = domain.NotifiedBeekeepersCount
             };
         }
 
@@ -26,7 +27,8 @@ namespace SmartApiary.Infrastructure.Persistence.AzureTable.Mappers
                 entity.ExpectedDurationHours,
                 entity.PreparationType,
                 entity.IsCancelled,
-                entity.ParcelId
+                entity.ParcelId,
+                entity.NotifiedBeekeepersCount
             );
 
             if (sprinklingAnnouncementResult.IsFailure)

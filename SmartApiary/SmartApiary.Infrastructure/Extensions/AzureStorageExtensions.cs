@@ -82,7 +82,7 @@ namespace SmartApiary.Infrastructure.Extensions
         {
             services.AddSingleton(sp => new BlobServiceClient(connectionString));
 
-            services.AddScoped<IFirmwareBlobStorage, FirmwareBlobStorage>();
+
             services.AddScoped<IApiaryImageStorage, ApiaryImageStorage>();
 
             return services;

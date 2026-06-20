@@ -28,5 +28,19 @@ namespace SmartApiary.WebApi.Controllers
             var result = await mediator.Send(new GetParcelsByFarmerQuery(farmerId), ct);
             return result.ToActionResult();
         }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(string id, [FromBody] SmartApiary.WebApi.DTOs.UpdateParcelRequest request, CancellationToken ct)
+        {
+            var result = await mediator.Send(request.ToCommand(id), ct);
+            return result.ToActionResult();
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(string id, CancellationToken ct)
+        {
+            var result = await mediator.Send(new DeleteParcelCommand(id), ct);
+            return result.ToActionResult();
+        }
     }
 }

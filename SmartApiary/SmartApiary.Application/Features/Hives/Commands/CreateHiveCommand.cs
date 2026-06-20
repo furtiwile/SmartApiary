@@ -17,7 +17,7 @@ namespace SmartApiary.Application.Features.Hives.Commands
         public string SuperColor { get; init; } = string.Empty;
         public int QueenAge { get; init; }
         public string Note { get; init; } = string.Empty;
-        public string SmartScaleId { get; init; } = string.Empty;
+        public string? SmartScaleId { get; init; }
     }
 
     public class CreateHiveValidator : AbstractValidator<CreateHiveCommand>
@@ -28,7 +28,6 @@ namespace SmartApiary.Application.Features.Hives.Commands
             RuleFor(x => x.Designation).NotEmpty();
             RuleFor(x => x.SuperColor).NotEmpty();
             RuleFor(x => x.QueenAge).GreaterThan(0);
-            RuleFor(x => x.SmartScaleId).NotEmpty();
         }
     }
 
@@ -56,9 +55,14 @@ namespace SmartApiary.Application.Features.Hives.Commands
             if (apiary == null)
                 return Result<string>.Failure("Apiary not found", ErrorType.NotFound);
 
-            var smartScaleIdResult = EntityId.Create(request.SmartScaleId);
-            if (smartScaleIdResult.IsFailure)
-                return Result<string>.Failure(smartScaleIdResult.Error!.Message, ErrorType.Validation);
+            EntityId? smartScaleIdResult = null;
+            if (!string.IsNullOrWhiteSpace(request.SmartScaleId))
+            {
+                var scaleIdRes = EntityId.Create(request.SmartScaleId);
+                if (scaleIdRes.IsFailure)
+                    return Result<string>.Failure(scaleIdRes.Error!.Message, ErrorType.Validation);
+                smartScaleIdResult = scaleIdRes.Value;
+            }
 
             var hiveResult = Hive.Create(
                 request.Designation,
@@ -67,7 +71,7 @@ namespace SmartApiary.Application.Features.Hives.Commands
                 request.QueenAge,
                 request.Note,
                 apiaryIdResult.Value,
-                smartScaleIdResult.Value
+                smartScaleIdResult
             );
 
             if (hiveResult.IsFailure)

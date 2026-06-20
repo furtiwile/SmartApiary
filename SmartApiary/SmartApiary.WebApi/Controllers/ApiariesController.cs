@@ -33,5 +33,24 @@ namespace SmartApiary.WebApi.Controllers
             var result = await mediator.Send(new GetApiariesByBeekeeperQuery(), ct);
             return result.ToActionResult();
         }
+
+        [Consumes("multipart/form-data")]
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(string id, [FromForm] UpdateApiaryRequest request, CancellationToken ct)
+        {
+            var commandResult = await request.ToCommandAsync(id, ct);
+            if (commandResult.IsFailure)
+                return commandResult.ToActionResult();
+
+            var result = await mediator.Send(commandResult.Value, ct);
+            return result.ToActionResult();
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(string id, CancellationToken ct)
+        {
+            var result = await mediator.Send(new DeleteApiaryCommand(id), ct);
+            return result.ToActionResult();
+        }
     }
 }

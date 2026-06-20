@@ -151,5 +151,16 @@ namespace SmartApiary.Domain.Models
                 )
             );
         }
+
+        public void Update(DateTime inspectionDate, string bottomBoardColor, int honeyFrames, double honeyAmount, int broodFrames, bool queenPresent, string note)
+        {
+            InspectionDate = inspectionDate;
+            BottomBoardColor = bottomBoardColor;
+            HoneyFrames = honeyFrames;
+            HoneyAmount = honeyAmount;
+            BroodFrames = broodFrames;
+            QueenPresent = queenPresent;
+            Note = note;
+        }
     }
 }

@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using SmartApiary.Domain.Enums;
 
 namespace SmartApiary.Application.Common.Validators
@@ -12,11 +12,5 @@ namespace SmartApiary.Application.Common.Validators
                             .NotEqual(DeviceType.Unknown).WithMessage("DeviceType cannot be Unknown.");
         }
 
-        public static IRuleBuilderOptions<T, string> IsValidFirmwareVersion<T>(this IRuleBuilder<T, string> ruleBuilder)
-        {
-            return ruleBuilder
-                .NotEmpty().WithMessage("Firmware version is required.")
-                .Matches(@"^[Vv]\d+(\.\d+)*$").WithMessage("Version must be in format V1.0, V2.1.3 etc.");
-        }
     }
 }

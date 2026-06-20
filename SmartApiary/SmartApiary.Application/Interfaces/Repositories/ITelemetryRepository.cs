@@ -1,4 +1,4 @@
-﻿using SmartApiary.Domain.Models;
+using SmartApiary.Domain.Models;
 using SmartApiary.Domain.ValueObjects;
 
 namespace SmartApiary.Application.Interfaces.Repositories
@@ -10,5 +10,6 @@ namespace SmartApiary.Application.Interfaces.Repositories
         Task<Telemetry?> GetLatestBySmartScaleIdAsync(EntityId smartScaleId, CancellationToken ct = default);
         Task SaveAsync(Telemetry telemetry, CancellationToken ct = default);
         Task<Telemetry?> GetPreviousTelemetryAsync(EntityId smartScaleId, CancellationToken ct = default);
+        Task DeleteAllBySmartScaleIdAsync(EntityId smartScaleId, CancellationToken ct = default);
     }
 }
