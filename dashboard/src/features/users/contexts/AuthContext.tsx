@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, type ReactNode } from "react";
+import { createContext, useState, type ReactNode } from "react";
 import { jwtDecode } from "jwt-decode";
 
 import type { AuthContextData } from "../models/AuthContextData";
@@ -74,34 +74,30 @@ interface AuthProviderProps {
 
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<UserDto | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // TODO: setState's are now "anti-pattern" as it seems.
-  // If there is a better solution to prevent cascading renders
-  // I guess it's going to be useMemo, but I'm too lazy to fix it
-  useEffect(() => {
+  const [user, setUser] = useState<UserDto | null>(() => {
     const savedToken = LocalStorage.get("authToken");
+    if (savedToken && !isTokenExpired(savedToken)) {
+      const claims = decodeJWT(savedToken);
+      if (claims) return claims;
+    }
+    return null;
+  });
 
+  const [token, setToken] = useState<string | null>(() => {
+    const savedToken = LocalStorage.get("authToken");
     if (savedToken) {
       if (isTokenExpired(savedToken)) {
         LocalStorage.remove("authToken");
-        setIsLoading(false);
-        return;
+        return null;
       }
-
       const claims = decodeJWT(savedToken);
-      if (!claims)
-        LocalStorage.remove("authToken");
-      else {
-        setToken(savedToken);
-        setUser(claims);
-      }
+      if (claims) return savedToken;
+      LocalStorage.remove("authToken");
     }
+    return null;
+  });
 
-    setIsLoading(false);
-  }, []);
+  const isLoading = false;
 
   function login(newToken: string) {
     const claims = decodeJWT(newToken);

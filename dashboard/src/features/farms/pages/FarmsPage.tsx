@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from "react";
+import { Tractor, X, MapPin, User } from "lucide-react";
 import { PageLayout } from "../../../layouts/PageLayout";
 import { useAuth } from "../../users/hooks/AuthHook";
 import type { ParcelDto } from "../models/Parcel";
 import { FarmApi } from "../api/farmApi";
 import { ParcelTable } from "../components/ParcelTable";
 import { CreateParcelModal } from "../components/CreateParcelModal";
+import { CropManagementModal } from "../components/CropManagementModal";
+import { SprayingAnnouncementModal } from "../components/SprayingAnnouncementModal";
+import { SprayingRecordTable } from "../components/SprayingRecordTable";
 import { useNotify } from "../../../hooks/useNotify";
-import { Tractor } from "lucide-react";
 
 export const FarmsPage: React.FC = () => {
   const { user } = useAuth();
@@ -41,7 +44,7 @@ export const FarmsPage: React.FC = () => {
   return (
     <PageLayout>
       <div className="space-y-6">
-        {/* Header */}
+        {/* Page Header */}
         <div className="flex items-center justify-between rounded-3xl border border-slate-200 bg-slate-50 p-6 shadow-sm">
           <div className="flex items-center gap-4">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-500/10">
@@ -73,33 +76,64 @@ export const FarmsPage: React.FC = () => {
           <ParcelTable parcels={parcels} onEdit={handleEdit} onDelete={handleDelete} />
         )}
 
-        {/* Selected parcel detail */}
+        {/* Selected parcel detail panel */}
         {selectedParcel && (
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-slate-900">{selectedParcel.name}</h2>
-              <button
-                onClick={() => setSelectedParcel(null)}
-                className="text-xs text-slate-500 hover:text-slate-700 transition-colors"
-              >
-                Close
-              </button>
+          <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+            {/* Detail header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50">
+              <div className="flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10">
+                  <MapPin className="h-4 w-4 text-emerald-600" />
+                </div>
+                <h2 className="text-base font-bold text-slate-900">{selectedParcel.name}</h2>
+              </div>
+              <div className="flex items-center gap-2">
+                {/* Crop & Spraying action buttons */}
+                <CropManagementModal
+                  parcelId={selectedParcel.id}
+                  parcelName={selectedParcel.name}
+                />
+                <SprayingAnnouncementModal
+                  parcelId={selectedParcel.id}
+                  parcelName={selectedParcel.name}
+                />
+                <button
+                  onClick={() => setSelectedParcel(null)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all ml-2"
+                  aria-label="Close"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
             </div>
-            <ul className="grid gap-3 sm:grid-cols-2">
-              <li className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Location</p>
+
+            {/* Info cards */}
+            <div className="grid grid-cols-2 gap-3 p-5">
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-500 flex items-center gap-1.5">
+                  <MapPin className="h-3 w-3" />
+                  Coordinates
+                </p>
                 <p className="mt-2 text-sm text-slate-700 font-mono">
                   {selectedParcel.latitude.toFixed(5)}, {selectedParcel.longitude.toFixed(5)}
                 </p>
-              </li>
-              <li className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Farmer ID</p>
+              </div>
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-500 flex items-center gap-1.5">
+                  <User className="h-3 w-3" />
+                  Farmer ID
+                </p>
                 <p className="mt-2 text-sm font-mono text-slate-700 truncate">{selectedParcel.farmerId}</p>
-              </li>
-            </ul>
-            <p className="mt-4 text-xs text-slate-400">
-              Crop management and spraying announcements will be available here in Phase 3.
-            </p>
+              </div>
+            </div>
+
+            {/* Spraying records + PDF export */}
+            <div className="px-5 pb-5">
+              <SprayingRecordTable
+                parcelId={selectedParcel.id}
+                parcelName={selectedParcel.name}
+              />
+            </div>
           </div>
         )}
       </div>
