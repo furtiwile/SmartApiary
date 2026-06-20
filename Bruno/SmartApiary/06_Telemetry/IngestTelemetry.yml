@@ -1,0 +1,40 @@
+info:
+  name: Ingest Telemetry
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{smart_apiary_functions_base_url}}/api/telemetry"
+  headers:
+    - name: X-Device-Token
+      value: "{{device_token}}"
+  body:
+    type: json
+    data: |
+      {
+        "hiveId": "{{hive_id}}",
+        "timestamp": "{{current_time}}",
+        "weightKg": 35.2,
+        "temperatureC": 31.4,
+        "humidityPercent": 58.0,
+        "batteryPercent": 88.0
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        console.log("DEBUG RESPONSE [IngestTelemetry.yml] status:", res.status, "body:", JSON.stringify(res.body));
+    - type: before-request
+      code: |-
+        bru.setGlobalEnvVar("jwt_token", bru.getGlobalEnvVar("beekeeper_token"));
+        
+        bru.setGlobalEnvVar("current_time", new Date().toISOString());

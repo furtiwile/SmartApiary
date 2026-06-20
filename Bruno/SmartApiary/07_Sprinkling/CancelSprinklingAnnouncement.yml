@@ -1,0 +1,28 @@
+info:
+  name: Cancel Sprinkling Announcement
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{smart_apiary_api_base_url}}/sprinklingannouncements/{{announcement_id}}/cancel?parcelId={{parcel_id}}"
+  params:
+    - name: parcelId
+      value: "{{parcel_id}}"
+      type: query
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        console.log("DEBUG RESPONSE [CancelSprinklingAnnouncement.yml] status:", res.status, "body:", JSON.stringify(res.body));
+    - type: before-request
+      code: |-
+        bru.setGlobalEnvVar("jwt_token", bru.getGlobalEnvVar("farmer_token"));

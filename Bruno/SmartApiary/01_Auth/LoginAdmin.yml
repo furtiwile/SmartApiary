@@ -1,0 +1,39 @@
+info:
+  name: Login Admin
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{smart_apiary_api_base_url}}/auth/login"
+  body:
+    type: json
+    data: |
+      {
+        "email": "admin@example.local",
+        "password": "Password123!"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        console.log("DEBUG RESPONSE [LoginAdmin.yml] status:", res.status, "body:", JSON.stringify(res.body));
+        bru.setGlobalEnvVar("admin_token", res.body.data.token);
+        
+        const token = res.body.data.token;
+        if (token) {
+        const parts = token.split('.');
+        if (parts.length === 3) {
+        const payload = JSON.parse(atob(parts[1]));
+        const userId = payload.sub || payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"];
+        bru.setGlobalEnvVar("admin_user_id", userId);
+        }
+        }

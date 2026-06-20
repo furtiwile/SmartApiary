@@ -1,0 +1,35 @@
+info:
+  name: Update Hive
+  type: http
+  seq: 5
+
+http:
+  method: PUT
+  url: "{{smart_apiary_api_base_url}}/hives/{{hive_id}}"
+  body:
+    type: json
+    data: |
+      {
+        "designation": "H-01 Updated",
+        "type": "DB",
+        "superColor": "Yellow",
+        "queenAge": 3,
+        "note": "Updated hive note",
+        "smartScaleId": null
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        console.log("DEBUG RESPONSE [UpdateHive.yml] status:", res.status, "body:", JSON.stringify(res.body));
+    - type: before-request
+      code: |-
+        bru.setGlobalEnvVar("jwt_token", bru.getGlobalEnvVar("beekeeper_token"));

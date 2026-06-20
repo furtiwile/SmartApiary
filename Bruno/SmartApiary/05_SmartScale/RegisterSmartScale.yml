@@ -1,0 +1,36 @@
+info:
+  name: Register Smart Scale
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{smart_apiary_api_base_url}}/smartscales/register"
+  body:
+    type: json
+    data: |
+      {
+        "apiaryId": "{{apiary_id_2}}",
+        "hiveId": "{{hive_id}}",
+        "serialNumber": "{{scale_serial_number}}"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        bru.setGlobalEnvVar("jwt_token", bru.getGlobalEnvVar("beekeeper_token"));
+        
+        const serialNumber = "SS-" + Date.now();
+        bru.setGlobalEnvVar("scale_serial_number", serialNumber);
+    - type: after-response
+      code: |-
+        console.log("DEBUG RESPONSE [RegisterSmartScale.yml] status:", res.status, "body:", JSON.stringify(res.body));
+        bru.setGlobalEnvVar("smart_scale_id", res.body.data);

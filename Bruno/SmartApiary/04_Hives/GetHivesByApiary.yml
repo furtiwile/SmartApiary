@@ -1,0 +1,28 @@
+info:
+  name: Get Hives By Apiary
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: "{{smart_apiary_api_base_url}}/hives?apiaryId={{apiary_id}}"
+  params:
+    - name: apiaryId
+      value: "{{apiary_id}}"
+      type: query
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        console.log("DEBUG RESPONSE [GetHivesByApiary.yml] status:", res.status, "body:", JSON.stringify(res.body));
+    - type: before-request
+      code: |-
+        bru.setGlobalEnvVar("jwt_token", bru.getGlobalEnvVar("beekeeper_token"));

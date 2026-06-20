@@ -1,0 +1,45 @@
+info:
+  name: Create Apiary
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{smart_apiary_api_base_url}}/apiaries"
+  body:
+    type: multipart-form
+    data:
+      - name: Name
+        type: text
+        value: Apiary North1
+      - name: Latitude
+        type: text
+        value: "45.2671"
+      - name: Longitude
+        type: text
+        value: "19.8335"
+      - name: Description
+        type: text
+        value: Test apiary
+      - name: ImageFile
+        type: file
+        value:
+          - c:\Users\Nikola\Desktop\4God\Cloud\cloud\TestingAssets\apiary1.jpg
+        contentType: File
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        bru.setGlobalEnvVar("jwt_token", bru.getGlobalEnvVar("beekeeper_token"));
+    - type: after-response
+      code: |-
+        console.log("DEBUG RESPONSE [CreateApiary.yml] status:", res.status, "body:", JSON.stringify(res.body));
+        bru.setGlobalEnvVar("apiary_id", res.body.id);

@@ -1,0 +1,37 @@
+info:
+  name: Update Hive Inspection
+  type: http
+  seq: 7
+
+http:
+  method: PUT
+  url: "{{smart_apiary_api_base_url}}/hiveinspections/{{hive_inspection_id}}"
+  body:
+    type: json
+    data: |
+      {
+        "hiveId": "{{hive_id}}",
+        "inspectionDate": "2026-05-26T10:00:00Z",
+        "bottomBoardColor": "Green",
+        "honeyFrames": 8,
+        "honeyAmount": 15.0,
+        "broodFrames": 6,
+        "queenPresent": true,
+        "note": "Routine inspection updated"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        console.log("DEBUG RESPONSE [UpdateHiveInspection.yml] status:", res.status, "body:", JSON.stringify(res.body));
+    - type: before-request
+      code: |-
+        bru.setGlobalEnvVar("jwt_token", bru.getGlobalEnvVar("beekeeper_token"));

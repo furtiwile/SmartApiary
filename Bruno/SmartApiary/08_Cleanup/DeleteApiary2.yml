@@ -1,0 +1,24 @@
+info:
+  name: Delete Apiary 2
+  type: http
+  seq: 6
+
+http:
+  method: DELETE
+  url: "{{smart_apiary_api_base_url}}/apiaries/{{apiary_id_2}}"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        console.log("DEBUG RESPONSE [DeleteApiary2.yml] status:", res.status, "body:", JSON.stringify(res.body));
+    - type: before-request
+      code: |-
+        bru.setGlobalEnvVar("jwt_token", bru.getGlobalEnvVar("beekeeper_token"));

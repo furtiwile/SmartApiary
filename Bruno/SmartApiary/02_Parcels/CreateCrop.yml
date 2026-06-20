@@ -1,0 +1,34 @@
+info:
+  name: Create Crop
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{smart_apiary_api_base_url}}/crops"
+  body:
+    type: json
+    data: |
+      {
+        "parcelId": "{{parcel_id}}",
+        "type": "Sunflower",
+        "expectedFloweringTime": "2026-06-15T00:00:00Z",
+        "note": "Test Crop"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        bru.setGlobalEnvVar("jwt_token", bru.getGlobalEnvVar("farmer_token"));
+    - type: after-response
+      code: |-
+        console.log("DEBUG RESPONSE [CreateCrop.yml] status:", res.status, "body:", JSON.stringify(res.body));
+        bru.setGlobalEnvVar("crop_id", res.body.id);
