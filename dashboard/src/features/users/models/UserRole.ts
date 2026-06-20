@@ -1,0 +1,1 @@
+export type UserRole = "Unknown" | "Admin" | "Farmer" | "Beekeeper"
