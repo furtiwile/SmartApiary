@@ -3,6 +3,7 @@ import { Toaster } from "react-hot-toast";
 import { Link, Outlet } from "react-router-dom";
 import { useAuth } from "../features/users/hooks/AuthHook";
 import LogoutButton from "../features/users/components/LogoutButton";
+import { NotificationDrawer } from "../components/ui/NotificationDrawer";
 import type { UserDto } from "../features/users/models/UserDto";
 
 
@@ -32,6 +33,7 @@ function AccountActions({ isAuthed, user, logout }: AccountActionsProps) {
 
   return (
     <>
+      {/* Register link — only shown to Admin; route itself is also guarded */}
       {user?.role === "Admin" && (
         <li>
           <Link
@@ -46,6 +48,9 @@ function AccountActions({ isAuthed, user, logout }: AccountActionsProps) {
         <span className="text-sm font-bold tracking-wide text-slate-400">
           {displayName}
         </span>
+      </li>
+      <li>
+        <NotificationDrawer />
       </li>
       <li>
         <LogoutButton logout={logout} />
@@ -64,11 +69,11 @@ const MainLayout: React.FC = () => {
         <div className="container mx-auto flex items-center justify-between p-4">
           <Link to="/dashboard" className="group">
             <h1 className="text-xl font-black bg-linear-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent group-hover:from-indigo-300 group-hover:to-cyan-300 transition-all">
-              GRID.CLOUD
+              SmartApiary
             </h1>
           </Link>
           <nav>
-            <ul className="flex space-x-8">
+            <ul className="flex items-center space-x-4">
               <AccountActions isAuthed={isAuthed} user={user} logout={logout} />
             </ul>
           </nav>
@@ -85,7 +90,7 @@ const MainLayout: React.FC = () => {
       <footer className="border-t border-slate-900 bg-slate-950 py-6 mt-auto">
         <div className="container mx-auto text-center">
           <p className="text-slate-600 text-[10px] font-bold tracking-widest uppercase">
-            © 2026 Cloud vezbe
+            © 2026 SmartApiary
           </p>
         </div>
       </footer>
