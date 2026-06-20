@@ -5,31 +5,46 @@ import { useAuth } from "../hooks/AuthHook";
 import { AuthApi } from "../api/AuthApi";
 import { PageLayout } from "../../../layouts/PageLayout";
 
-
-
 const MIN_EMAIL_LEN = 6;
 const MIN_PASSWD_LEN = 8;
-
-
 
 export function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const {isAuthed, user, login} = useAuth();
+
+  const { isAuthed, user, login } = useAuth();
+  
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (isAuthed && user)
+    if (isAuthed && user) {
       navigate(`/dashboard`);
+    }
   }, [isAuthed, user, navigate]);
 
+  async function handleForgotPassword(event: React.MouseEvent<HTMLAnchorElement>) {
+    event.preventDefault();
 
+    if (!email || email.length < MIN_EMAIL_LEN) {
+      alert("Please enter a valid email address first to reset your password.");
+      return;
+    }
 
-  async function sendForm(event: React.FormEvent) {
+    const result = await AuthApi.forgotPassword(email);
+
+    if (result.success) {
+      alert(result.message || "Password reset instructions have been sent to your email!");
+    } else {
+      alert("Failed to send reset email: " + result.message);
+    }
+  }
+
+  async function sendForm(event: React.SubmitEvent) {
     event.preventDefault();
 
     const _email = email;
     const _password = password;
+
     setEmail("");
     setPassword("");
     
@@ -48,7 +63,7 @@ export function LoginPage() {
     }
     
     AuthApi.login(_email, _password)
-      .then((result)=>{
+      .then((result) => {
         console.log("Login result: ", result);
         if (result.data) {
           login(result.data.token);
@@ -61,71 +76,83 @@ export function LoginPage() {
       });
   }
 
-
-
   return (
     <PageLayout>
-      <header className="flex justify-between items-end mb-10">
-        <div >
-          <h1 className="text-2xl font-bold text-black tracking-tight">
-            Login page
+      <header className="flex justify-center items-end mb-10">
+        <div>
+          <h1 className="text-2xl font-bold text-center text-slate-900 dark:text-white tracking-tight">
+            Login
           </h1>
-          <p className="text-slate-400 text-sm">
-            Provide account credentials to log in.
-          </p>
         </div>
       </header>
-      <div className="mt-10 sm:mx-auto sm:w-full sm:mac-w-sm">
-        <form action="" name="login" onSubmit={sendForm} className="space-y-6">
-          <div className="p-4 bg-white/70 dark:bg-slate-800/50 backdrop-blur-md rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-white dark:border-slate-700 overflow-hidden">
+      
+      <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-md">
+        <form name="login" onSubmit={sendForm} className="space-y-6">
+          <div className="p-6 bg-white dark:bg-slate-800/50 backdrop-blur-md rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-200 dark:border-slate-700 overflow-hidden">
             
-            {/* Email stuff */}
-            <label htmlFor="email" className="block text-sm/6 font-medium text-gray-900">Email </label>
-            <div className="mt-2">
-              <input
-                id="email"
-                name="email"
-                type="text"
-                placeholder="Enter your email"
-                minLength={MIN_EMAIL_LEN}
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                required
-                autoFocus
-                tabIndex={1}
-                className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
-              />
-            </div>
-            
-            {/* Password stuff */}
-            <div className="flex items-center justify-between mt-6">
-              <label htmlFor="password" className="block text-sm/6 font-medium text-gray-900">Password </label>
-              <div className="text-sm">
-                <a href="#" className="font-semibold text-indigo-400 hover:text-indigo-300" tabIndex={5}>Forgot password?</a>
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-200">
+                Email
+              </label>
+              <div className="mt-2">
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  minLength={MIN_EMAIL_LEN}
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  required
+                  autoFocus
+                  tabIndex={1}
+                  className="block w-full rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-1.5 text-base text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm"
+                />
               </div>
             </div>
-            <div className="mt-2">
-              <input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="Enter your password"
-                minLength={MIN_PASSWD_LEN}
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                required
-                tabIndex={2}
-                autoComplete="current-password"
-                className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
-              />
+            
+            <div className="mt-6">
+              <label htmlFor="password" className="block text-sm font-medium text-slate-700 dark:text-slate-200">
+                Password
+              </label>
+              <div className="mt-2">
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  placeholder="Enter your password"
+                  minLength={MIN_PASSWD_LEN}
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  required
+                  tabIndex={2}
+                  autoComplete="current-password"
+                  className="block w-full rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-1.5 text-base text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm"
+                />
+              </div>
+
+              <div className="mt-2 text-right text-sm">
+                <a 
+                  href="#" 
+                  onClick={handleForgotPassword}
+                  className="font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300" 
+                  tabIndex={5}
+                >
+                  Forgot password?
+                </a>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center justify-between mt-6">
-            <Link to="/register" className="font-semibold text-indigo-400 hover:text-indigo-300" tabIndex={4}>
-              No account? Register instead
+          <div className="flex flex-col items-center space-y-4 mt-6">
+            <Link to="/register" className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300" tabIndex={4}>
+              Don't have an account? Register
             </Link>
-            <button type="submit" className="flex w-50 justify-center rounded-md bg-indigo-500 px-3 py-1.5 text-sm/6 font-semibold text-white hover:bg-indigo-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500" tabIndex={3}>
+            <button 
+              type="submit" 
+              className="flex w-full items-center justify-center rounded-md bg-indigo-500 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 transition-colors" 
+              tabIndex={3}
+            >
               Log in
             </button>
           </div>
