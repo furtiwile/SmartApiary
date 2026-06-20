@@ -78,18 +78,16 @@ export function LoginPage() {
 
   return (
     <PageLayout>
-      <header className="flex justify-center items-end mb-10">
-        <div>
-          <h1 className="text-2xl font-bold text-center text-slate-900 dark:text-white tracking-tight">
-            Login
-          </h1>
-        </div>
-      </header>
-      
-      <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-md">
+      <div className="min-h-[calc(100vh-4rem)] w-full flex flex-col justify-center sm:mx-auto sm:w-full sm:max-w-md">
         <form name="login" onSubmit={sendForm} className="space-y-6">
           <div className="p-6 bg-white dark:bg-slate-800/50 backdrop-blur-md rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-200 dark:border-slate-700 overflow-hidden">
             
+            {/* Login Header */}
+            <h1 className="text-2xl font-bold text-center text-slate-900 dark:text-white tracking-tight mb-8">
+              Login
+            </h1>
+
+            {/* Email Field */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-200">
                 Email
@@ -111,6 +109,7 @@ export function LoginPage() {
               </div>
             </div>
             
+            {/* Password Field */}
             <div className="mt-6">
               <label htmlFor="password" className="block text-sm font-medium text-slate-700 dark:text-slate-200">
                 Password
@@ -142,19 +141,21 @@ export function LoginPage() {
                 </a>
               </div>
             </div>
-          </div>
 
-          <div className="flex flex-col items-center space-y-4 mt-6">
-            <Link to="/register" className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300" tabIndex={4}>
-              Don't have an account? Register
-            </Link>
-            <button 
-              type="submit" 
-              className="flex w-full items-center justify-center rounded-md bg-indigo-500 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 transition-colors" 
-              tabIndex={3}
-            >
-              Log in
-            </button>
+            {/* Moved Inside Card & Added Visual Separator */}
+            <div className="flex flex-col items-center space-y-4 border-t border-slate-200 dark:border-slate-700/60 pt-6 mt-8">
+              <Link to="/register" className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300" tabIndex={4}>
+                Don't have an account? Register
+              </Link>
+              <button 
+                type="submit" 
+                className="flex w-full items-center justify-center rounded-md bg-indigo-500 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 transition-colors" 
+                tabIndex={3}
+              >
+                Log in
+              </button>
+            </div>
+
           </div>
         </form>
       </div>
