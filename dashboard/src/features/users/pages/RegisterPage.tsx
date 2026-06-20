@@ -14,7 +14,9 @@ export function RegisterPage() {
   const [email, setEmail] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [role, setRole] = useState<UserRole>("Unknown");
+
   const { isAuthed, user } = useAuth();
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -23,11 +25,8 @@ export function RegisterPage() {
     }
   }, [isAuthed, navigate, user]);
 
-
-
-  async function sendForm(event: React.FormEvent) {
+  async function sendForm(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
 
     if (firstName.length < MIN_NAME_LEN) {
       alert(
@@ -38,7 +37,7 @@ export function RegisterPage() {
 
     if (lastName.length < MIN_NAME_LEN) {
       alert(
-        `Input for first name is too short.\nShould be: ${MIN_NAME_LEN}; Given: ${lastName.length}`,
+        `Input for last name is too short.\nShould be: ${MIN_NAME_LEN}; Given: ${lastName.length}`,
       );
       return;
     }
@@ -67,26 +66,25 @@ export function RegisterPage() {
     alert("Unknown error: Something went wrong...\n" + result.message);
   }
   
-
-  
   return (
-    <>
-      <PageLayout>
-        <header className="flex justify-between items-end mb-10">
-          <div >
-            <h1 className="text-2xl font-bold text-black tracking-tight">
-              Register page
-            </h1>
-            <p className="text-slate-400 text-sm">
-              Provide new account credentials &amp; info to register.
-            </p>
-          </div>
-        </header>
-        <div className="mt-10 sm:mx-auto sm:w-full sm:mac-w-sm">
-          <form action="" name="register" onSubmit={sendForm} className="space-y-6">
-            <div className="p-4 bg-white/70 dark:bg-slate-800/50 backdrop-blur-md rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-white dark:border-slate-700 overflow-hidden">
-              {/* First name stuff */}
-              <label htmlFor="first-name" className="block text-sm/6 font-medium text-gray-900">First name </label>
+    <PageLayout>
+      <header className="flex justify-center items-end mb-10">
+      <div>
+        <h1 className="text-2xl font-bold text-center text-slate-900 dark:text-white tracking-tight">
+          Register
+        </h1>
+      </div>
+    </header>
+
+      <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-md">
+        <form name="register" onSubmit={sendForm} className="space-y-6">
+          <div className="p-6 bg-white dark:bg-slate-800/50 backdrop-blur-md rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-200 dark:border-slate-700 overflow-hidden">
+            
+            {/* First Name Field */}
+            <div>
+              <label htmlFor="first-name" className="block text-sm font-medium text-slate-700 dark:text-slate-200">
+                First name
+              </label>
               <div className="mt-2">
                 <input
                   id="first-name"
@@ -94,16 +92,20 @@ export function RegisterPage() {
                   type="text"
                   placeholder="Enter your first name"
                   minLength={MIN_NAME_LEN}
+                  value={firstName}
                   onChange={(event) => setFirstName(event.target.value)}
                   required
                   autoFocus
-                  tabIndex={1}
-                  className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-black outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
+                  className="block w-full rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-1.5 text-base text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm"
                 />
               </div>
+            </div>
 
-              {/* First name stuff */}
-              <label htmlFor="last-name" className="block text-sm/6 font-medium text-gray-900 mt-6">Last name </label>
+            {/* Last Name Field */}
+            <div className="mt-6">
+              <label htmlFor="last-name" className="block text-sm font-medium text-slate-700 dark:text-slate-200">
+                Last name
+              </label>
               <div className="mt-2">
                 <input
                   id="last-name"
@@ -111,16 +113,19 @@ export function RegisterPage() {
                   type="text"
                   placeholder="Enter your last name"
                   minLength={MIN_NAME_LEN}
+                  value={lastName}
                   onChange={(event) => setLastName(event.target.value)}
                   required
-                  autoFocus
-                  tabIndex={1}
-                  className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-black outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
+                  className="block w-full rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-1.5 text-base text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm"
                 />
               </div>
-              
-              {/* Email stuff */}
-              <label htmlFor="email" className="block text-sm/6 font-medium text-gray-900 mt-6">Email </label>
+            </div>
+            
+            {/* Email Field */}
+            <div className="mt-6">
+              <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-200">
+                Email
+              </label>
               <div className="mt-2">
                 <input
                   id="email"
@@ -128,67 +133,68 @@ export function RegisterPage() {
                   type="email"
                   placeholder="Enter your email"
                   minLength={MIN_EMAIL_LEN}
+                  value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   required
-                  autoFocus
-                  tabIndex={1}
-                  className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-black outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
+                  className="block w-full rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-1.5 text-base text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm"
                 />
               </div>
+            </div>
 
-              {/* Phone Number stuff */}
-              <label htmlFor="phone" className="block text-sm/6 font-medium text-gray-900 mt-6">Phone number </label>
+            {/* Phone Number Field */}
+            <div className="mt-6">
+              <label htmlFor="phone" className="block text-sm font-medium text-slate-700 dark:text-slate-200">
+                Phone number
+              </label>
               <div className="mt-2">
                 <input
                   id="phone"
                   name="phone"
                   type="tel"
                   placeholder="Enter your phone number"
-                  minLength={6} // idk how many digits one phone number can minimally have
+                  value={phoneNumber}
                   onChange={(event) => setPhoneNumber(event.target.value)}
                   required
-                  className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-black outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
+                  className="block w-full rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-1.5 text-base text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm"
                 />
               </div>
+            </div>
 
-              {/* Phone Number stuff */}
-              <label htmlFor="role" className="block text-sm/6 font-medium text-gray-900 mt-6">Role </label>
+            {/* Role Field */}
+            <div className="mt-6">
+              <label htmlFor="role" className="block text-sm font-medium text-slate-700 dark:text-slate-200">
+                Role
+              </label>
               <div className="mt-2">
-                {/*<input
-                  id="role"
-                  name="role"
-                  type="tel"
-                  placeholder="Enter your phone number"
-                  minLength={6} // idk how many digits one phone number can minimally have
-                  onChange={(event) => setRole(event.target.value)}
-                  required
-                  className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-black outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
-                />*/}
                 <select
                   name="role"
                   id="role"
-                  className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-black outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
+                  value={role}
                   onChange={(event) => setRole(event.target.value as UserRole)}
-                  defaultValue="Unknown"
+                  className="block w-full rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-base text-slate-900 dark:text-white focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm"
                 >
-                  <option value="Unknown">Unknown</option>
-                  <option value="Farmer">Farmer</option>
-                  <option value="Beekeeper">Beekeeper</option>
+                  <option value="Unknown" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Unknown</option>
+                  <option value="Farmer" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Farmer</option>
+                  <option value="Beekeeper" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Beekeeper</option>
                 </select>
               </div>
             </div>
-    
-            <div className="flex items-center justify-between mt-6">
-              <Link to="/login" className="font-semibold text-indigo-400 hover:text-indigo-300">
-                Already have an account? Log in instead
-              </Link>
-              <button type="submit" className="flex w-50 justify-center rounded-md bg-indigo-500 px-3 py-2 text-sm/6 font-semibold text-white hover:bg-indigo-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">
-                Register
-              </button>
-            </div>
-          </form>
-        </div>
-      </PageLayout>
-    </>
+          </div>
+  
+          {/* Form Actions - Changed to full width vertical flex container */}
+          <div className="flex flex-col items-center space-y-4 mt-6">
+            <Link to="/login" className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300">
+              Already have an account? Log in
+            </Link>
+            <button 
+              type="submit" 
+              className="flex w-full justify-center rounded-md bg-indigo-500 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 transition-colors"
+            >
+              Register
+            </button>
+          </div>
+        </form>
+      </div>
+    </PageLayout>
   );
 }
