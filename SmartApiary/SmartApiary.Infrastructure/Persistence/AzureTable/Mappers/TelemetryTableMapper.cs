@@ -10,6 +10,7 @@ namespace SmartApiary.Infrastructure.Persistence.AzureTable.Mappers
         {
             return new TelemetryEntity
             {
+                Id = domain.Id.Value,
                 SmartScaleId = domain.SmartScaleId.Value,
                 HiveId = domain.HiveId.Value,
                 Timestamp = domain.Timestamp,
@@ -22,8 +23,9 @@ namespace SmartApiary.Infrastructure.Persistence.AzureTable.Mappers
 
         public Telemetry? ToDomain(TelemetryEntity entity)
         {
+            var id = string.IsNullOrWhiteSpace(entity.Id) ? Guid.NewGuid().ToString() : entity.Id;
             var telemetryResult = Telemetry.Load(
-                entity.RowKey,
+                id,
                 entity.SmartScaleId,
                 entity.HiveId,
                 entity.Timestamp,

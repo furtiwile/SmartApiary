@@ -25,9 +25,14 @@ namespace SmartApiary.Infrastructure.Persistence.AzureTable.Repositories
             return await base.GetByIdAsync(hiveId.Value, inspectionId.Value, ct);
         }
 
-        public async Task<IReadOnlyCollection<HiveInspection>> GetByHiveIdAsync(EntityId hiveId, CancellationToken ct = default)
+        public async Task<IReadOnlyCollection<HiveInspection>> GetByHiveIdAsync(EntityId hiveId, int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
         {
-            return await base.QueryByPartitionKeyAsync(hiveId.Value, ct);
+            var results = await base.QueryByPartitionKeyAsync(hiveId.Value, ct);
+            return results
+                .OrderByDescending(x => x.InspectionDate)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
         }
 
         public async Task SaveAsync(HiveInspection inspection, CancellationToken ct = default)

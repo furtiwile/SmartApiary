@@ -87,11 +87,11 @@ namespace SmartApiary.Application.Features.Auth.Commands
             if (user == null)
                 return Result.Failure("User not found");
 
-            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+            user.ResetPassword(BCrypt.Net.BCrypt.HashPassword(request.Password));
             // keep active state as-is
             await userRepository.UpadateUserAsync(user, cancellationToken);
 
-            token.UsedAtUtc = dateTimeProvider.UtcNow;
+            token.MarkAsUsed(dateTimeProvider.UtcNow);
             await resetRepo.UpdateAsync(token, cancellationToken);
 
             return Result.Success();

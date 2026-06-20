@@ -2,6 +2,7 @@ namespace SmartApiary.Infrastructure.Persistence.AzureTable.Entities
 {
     internal class TelemetryEntity : BaseTableEntity
     {
+        public string Id { get; set; } = default!;
         public string SmartScaleId { get; set; } = default!;
         public string HiveId { get; set; } = default!;
         public new DateTime Timestamp { get; set; }

@@ -6,15 +6,15 @@ namespace SmartApiary.Domain.Models
 {
     public class HiveInspection
     {
-        public EntityId Id { get; set; }
-        public DateTime InspectionDate { get; set; }
-        public string BottomBoardColor { get; set; }
-        public int HoneyFrames { get; set; }
-        public double HoneyAmount { get; set; }
-        public int BroodFrames { get; set; }
-        public bool QueenPresent { get; set; }
-        public string Note { get; set; } = string.Empty;
-        public EntityId HiveId { get; set; }
+        public EntityId Id { get; private set; }
+        public DateTime InspectionDate { get; private set; }
+        public string BottomBoardColor { get; private set; }
+        public int HoneyFrames { get; private set; }
+        public double HoneyAmount { get; private set; }
+        public int BroodFrames { get; private set; }
+        public bool QueenPresent { get; private set; }
+        public string Note { get; private set; } = string.Empty;
+        public EntityId HiveId { get; private set; }
 
         /// <summary>
         /// Creates an instance of the hive inspection

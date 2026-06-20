@@ -1,4 +1,4 @@
-﻿using QuestPDF.Fluent;
+using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using SmartApiary.Application.Interfaces;
@@ -46,20 +46,26 @@ namespace SmartApiary.Infrastructure.Services
                     {
                         table.ColumnsDefinition(columns =>
                         {
-                            columns.RelativeColumn(2);
-                            columns.RelativeColumn(2);
-                            columns.RelativeColumn(3);
-                            columns.RelativeColumn(2);
-                            columns.RelativeColumn(2);
+                            columns.RelativeColumn(2); // Start Time
+                            columns.RelativeColumn(2); // End Time
+                            columns.RelativeColumn(2); // Parcel
+                            columns.RelativeColumn(2); // Crop
+                            columns.RelativeColumn(2.5f); // Preparation
+                            columns.RelativeColumn(2.5f); // Weather
+                            columns.RelativeColumn(1.5f); // Wind
+                            columns.RelativeColumn(1.5f); // Rain
                         });
 
                         table.Header(header =>
                         {
                             header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Start Time").Bold();
                             header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("End Time").Bold();
+                            header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Parcel").Bold();
+                            header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Crop").Bold();
                             header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Preparation").Bold();
+                            header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Weather").Bold();
                             header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Wind").Bold();
-                            header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Precipitation").Bold();
+                            header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Rain").Bold();
                         });
 
                         foreach (var record in records)
@@ -71,13 +77,22 @@ namespace SmartApiary.Infrastructure.Services
                                 .Text(record.ActualEndTime.ToString("yyyy-MM-dd HH:mm"));
 
                             table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten3).Padding(5)
+                                .Text(record.ParcelName);
+
+                            table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten3).Padding(5)
+                                .Text(record.CropType);
+
+                            table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten3).Padding(5)
                                 .Text(record.PreparationType);
 
                             table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten3).Padding(5)
-                                .Text($"{record.WindSpeed:F2} m/s");
+                                .Text(record.WeatherCondition);
 
                             table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten3).Padding(5)
-                                .Text($"{record.Precipitation:F2} mm");
+                                .Text($"{record.WindSpeed:F1} m/s");
+
+                            table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten3).Padding(5)
+                                .Text($"{record.Precipitation:F1} mm");
                         }
                     });
 

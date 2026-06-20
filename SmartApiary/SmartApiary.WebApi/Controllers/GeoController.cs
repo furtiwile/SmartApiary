@@ -20,5 +20,15 @@ namespace SmartApiary.WebApi.Controllers
             var result = await mediator.Send(new GetApiariesNearParcelQuery(parcelId, radiusKm), ct);
             return result.ToActionResult();
         }
+
+        [Authorize(Roles = "Beekeeper")]
+        [HttpGet("crops-near-apiaries")]
+        public async Task<IActionResult> GetCropsNearApiaries(
+            [FromQuery] double radiusKm = 5,
+            CancellationToken ct = default)
+        {
+            var result = await mediator.Send(new GetCropsNearApiariesQuery(radiusKm), ct);
+            return result.ToActionResult();
+        }
     }
 }
