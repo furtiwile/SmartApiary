@@ -1,33 +1,86 @@
 import api from "../../../config/api";
 import type { Beehive } from "../models/Beehive";
 
-// TODO: Implement whatever is needed to be fetched
+export type CreateBeehivePayload = {
+  name: string;
+  type: string;
+  designation: string;
+  latitude?: number;
+  longitude?: number;
+  terrainDescription?: string;
+  apiaryId: string;
+};
+
+export type UpdateBeehivePayload = Partial<CreateBeehivePayload> & { id: string };
+
+/**
+ * Beehive API client — fully implemented with real axios calls.
+ * Previously all methods were stubbed and returned hardcoded empty values.
+ */
 export class BeehiveApi {
+  /** Fetch all hives (for admin or beekeeper-global views) */
   static async getAll(): Promise<Beehive[]> {
-    return [];
+    try {
+      const response = await api.get<{ data: Beehive[] }>("/hives");
+      return response.data?.data ?? [];
+    } catch (error) {
+      console.error("Error fetching all beehives:", error);
+      return [];
+    }
   }
 
-  static async getFromUser(userId: number): Promise<Beehive[]> {
-    return [];
+  /** Fetch all hives belonging to a specific apiary */
+  static async getByApiaryId(apiaryId: string): Promise<Beehive[]> {
+    try {
+      const response = await api.get<{ data: Beehive[] }>(`/hives?apiaryId=${apiaryId}`);
+      return response.data?.data ?? [];
+    } catch (error) {
+      console.error(`Error fetching beehives for apiary ${apiaryId}:`, error);
+      return [];
+    }
   }
 
-  static async getById(id: number): Promise<number> {
-    return -1;
+  /** Fetch a single hive by its ID */
+  static async getById(id: string): Promise<Beehive | null> {
+    try {
+      const response = await api.get<{ data: Beehive }>(`/hives/${id}`);
+      return response.data?.data ?? null;
+    } catch (error) {
+      console.error(`Error fetching beehive ${id}:`, error);
+      return null;
+    }
   }
 
-  static async getByApiaryId(entityId: string): Promise<Beehive[]> {
-    return [];
+  /** Create a new hive within an apiary */
+  static async create(payload: CreateBeehivePayload): Promise<Beehive | null> {
+    try {
+      const response = await api.post<{ data: Beehive }>("/hives", payload);
+      return response.data?.data ?? null;
+    } catch (error) {
+      console.error("Error creating beehive:", error);
+      return null;
+    }
   }
 
-  static async update(beehive: Beehive): Promise<Beehive | null> {
-    return null;
+  /** Update an existing hive's properties */
+  static async update(payload: UpdateBeehivePayload): Promise<Beehive | null> {
+    try {
+      const response = await api.put<{ data: Beehive }>(`/hives/${payload.id}`, payload);
+      return response.data?.data ?? null;
+    } catch (error) {
+      console.error(`Error updating beehive ${payload.id}:`, error);
+      return null;
+    }
   }
 
-  static async create(beehive: Beehive): Promise<Beehive | null> {
-    return null;
-  }
-
-  static async delete(beehiveId: number): Promise<boolean> {
-    return false;
+  /** Delete a hive by ID */
+  static async delete(beehiveId: string): Promise<boolean> {
+    try {
+      await api.delete(`/hives/${beehiveId}`);
+      return true;
+    } catch (error) {
+      console.error(`Error deleting beehive ${beehiveId}:`, error);
+      return false;
+    }
   }
 }

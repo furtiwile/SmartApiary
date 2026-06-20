@@ -5,6 +5,7 @@ import { FarmsPage } from "./features/farms/pages/FarmsPage";
 import { LoginPage } from "./features/users/pages/LoginPage";
 import { RegisterPage } from "./features/users/pages/RegisterPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { AdminRoute } from "./components/AdminRoute";
 
 export const router = createBrowserRouter([
   {
@@ -13,7 +14,15 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <LoginPage /> },
       { path: "login", element: <LoginPage /> },
-      { path: "register", element: <RegisterPage /> },
+      {
+        // Register is protected — Admin only. Guests and non-admins are redirected.
+        path: "register",
+        element: (
+          <AdminRoute>
+            <RegisterPage />
+          </AdminRoute>
+        ),
+      },
       {
         path: "dashboard",
         element: (
