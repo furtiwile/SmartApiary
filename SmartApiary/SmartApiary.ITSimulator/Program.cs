@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Configuration;
-using SmartApiary.ITSimulator.Models;
 using SmartApiary.ITSimulator.Services;
 using SmartApiary.ITSimulator.UI;
 

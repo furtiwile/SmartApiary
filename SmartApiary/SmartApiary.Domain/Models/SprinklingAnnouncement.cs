@@ -1,5 +1,4 @@
 using SmartApiary.Domain.Common;
-using SmartApiary.Domain.Enums;
 using SmartApiary.Domain.ValueObjects;
 
 namespace SmartApiary.Domain.Models

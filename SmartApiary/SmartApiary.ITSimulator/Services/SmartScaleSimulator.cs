@@ -1,7 +1,6 @@
-using System.Linq;
-using System.Text.Json;
 using SmartApiary.ITSimulator.Models;
 using SmartApiary.ITSimulator.UI;
+using System.Text.Json;
 
 namespace SmartApiary.ITSimulator.Services
 {
@@ -134,11 +133,12 @@ namespace SmartApiary.ITSimulator.Services
                 {
                     HiveId = device.HiveId,
                     Timestamp = DateTime.UtcNow,
-                    WeightKg = counter > 3 ? 2.0 : Math.Round(nominalWeight + (rnd.NextDouble() - 0.5) * 2.0, 2),                    TemperatureC = Math.Round(20 + (rnd.NextDouble() - 0.5) * 10, 2),
+                    WeightKg = counter > 3 ? 2.0 : Math.Round(nominalWeight + (rnd.NextDouble() - 0.5) * 2.0, 2),
+                    TemperatureC = Math.Round(20 + (rnd.NextDouble() - 0.5) * 10, 2),
                     HumidityPercent = Math.Round(50 + (rnd.NextDouble() - 0.5) * 20, 2),
                     BatteryPercent = Math.Round(90 + rnd.NextDouble() * 10, 2)
                 };
-                if(counter > 3)
+                if (counter > 3)
                 {
                     counter = 0;
                 }

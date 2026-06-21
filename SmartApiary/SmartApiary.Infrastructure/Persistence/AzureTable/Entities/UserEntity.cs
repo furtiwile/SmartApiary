@@ -1,11 +1,4 @@
-﻿using SmartApiary.Domain.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SmartApiary.Infrastructure.Persistence.AzureTable.Entities
+﻿namespace SmartApiary.Infrastructure.Persistence.AzureTable.Entities
 {
     internal class UserEntity : BaseTableEntity
     {

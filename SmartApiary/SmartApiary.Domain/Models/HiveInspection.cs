@@ -1,5 +1,4 @@
 using SmartApiary.Domain.Common;
-using SmartApiary.Domain.Enums;
 using SmartApiary.Domain.ValueObjects;
 
 namespace SmartApiary.Domain.Models
@@ -29,13 +28,13 @@ namespace SmartApiary.Domain.Models
         /// <param name="note"></param>
         /// <param name="hiveId"></param>
         private HiveInspection(
-            EntityId id, 
-            DateTime inspectionDate, 
-            string bottomBoardColor, 
-            int honeyFrames, 
-            double honeyAmount, 
+            EntityId id,
+            DateTime inspectionDate,
+            string bottomBoardColor,
+            int honeyFrames,
+            double honeyAmount,
             int broodFrames,
-            bool queenPresent, 
+            bool queenPresent,
             string note,
             EntityId hiveId
         )
@@ -64,13 +63,13 @@ namespace SmartApiary.Domain.Models
         /// <param name="hiveId"></param>
         /// <returns>Hive inspection if all parameters are valid, error details otherwise</returns>
         public static Result<HiveInspection> Create(
-            DateTime inspectionDate, 
-            string bottomBoardColor, 
-            int honeyFrames, 
-            double honeyAmount, 
-            int broodFrames, 
-            bool queenPresent, 
-            string note, 
+            DateTime inspectionDate,
+            string bottomBoardColor,
+            int honeyFrames,
+            double honeyAmount,
+            int broodFrames,
+            bool queenPresent,
+            string note,
             EntityId hiveId
         )
         {

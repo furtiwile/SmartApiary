@@ -1,6 +1,6 @@
 using SmartApiary.ITSimulator.Models;
-using System.Text.Json;
 using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace SmartApiary.ITSimulator.Services
 {

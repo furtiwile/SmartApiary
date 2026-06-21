@@ -14,6 +14,6 @@ namespace SmartApiary.Application.Interfaces.Repositories
         Task<IReadOnlyCollection<Apiary>> GetApiariesWithinRadiusAsync(double latitude, double longitude, double radiusInMeters, CancellationToken ct = default);
 
         Task<Apiary?> GetByIdAsync(EntityId apiaryId, CancellationToken ct = default);
-        
+
     }
 }

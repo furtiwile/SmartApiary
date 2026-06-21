@@ -6,7 +6,6 @@ using SmartApiary.Domain.ValueObjects;
 using SmartApiary.Infrastructure.Common.Options;
 using SmartApiary.Infrastructure.Persistence.AzureTable.Common;
 using SmartApiary.Infrastructure.Persistence.AzureTable.Entities;
-using System.Linq;
 
 namespace SmartApiary.Infrastructure.Persistence.AzureTable.Repositories
 {
@@ -53,14 +52,14 @@ namespace SmartApiary.Infrastructure.Persistence.AzureTable.Repositories
         }
 
         public async Task<Hive?> GetBySmartScaleIdAsync(EntityId smartScaleId, CancellationToken ct = default)
-        { 
-        
+        {
+
             var filter = $"SmartScaleId eq '{smartScaleId.Value}'";
 
             var entities = await base.QueryAsync(filter, ct);
 
             return entities.FirstOrDefault();
-     
-    }
+
+        }
     }
 }

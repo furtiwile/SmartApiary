@@ -41,9 +41,10 @@ export class CropApi {
     }
   }
 
-  static async delete(cropId: string): Promise<boolean> {
+  static async delete(cropId: string, parcelId?: string): Promise<boolean> {
     try {
-      await api.delete(`/crops/${cropId}`);
+      const url = parcelId ? `/crops/${cropId}?parcelId=${encodeURIComponent(parcelId)}` : `/crops/${cropId}`;
+      await api.delete(url);
       return true;
     } catch (e) {
       console.error("Error deleting crop:", e);

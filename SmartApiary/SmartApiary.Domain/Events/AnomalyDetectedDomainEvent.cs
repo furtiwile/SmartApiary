@@ -1,7 +1,6 @@
 ﻿using SmartApiary.Domain.Common;
 using SmartApiary.Domain.Enums;
 using SmartApiary.Domain.ValueObjects;
-using System;
 
 namespace SmartApiary.Domain.Events
 {

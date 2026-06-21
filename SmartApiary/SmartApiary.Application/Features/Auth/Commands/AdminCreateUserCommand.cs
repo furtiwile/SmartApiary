@@ -1,11 +1,11 @@
 using FluentValidation;
 using MediatR;
-using SmartApiary.Application.Interfaces.Repositories;
+using SmartApiary.Application.Common.Models;
 using SmartApiary.Application.Interfaces;
+using SmartApiary.Application.Interfaces.Repositories;
 using SmartApiary.Domain.Common;
 using SmartApiary.Domain.Enums;
 using SmartApiary.Domain.Models;
-using SmartApiary.Application.Common.Models;
 
 namespace SmartApiary.Application.Features.Auth.Commands
 {

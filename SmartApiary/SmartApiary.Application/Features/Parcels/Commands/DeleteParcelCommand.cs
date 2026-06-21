@@ -59,7 +59,7 @@ namespace SmartApiary.Application.Features.Parcels.Commands
                 {
                     await recordRepository.DeleteAsync(record, ct);
                 }
-                
+
                 await announcementRepository.DeleteAsync(announcement, ct);
             }
 
