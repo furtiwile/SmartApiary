@@ -19,6 +19,7 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
         public DateTime StartTime { get; init; }
         public double ExpectedDurationHours { get; init; }
         public string PreparationType { get; init; } = string.Empty;
+        public bool BypassWeatherValidation { get; init; } = false;
     }
 
     public class RescheduleSprinklingAnnouncementValidator : AbstractValidator<RescheduleSprinklingAnnouncementCommand>
@@ -66,17 +67,24 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
                 return Result.Failure("Announcement not found", ErrorType.NotFound);
 
             // Hard block: weather validation
-            var weatherResult = await weatherService.GetWeatherAsync(parcel.Latitude, parcel.Longitude, ct);
-            if (weatherResult.IsSuccess)
+            if (!request.BypassWeatherValidation)
             {
-                if (weatherResult.Value.WindSpeed > 5.0)
-                    return Result.Failure("Bad weather conditions - postponing is recommended. Wind speed is too high.", ErrorType.Validation);
+                var weatherResult = await weatherService.GetWeatherAsync(parcel.Latitude, parcel.Longitude, ct);
+                if (weatherResult.IsSuccess)
+                {
+                    if (weatherResult.Value.WindSpeed > 5.0)
+                        return Result.Failure("Bad weather conditions - postponing is recommended. Wind speed is too high.", ErrorType.Validation);
 
-                if (weatherResult.Value.Precipitation > 0 || weatherResult.Value.Description.Contains("rain", StringComparison.OrdinalIgnoreCase))
-                    return Result.Failure("Bad weather conditions - postponing is recommended. Rain detected.", ErrorType.Validation);
+                    if (weatherResult.Value.Precipitation > 0 || weatherResult.Value.Description.Contains("rain", StringComparison.OrdinalIgnoreCase))
+                        return Result.Failure("Bad weather conditions - postponing is recommended. Rain detected.", ErrorType.Validation);
+                }
             }
 
-            announcement.Reschedule(request.StartTime, request.ExpectedDurationHours, request.PreparationType);
+            var utcStartTime = request.StartTime.Kind == DateTimeKind.Unspecified
+                ? DateTime.SpecifyKind(request.StartTime, DateTimeKind.Utc)
+                : request.StartTime.ToUniversalTime();
+
+            announcement.Reschedule(utcStartTime, request.ExpectedDurationHours, request.PreparationType);
             await repository.UpdateAsync(announcement, ct);
 
             await announcementQueueService.SendAnnouncementMessageAsync(announcement.Id.Value, AnnouncementAction.Rescheduled, ct);

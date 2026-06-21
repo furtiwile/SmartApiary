@@ -40,8 +40,7 @@ export class ApiaryApi {
           latitude: payload.Latitude,
           longitude: payload.Longitude,
           description: payload.Description,
-          imageUrl: URL.createObjectURL(payload.ImageFile),
-          thumbnailUrl: URL.createObjectURL(payload.ImageFile),
+          imageFileUrl: URL.createObjectURL(payload.ImageFile),
           beekeeperId: "current_user",
         };
       }
