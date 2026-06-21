@@ -8,6 +8,7 @@ import { RegisterPage } from "./features/users/pages/RegisterPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AdminRoute } from "./components/AdminRoute";
 import { SmartScalesPage } from "./features/smart-scales/components/SmartScalesPage";
+import { CropsMapPage } from "./features/maps/pages/CropsMapPage";
 
 export const router = createBrowserRouter([
   {
@@ -37,6 +38,7 @@ export const router = createBrowserRouter([
           { path: "farms", element: <FarmsPage /> },
           { path: "spraying", element: <SprayingPage /> },
           { path: "smart-scales", element: <SmartScalesPage /> },
+          { path: "crops-map", element: <CropsMapPage /> },
         ],
       },
     ],

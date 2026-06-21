@@ -7,6 +7,7 @@ namespace SmartApiary.Application.Interfaces.Repositories
     {
         Task<Crop?> GetByIdAsync(EntityId parcelId, EntityId cropId, CancellationToken ct = default);
         Task<IReadOnlyCollection<Crop>> GetByParcelIdAsync(EntityId parcelId, CancellationToken ct = default);
+        Task<IReadOnlyCollection<Crop>> GetAllAsync(CancellationToken ct = default);
         Task SaveAsync(Crop crop, CancellationToken ct = default);
         Task UpdateAsync(Crop crop, CancellationToken ct = default);
         Task DeleteAsync(Crop crop, CancellationToken ct = default);
