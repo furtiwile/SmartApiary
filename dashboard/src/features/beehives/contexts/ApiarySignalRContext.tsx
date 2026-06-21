@@ -52,10 +52,10 @@ export function ApiarySignalRProvider({ children }: { children: React.ReactNode 
         try {
           await conn.start();
           if (isMounted) setConnectionState(HubConnectionState.Connected);
-        } catch (err: any) {
+        } catch (err: unknown) {
           if (!isMounted) return;
           console.error("SignalR start error:", err);
-          if (err.message && err.message.includes("abort")) return; // ignore aborts
+          if (err instanceof Error && err.message && err.message.includes("abort")) return; // ignore aborts
           notifyError("Connection error", "Could not connect to real-time hub. Retrying…");
           setTimeout(start, 5000);
         }

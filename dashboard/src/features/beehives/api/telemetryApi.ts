@@ -36,17 +36,17 @@ export class InspectionApi {
   /** Fetch all inspections for a hive, ordered by date desc */
   static async getByHive(hiveId: string): Promise<InspectionEntry[]> {
     try {
-      const res = await api.get<{ data: any[] }>(`/hiveinspections?hiveId=${hiveId}`);
-      return (res.data?.data ?? []).map((item: any) => ({
-        id: item.id,
-        hiveId: item.hiveId,
-        inspectedAt: item.inspectionDate,
-        boardColor: item.bottomBoardColor,
-        framesOfHoney: item.honeyFrames,
-        honeyKg: item.honeyAmount,
-        framesOfBrood: item.broodFrames,
-        queenSeen: item.queenPresent,
-        notes: item.note,
+      const res = await api.get<{ data: Record<string, unknown>[] }>(`/hiveinspections?hiveId=${hiveId}`);
+      return (res.data?.data ?? []).map((item) => ({
+        id: item.id as string,
+        hiveId: item.hiveId as string,
+        inspectedAt: item.inspectionDate as string,
+        boardColor: item.bottomBoardColor as string,
+        framesOfHoney: item.honeyFrames as number,
+        honeyKg: item.honeyAmount as number,
+        framesOfBrood: item.broodFrames as number,
+        queenSeen: item.queenPresent as boolean,
+        notes: item.note as string,
       }));
     } catch (e) {
       console.error("Error fetching inspections:", e);
