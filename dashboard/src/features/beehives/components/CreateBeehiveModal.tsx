@@ -61,7 +61,7 @@ export function CreateBeehiveModal({ apiaryId, onCreated }: CreateBeehiveModalPr
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger asChild>
-        <button className="flex items-center gap-2 rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-400 transition-colors shadow-lg shadow-indigo-500/20">
+        <button className="flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-400 transition-colors shadow-lg shadow-indigo-500/20">
           <PlusCircle className="h-4 w-4" />
           Add Hive
         </button>

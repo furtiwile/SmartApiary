@@ -1,6 +1,34 @@
 import api from "../../../config/api";
 import type { Beehive } from "../models/Beehive";
 
+type BeehiveResponse = Partial<Beehive> & {
+  Id?: string;
+  ApiaryId?: string;
+  Name?: string;
+  Designation?: string;
+  Type?: Beehive["type"];
+  SuperColor?: string;
+  QueenAge?: number;
+  Note?: string;
+  SmartScaleId?: string;
+};
+
+function normalizeBeehive(hive: BeehiveResponse): Beehive {
+  const designation = hive.designation ?? hive.Designation ?? hive.name ?? hive.Name ?? "";
+
+  return {
+    id: hive.id ?? hive.Id ?? "",
+    apiaryId: hive.apiaryId ?? hive.ApiaryId,
+    name: hive.name ?? hive.Name ?? designation,
+    designation,
+    type: (hive.type ?? hive.Type) as Beehive["type"],
+    superColor: hive.superColor ?? hive.SuperColor,
+    queenAge: hive.queenAge ?? hive.QueenAge,
+    note: hive.note ?? hive.Note,
+    smartScaleId: hive.smartScaleId ?? hive.SmartScaleId,
+  };
+}
+
 export type CreateBeehivePayload = {
   apiaryId: string;
   designation: string;
@@ -21,8 +49,8 @@ export class BeehiveApi {
   /** Fetch all hives (for admin or beekeeper-global views) */
   static async getAll(): Promise<Beehive[]> {
     try {
-      const response = await api.get<{ data: Beehive[] }>("/hives");
-      return response.data?.data ?? [];
+      const response = await api.get<{ data: BeehiveResponse[] }>("/hives");
+      return (response.data?.data ?? []).map(normalizeBeehive);
     } catch (error) {
       console.error("Error fetching all beehives:", error);
       return [];
@@ -32,8 +60,8 @@ export class BeehiveApi {
   /** Fetch all hives belonging to a specific apiary */
   static async getByApiaryId(apiaryId: string): Promise<Beehive[]> {
     try {
-      const response = await api.get<{ data: Beehive[] }>(`/hives?apiaryId=${apiaryId}`);
-      return response.data?.data ?? [];
+      const response = await api.get<{ data: BeehiveResponse[] }>(`/hives?apiaryId=${apiaryId}`);
+      return (response.data?.data ?? []).map(normalizeBeehive);
     } catch (error) {
       console.error(`Error fetching beehives for apiary ${apiaryId}:`, error);
       return [];
@@ -43,8 +71,8 @@ export class BeehiveApi {
   /** Fetch a single hive by its ID */
   static async getById(id: string): Promise<Beehive | null> {
     try {
-      const response = await api.get<{ data: Beehive }>(`/hives/${id}`);
-      return response.data?.data ?? null;
+      const response = await api.get<{ data: BeehiveResponse }>(`/hives/${id}`);
+      return response.data?.data ? normalizeBeehive(response.data.data) : null;
     } catch (error) {
       console.error(`Error fetching beehive ${id}:`, error);
       return null;
@@ -57,17 +85,8 @@ export class BeehiveApi {
       const response = await api.post<{ id: string }>("/hives", payload);
       const id = response.data?.id;
       if (id) {
-        return {
-          id,
-          apiaryId: payload.apiaryId,
-          name: payload.designation, // Frontend uses name, payload uses designation
-          designation: payload.designation,
-          type: payload.type as Beehive["type"],
-          superColor: payload.superColor,
-          queenAge: payload.queenAge,
-          note: payload.note,
-          smartScaleId: payload.smartScaleId,
-        };
+        const hives = await this.getByApiaryId(payload.apiaryId);
+        return hives.find((hive) => hive.id === id) ?? normalizeBeehive({ id, ...payload, type: payload.type as Beehive["type"] });
       }
       return null;
     } catch (error) {
@@ -79,8 +98,8 @@ export class BeehiveApi {
   /** Update an existing hive's properties */
   static async update(payload: UpdateBeehivePayload): Promise<Beehive | null> {
     try {
-      const response = await api.put<{ data: Beehive }>(`/hives/${payload.id}`, payload);
-      return response.data?.data ?? null;
+      const response = await api.put<{ data: BeehiveResponse }>(`/hives/${payload.id}`, payload);
+      return response.data?.data ? normalizeBeehive(response.data.data) : null;
     } catch (error) {
       console.error(`Error updating beehive ${payload.id}:`, error);
       return null;

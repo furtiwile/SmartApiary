@@ -4,9 +4,10 @@ export type ApiaryDto = {
   name: string;
   latitude: number;
   longitude: number;
-  beekeeperId: string;
   description: string;
-  imageFileUrl?: string;
+  imageUrl?: string;
+  thumbnailUrl?: string;
+  beekeeperId?: string;
 };
 
 export type CreateApiaryPayload = {
