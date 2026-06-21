@@ -1,5 +1,4 @@
-﻿using SmartApiary.Domain.Common;
-using SmartApiary.Domain.Models;
+﻿using SmartApiary.Domain.Models;
 using SmartApiary.Infrastructure.Persistence.AzureTable.Common;
 using SmartApiary.Infrastructure.Persistence.AzureTable.Entities;
 

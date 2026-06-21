@@ -30,7 +30,8 @@ SELECT Id, Name, Location.Lat AS Latitude, Location.Long AS Longitude, Descripti
 FROM dbo.Apiaries
 WHERE Id = @Id AND BeekeeperId = @BeekeeperId;";
 
-            var list = await QueryApiariesAsync(sql, command => {
+            var list = await QueryApiariesAsync(sql, command =>
+            {
                 command.Parameters.Add(new SqlParameter("@Id", System.Data.SqlDbType.UniqueIdentifier) { Value = Guid.Parse(apiaryId.Value) });
                 command.Parameters.Add(new SqlParameter("@BeekeeperId", System.Data.SqlDbType.UniqueIdentifier) { Value = Guid.Parse(beekeeperId.Value) });
             }, ct);
@@ -44,7 +45,8 @@ SELECT Id, Name, Location.Lat AS Latitude, Location.Long AS Longitude, Descripti
 FROM dbo.Apiaries
 WHERE BeekeeperId = @BeekeeperId;";
 
-            return await QueryApiariesAsync(sql, command => {
+            return await QueryApiariesAsync(sql, command =>
+            {
                 command.Parameters.Add(new SqlParameter("@BeekeeperId", System.Data.SqlDbType.UniqueIdentifier) { Value = Guid.Parse(beekeeperId.Value) });
             }, ct);
         }
@@ -99,7 +101,8 @@ SELECT Id, Name, Location.Lat AS Latitude, Location.Long AS Longitude, Descripti
 FROM dbo.Apiaries
 WHERE Location.STDistance(@targetLocation) <= @Radius;";
 
-            return await QueryApiariesAsync(sql, command => {
+            return await QueryApiariesAsync(sql, command =>
+            {
                 string wkt = $"POINT({longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)} {latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)})";
                 command.Parameters.Add(new SqlParameter("@LocationWkt", System.Data.SqlDbType.NVarChar, -1) { Value = wkt });
                 command.Parameters.Add(new SqlParameter("@Radius", System.Data.SqlDbType.Float) { Value = radiusInMeters });
@@ -112,7 +115,8 @@ SELECT Id, Name, Location.Lat AS Latitude, Location.Long AS Longitude, Descripti
 FROM dbo.Apiaries
 WHERE Id = @Id;";
 
-            var list = await QueryApiariesAsync(sql, command => {
+            var list = await QueryApiariesAsync(sql, command =>
+            {
                 command.Parameters.Add(new SqlParameter("@Id", System.Data.SqlDbType.UniqueIdentifier) { Value = Guid.Parse(apiaryId.Value) });
             }, ct);
             return list.FirstOrDefault();

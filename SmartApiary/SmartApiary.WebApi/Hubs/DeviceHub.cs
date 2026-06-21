@@ -27,7 +27,7 @@ namespace SmartApiary.WebApi.Hubs
             if (string.IsNullOrWhiteSpace(hiveId)) return Task.CompletedTask;
             return Groups.RemoveFromGroupAsync(Context.ConnectionId, $"hive:{hiveId}");
         }
-        
+
         public Task JoinBeekeeperGroup(string beekeeperId)
         {
             if (string.IsNullOrWhiteSpace(beekeeperId)) return Task.CompletedTask;

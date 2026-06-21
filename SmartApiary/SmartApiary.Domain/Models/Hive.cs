@@ -45,10 +45,10 @@ namespace SmartApiary.Domain.Models
         /// <param name="smartScaleId"></param>
         private Hive(
             EntityId id,
-            string designation, 
-            HiveType type, 
-            string superColor, 
-            int queenAge, 
+            string designation,
+            HiveType type,
+            string superColor,
+            int queenAge,
             string note,
             EntityId apiaryId,
             EntityId? smartScaleId

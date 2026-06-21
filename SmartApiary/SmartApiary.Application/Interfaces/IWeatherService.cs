@@ -1,7 +1,5 @@
 ﻿using SmartApiary.Application.DTOs;
 using SmartApiary.Domain.Common;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace SmartApiary.Application.Interfaces
 {

@@ -1,6 +1,5 @@
 using SmartApiary.Application.Features.Crops.Commands;
 using SmartApiary.Domain.Enums;
-using System;
 
 namespace SmartApiary.WebApi.DTOs
 {

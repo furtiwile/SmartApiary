@@ -1,7 +1,7 @@
 using FluentValidation;
 using MediatR;
-using SmartApiary.Application.Interfaces.Repositories;
 using SmartApiary.Application.Interfaces;
+using SmartApiary.Application.Interfaces.Repositories;
 using SmartApiary.Application.Interfaces.Storage;
 using SmartApiary.Domain.Common;
 using SmartApiary.Domain.Enums;

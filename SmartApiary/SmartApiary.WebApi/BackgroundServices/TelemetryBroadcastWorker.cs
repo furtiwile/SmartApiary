@@ -5,12 +5,6 @@ using SmartApiary.Application.Features.Telemetries.Queries;
 using SmartApiary.Application.Interfaces.Messaging;
 using SmartApiary.Application.Interfaces.Repositories;
 using SmartApiary.WebApi.Hubs;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace SmartApiary.WebApi.BackgroundServices
 {

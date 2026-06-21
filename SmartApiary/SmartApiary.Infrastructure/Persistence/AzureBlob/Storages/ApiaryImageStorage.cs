@@ -96,7 +96,7 @@ namespace SmartApiary.Infrastructure.Persistence.AzureBlob.Storages
                 return;
 
             var prefix = $"apiaries/{apiaryId.Value}/";
-            
+
             try
             {
                 var blobs = _containerClient.GetBlobsAsync(Azure.Storage.Blobs.Models.BlobTraits.None, Azure.Storage.Blobs.Models.BlobStates.None, prefix: prefix, cancellationToken: ct);
