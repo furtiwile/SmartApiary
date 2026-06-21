@@ -6,15 +6,17 @@ const api = axios.create({
   baseURL: CONFIG.API_BASE_URL,
 });
 
-api.interceptors.request.use((requestConfig) => {
-  const token = LocalStorage.get("authToken");
-
-  if (token) {
-    requestConfig.headers = requestConfig.headers ?? {};
-    requestConfig.headers.Authorization = `Bearer ${token}`;
+// This should fix 401 (Unauthorized) errors when calling backend APIs
+api.interceptors.request.use(
+  (config) => {
+    const token = LocalStorage.get("authToken");; 
+    if (token)
+      config.headers["Authorization"] = `Bearer ${token}`;
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
   }
-
-  return requestConfig;
-});
+);
 
 export default api;
