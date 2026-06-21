@@ -1,4 +1,5 @@
 import { RouterProvider } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 import "./App.css";
 import { router } from "./routes";
 import { LoggerProvider } from "./shared/logger/LoggerProvider";
@@ -23,6 +24,7 @@ function App() {
           hubUrl={CONFIG.HUB_URL}
           reconnectTimeoutMs={CONFIG.SIGNALR_RECONNECT_INTERVAL}
         >
+          <Toaster position="top-right" reverseOrder={false} />
           <RouterProvider router={router} />
         </SignalRProvider>
       </LoggerProvider>
