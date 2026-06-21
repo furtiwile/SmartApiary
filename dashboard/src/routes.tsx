@@ -6,6 +6,7 @@ import { LoginPage } from "./features/users/pages/LoginPage";
 import { RegisterPage } from "./features/users/pages/RegisterPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import BeehivesPage from "./features/beehives/pages/BeehivesPage";
+import BeehiveInspectionsPage from "./features/beehives/pages/BeehiveInspectionsPage";
 
 export const router = createBrowserRouter([
   {
@@ -37,6 +38,17 @@ export const router = createBrowserRouter([
         ),
         children: [
           { index: true, element: <BeehivesPage />}
+        ]
+      },
+      {
+        path: "inspections/:hiveId",
+        element: (
+          <ProtectedRoute>
+            <MainLayout />
+          </ProtectedRoute>
+        ),
+        children: [
+          { index: true, element: <BeehiveInspectionsPage />}
         ]
       }
     ],

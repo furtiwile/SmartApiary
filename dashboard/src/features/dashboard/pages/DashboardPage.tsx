@@ -1,6 +1,5 @@
 import React from "react";
 import { useAuth } from "../../users/hooks/AuthHook";
-import BeehivesPage from "../../beehives/pages/BeehivesPage";
 import { FarmsPage } from "../../farms/pages/FarmsPage";
 import { ApiariesPage } from "../../beehives/pages/ApiariesPage";
 
@@ -13,7 +12,6 @@ export const DashboardPage: React.FC = () => {
 
   // Beekeepers see hives/apiaries
   if (user.role === "Beekeeper") {
-    // return <BeehivesPage />;
     return <ApiariesPage />;
   }
 
