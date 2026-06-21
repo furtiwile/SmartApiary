@@ -2,8 +2,8 @@ export type DataToken = {
   token: string;
 }
 
-export type AuthResult = {
+export type AuthResult<TData = unknown> = {
   success: boolean;
   message: string;
-  data?: DataToken;
+  data?: TData;
 };
