@@ -5,6 +5,7 @@ import { FarmsPage } from "./features/farms/pages/FarmsPage";
 import { LoginPage } from "./features/users/pages/LoginPage";
 import { RegisterPage } from "./features/users/pages/RegisterPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import BeehivesPage from "./features/beehives/pages/BeehivesPage";
 
 export const router = createBrowserRouter([
   {
@@ -24,8 +25,20 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <DashboardPage /> },
           { path: "farms", element: <FarmsPage /> },
+          // { path: "beehives/:apiaryId", element: <BeehivesPage />}
         ],
       },
+      {
+        path: "beehives/:apiaryId",
+        element: (
+          <ProtectedRoute>
+            <MainLayout />
+          </ProtectedRoute>
+        ),
+        children: [
+          { index: true, element: <BeehivesPage />}
+        ]
+      }
     ],
   },
 ]);

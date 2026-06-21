@@ -1,33 +1,52 @@
 import api from "../../../config/api";
+import axios from "axios";
 import type { Beehive } from "../models/Beehive";
+import type { BeehiveType } from "../../../types/BeehiveType";
 
-// TODO: Implement whatever is needed to be fetched
-export class BeehiveApi {
-  static async getAll(): Promise<Beehive[]> {
-    return [];
-  }
+const BEEHIVE_PATH = "/api/Hives"
 
-  static async getFromUser(userId: number): Promise<Beehive[]> {
-    return [];
-  }
 
-  static async getById(id: number): Promise<number> {
-    return -1;
-  }
 
-  static async getByApiaryId(entityId: string): Promise<Beehive[]> {
-    return [];
-  }
+export const BeehiveApi = {
+  async getByApiaryId(apiaryId: string) : Promise<Beehive[] | null> {
+    const PATH = `${BEEHIVE_PATH}?apiaryId=${apiaryId}`;
+    try {
+      console.log(`Sending request to beehive API (GET): ${PATH}`);
+      const data = await api.get(PATH);
+      console.log("fetched data: ", data);
+      return data.data.data; // ofc (2)
+    }
+    catch (error) {
+      console.log(`Error while sending request to beehive API: ${PATH}`);
+      console.error(error);
+      let msg = "Unknown error occured while getting all hives";
+      if (axios.isAxiosError(error))
+        msg ??= error.response?.data?.message;
+      console.error(msg);
+      return null;
+    }
+  },
 
-  static async update(beehive: Beehive): Promise<Beehive | null> {
-    return null;
-  }
 
-  static async create(beehive: Beehive): Promise<Beehive | null> {
-    return null;
-  }
 
-  static async delete(beehiveId: number): Promise<boolean> {
-    return false;
+  async create(apiaryId: string, type: BeehiveType, designation: string, superColor: string, queenAge: number, note: string, smartScaleId: strinig) {
+    const PATH = `${BEEHIVE_PATH}`;
+    const payload = { apiaryId, type, designation, superColor, queenAge, note, smartScaleId };
+    console.log(payload);
+    try {
+      console.log(`Sending request to beehive API (GET): ${PATH}`);
+      const data = await api.post(PATH, payload);
+      console.log("fetched data: ", data);
+      return data.data.data; // ofc (2)
+    }
+    catch (error) {
+      console.log(`Error while sending request to beehive API: ${PATH}`);
+      console.error(error);
+      let msg = "Unknown error occured while getting all hives";
+      if (axios.isAxiosError(error))
+        msg ??= error.response?.data?.message;
+      console.error(msg);
+      return null;
+    }
   }
-}
+} as const;

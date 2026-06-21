@@ -1,18 +1,32 @@
-import React, { useEffect, useState } from "react";
-
+import { useEffect, useState } from "react";
 import { PageLayout } from "../../../layouts/PageLayout";
 import type { Beehive } from "../models/Beehive";
 import { BeehiveApi } from "../api/beehiveApi";
 import { BeehiveList } from "../components/BeehiveList";
+import { useParams } from "react-router-dom";
+import { BeehiveUploadModal } from "../components/BeehiveUploadModal";
 
-function BeehivesPage() {
+
+
+// `default` must stay!
+export default function BeehivesPage() {
   const [beehives, setBeehives] = useState<Beehive[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { apiaryId } = useParams<{apiaryId: string}>();
+  // const {user} = useAuth();
+
+  if (!apiaryId) {
+    return <div>[ERROR] Invalid Apiary ID, bruh (got: {apiaryId})</div>;
+  }
 
   useEffect(() => {
-    BeehiveApi.getAll()
-      .then(setBeehives)
-      .finally(() => setIsLoading(false));
+    (async function() {
+      const _beehives = await BeehiveApi.getByApiaryId(apiaryId);
+      if (_beehives)
+        setBeehives(_beehives);
+      setIsLoading(false);
+    })();
   }, []);
 
   if (isLoading)
@@ -40,13 +54,17 @@ function BeehivesPage() {
           </p>
         </div>
 
-        {/*<button
+        <button
           className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-lg shadow-indigo-500/20 text-sm"
-          onClick={() => setIsFirmwareModalOpen(true)}
+          onClick={() => setIsModalOpen(true)}
         >
-          Upload New Firmware
-        </button>*/}
+          Register New Beehive
+        </button>
       </div>
+
+      {/* <div>
+        <img src={apiary.imageUrl} alt="" />
+      </div> */}
 
       {/* Why are we checking if it's loading twice? */}
       {/* Table */}
@@ -63,16 +81,22 @@ function BeehivesPage() {
             <thead className="bg-slate-50/50 dark:bg-slate-900/30">
               <tr>
                 <th className="px-6 py-4 align-middle text-left text-xs font-bold text-slate-400 uppercase tracking-widest">
-                  ID / Thumbnail
+                  ID
                 </th>
                 <th className="px-6 py-4 align-middle text-center text-xs font-bold text-slate-400 uppercase tracking-widest">
                   Beehive Type
                 </th>
+                <th className="px-6 py-4 align-middle text-center text-xs font-bold text-slate-400 uppercase tracking-widest">
+                  Designation
+                </th>
                 <th className="px-6 py-4 align-middle text-left text-xs font-bold text-slate-400 uppercase tracking-widest">
-                  Geographical Coordinates
+                  Super Color
                 </th>
                 <th className="px-6 py-4 align-middle text-right text-xs font-bold text-slate-400 uppercase tracking-widest">
-                  Terrain Description
+                  Queen Age
+                </th>
+                <th className="px-6 py-4 align-middle text-right text-xs font-bold text-slate-400 uppercase tracking-widest">
+                  Note
                 </th>
               </tr>
             </thead>
@@ -83,8 +107,11 @@ function BeehivesPage() {
           </table>
         )}
       </div>
+      <BeehiveUploadModal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        apiaryId={apiaryId}
+      />
     </PageLayout>
   );
 }
-
-export default BeehivesPage;
