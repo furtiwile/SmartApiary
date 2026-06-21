@@ -10,7 +10,7 @@ using System.Text;
 namespace SmartApiary.Infrastructure.Services
 {
     internal class JwtGenerator(
-        IOptions<JwtOptions> options, 
+        IOptions<JwtOptions> options,
         IDateTimeProvider dateTimeProvider
     ) : IJwtGenerator
     {

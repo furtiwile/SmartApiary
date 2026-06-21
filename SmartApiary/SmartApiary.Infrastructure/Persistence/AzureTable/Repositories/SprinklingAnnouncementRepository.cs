@@ -52,7 +52,7 @@ namespace SmartApiary.Infrastructure.Persistence.AzureTable.Repositories
 
         public async Task<IReadOnlyCollection<SprinklingAnnouncement>> GetAllAsync(CancellationToken ct = default)
         {
-            return await base.QueryAsync("",ct);
+            return await base.QueryAsync("", ct);
         }
     }
 }

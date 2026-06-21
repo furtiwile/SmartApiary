@@ -1,8 +1,6 @@
 using NetTopologySuite.Geometries;
 using SmartApiary.Domain.Common;
 using SmartApiary.Domain.ValueObjects;
-using System;
-using System.Collections.Generic;
 
 namespace SmartApiary.Domain.Models
 {

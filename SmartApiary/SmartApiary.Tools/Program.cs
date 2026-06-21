@@ -4,7 +4,6 @@ using Azure.Storage.Blobs.Models;
 using Azure.Storage.Queues;
 using Microsoft.Data.SqlClient;
 using System.Data;
-using System.Globalization;
 
 const string defaultStorageConnectionString = "UseDevelopmentStorage=true";
 const string defaultSqlConnectionString = "Server=localhost,1433;Database=SmartApiary;User Id=sa;Password=P@ssw0rd!;TrustServerCertificate=True;Encrypt=False;";
@@ -269,7 +268,7 @@ async Task EnsureDatabaseExistsAsync(string connectionString)
     var script = $@"
 IF DB_ID(N'{databaseName.Replace("'", "''")}') IS NULL
 BEGIN
-    CREATE DATABASE [{databaseName.Replace("]", "]]" )}];
+    CREATE DATABASE [{databaseName.Replace("]", "]]")}];
 END";
 
     await using var command = new SqlCommand(script, connection);
@@ -279,7 +278,7 @@ END";
 async Task EnsureSqlSchemaAsync(string connectionString)
 {
     await EnsureDatabaseExistsAsync(connectionString);
-    
+
     await using var connection = new SqlConnection(connectionString);
     await connection.OpenAsync();
 

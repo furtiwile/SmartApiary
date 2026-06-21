@@ -1,8 +1,8 @@
 using FluentValidation;
 using MediatR;
-using SmartApiary.Application.Interfaces.Repositories;
-using SmartApiary.Application.Interfaces;
 using SmartApiary.Application.Common.Models;
+using SmartApiary.Application.Interfaces;
+using SmartApiary.Application.Interfaces.Repositories;
 using SmartApiary.Domain.Common;
 using SmartApiary.Domain.Models;
 
@@ -89,7 +89,7 @@ namespace SmartApiary.Application.Features.Auth.Commands
 
             user.ResetPassword(BCrypt.Net.BCrypt.HashPassword(request.Password));
             // keep active state as-is
-            await userRepository.UpadateUserAsync(user, cancellationToken);
+            await userRepository.UpdateUserAsync(user, cancellationToken);
 
             token.MarkAsUsed(dateTimeProvider.UtcNow);
             await resetRepo.UpdateAsync(token, cancellationToken);

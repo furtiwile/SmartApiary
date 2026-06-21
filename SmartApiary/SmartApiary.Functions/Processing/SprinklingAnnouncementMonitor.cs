@@ -3,7 +3,6 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using SmartApiary.Application.Features.SprinklingAnnouncements.Commands;
 using SmartApiary.Infrastructure.Persistence.AzureQueue.Messages;
-using System.Threading.Tasks;
 
 namespace SmartApiary.Functions.Processing
 {
@@ -15,7 +14,7 @@ namespace SmartApiary.Functions.Processing
         public async Task RunAsync(
             [QueueTrigger("%AzureQueueOptions:AnnouncementQueue%", Connection = "AzureWebJobsStorage")] AnnouncementMessage message)
         {
-            logger.LogInformation("[QUEUE] Processing sprinkling announcement message for announcement: {AnnouncementId}, Action: {ActionType}", 
+            logger.LogInformation("[QUEUE] Processing sprinkling announcement message for announcement: {AnnouncementId}, Action: {ActionType}",
                 message.AnnouncementId, message.ActionType);
 
             var result = await mediator.Send(new ProcessSprinklingAnnouncementCommand(message.AnnouncementId, message.ActionType));

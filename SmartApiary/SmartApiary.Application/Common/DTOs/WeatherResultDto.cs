@@ -1,6 +1,6 @@
 ﻿namespace SmartApiary.Application.DTOs
 {
-   public record WeatherResultDto
+    public record WeatherResultDto
     {
         public double WindSpeed { get; init; }
         public double Precipitation { get; init; }

@@ -1,6 +1,5 @@
 using Azure.Data.Tables;
 using Microsoft.Extensions.Options;
-using System.Linq;
 using SmartApiary.Application.Interfaces.Repositories;
 using SmartApiary.Domain.Models;
 using SmartApiary.Domain.ValueObjects;

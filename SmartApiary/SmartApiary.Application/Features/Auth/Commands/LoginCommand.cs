@@ -3,13 +3,6 @@ using MediatR;
 using SmartApiary.Application.Interfaces;
 using SmartApiary.Application.Interfaces.Repositories;
 using SmartApiary.Domain.Common;
-using SmartApiary.Domain.Enums;
-using SmartApiary.Domain.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SmartApiary.Application.Features.Auth.Commands
 {
@@ -27,7 +20,7 @@ namespace SmartApiary.Application.Features.Auth.Commands
 
     public class LoginCommandValidator : AbstractValidator<LoginCommand>
     {
-        public LoginCommandValidator() 
+        public LoginCommandValidator()
         {
             RuleFor(x => x.Email).NotEmpty().EmailAddress();
             RuleFor(x => x.Password).NotEmpty().MinimumLength(6);
@@ -35,7 +28,7 @@ namespace SmartApiary.Application.Features.Auth.Commands
     }
 
     public class LoginCommandHandler(
-        IUserRepository userRepository, 
+        IUserRepository userRepository,
         IJwtGenerator jwtGenerator
     ) : IRequestHandler<LoginCommand, Result<LoginResponse>>
     {

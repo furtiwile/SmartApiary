@@ -2,7 +2,6 @@ using MediatR;
 using SmartApiary.Application.Interfaces.Repositories;
 using SmartApiary.Domain.Common;
 using SmartApiary.Domain.Enums;
-using SmartApiary.Domain.Models;
 using SmartApiary.Domain.ValueObjects;
 
 namespace SmartApiary.Application.Features.Parcels.Queries
