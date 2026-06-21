@@ -96,7 +96,11 @@ export function CropManagementModal({ parcelId, parcelName }: CropManagementModa
     setConfirmDeleteId(null);
   }
 
-  const todayIso = new Date().toISOString().split("T")[0];
+  const todayIso = (() => {
+    const d = new Date();
+    const offset = d.getTimezoneOffset() * 60000;
+    return new Date(d.getTime() - offset).toISOString().split("T")[0];
+  })();
 
   return (
     <>

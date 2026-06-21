@@ -128,7 +128,11 @@ export const SprayingPage: React.FC = () => {
     },
   });
 
-  const minDateTime = new Date(Date.now() + 5 * 60 * 1000).toISOString().slice(0, 16);
+  const [minDateTime] = useState(() => {
+    const d = new Date(Date.now() + 5 * 60 * 1000);
+    const offset = d.getTimezoneOffset() * 60000;
+    return new Date(d.getTime() - offset).toISOString().slice(0, 16);
+  });
 
   // ── Weather check + submit ────────────────────────────────────────────────
   async function checkWeatherAndSubmit(data: SchemaType) {
@@ -161,7 +165,7 @@ export const SprayingPage: React.FC = () => {
       const result = await sprayingApi.create({
         parcelId: selectedParcel.id,
         preparationType: data.pesticideType,
-        startTime: data.scheduledAt,
+        startTime: new Date(data.scheduledAt).toISOString(),
         expectedDurationHours: data.durationHours,
         bypassWeatherValidation: data.bypassWeatherValidation,
       });
