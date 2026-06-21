@@ -4,7 +4,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as Dialog from "@radix-ui/react-dialog";
-import { Leaf, PlusCircle, Trash2, X } from "lucide-react";
+import { Leaf, PlusCircle, Trash2, X, Siren } from "lucide-react";
 import { useNotify } from "../../../hooks/useNotify";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import type { CropType } from "../models/Crop";
@@ -34,6 +34,14 @@ export function CropManagementModal({ parcelId, parcelName }: CropManagementModa
   const { data: crops = [], isLoading } = useQuery({
     queryKey: ["crops", parcelId],
     queryFn: () => cropApi.getByParcel(parcelId),
+    enabled: open,
+  });
+
+  // Fetch spraying records to show on the crop card ("green card")
+  const { spraying: sprayingApi } = useApis();
+  const { data: sprayingRecords = [] } = useQuery({
+    queryKey: ["spraying-records", parcelId],
+    queryFn: () => sprayingApi.getRecordsByParcel(parcelId),
     enabled: open,
   });
 
@@ -162,6 +170,41 @@ export function CropManagementModal({ parcelId, parcelName }: CropManagementModa
                 </ul>
               )}
             </div>
+
+            {/* Spraying History — show what has been applied to this parcel */}
+            {sprayingRecords.length > 0 && (
+              <div className="mb-5">
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                  <Siren className="h-3 w-3 text-rose-400" />
+                  Spraying History
+                </p>
+                <ul className="divide-y divide-slate-800 rounded-xl border border-slate-700 overflow-hidden">
+                  {sprayingRecords.slice(0, 5).map((rec) => (
+                    <li
+                      key={rec.id}
+                      className="flex items-center justify-between px-4 py-2.5 bg-slate-800/50"
+                    >
+                      <div>
+                        <p className="text-xs font-semibold text-rose-400">{rec.pesticideType}</p>
+                        <p className="text-xs text-slate-500">
+                          {new Date(rec.executedAt).toLocaleDateString()} &middot; {rec.durationMinutes} min
+                        </p>
+                      </div>
+                      {rec.weatherConditions && (
+                        <span className="text-xs text-slate-600 italic truncate max-w-[100px]">
+                          {rec.weatherConditions}
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+                {sprayingRecords.length > 5 && (
+                  <p className="text-xs text-slate-600 text-center mt-1.5">
+                    +{sprayingRecords.length - 5} more records
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Add crop form */}
             <div className="border-t border-slate-800 pt-5">
