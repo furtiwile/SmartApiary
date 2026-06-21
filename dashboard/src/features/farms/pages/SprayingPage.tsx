@@ -24,14 +24,7 @@ import type { ParcelDto } from "../models/Parcel";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const PESTICIDE_TYPES = [
-  "Herbicide",
-  "Fungicide",
-  "Insecticide",
-  "Rodenticide",
-  "Nematicide",
-  "Other",
-];
+
 
 const STATUS_CONFIG: Record<SprinklingStatus, { label: string; icon: typeof Clock; color: string }> =
   {
@@ -60,7 +53,7 @@ const STATUS_CONFIG: Record<SprinklingStatus, { label: string; icon: typeof Cloc
 // ─── Form schema ──────────────────────────────────────────────────────────────
 
 const schema = z.object({
-  pesticideType: z.string().min(1, "Please specify the pesticide."),
+  pesticideType: z.string().optional(),
   durationHours: z.coerce
     .number({ message: "Invalid duration" })
     .min(0.5, "Minimum duration is 0.5 hours."),
@@ -120,7 +113,7 @@ export const SprayingPage: React.FC = () => {
   } = useForm<SchemaType>({
     resolver: zodResolver(schema) as unknown as Resolver<SchemaType>,
     defaultValues: {
-      pesticideType: PESTICIDE_TYPES[0],
+      pesticideType: "",
       durationHours: 1,
       scheduledAt: "",
       notes: "",
@@ -164,7 +157,7 @@ export const SprayingPage: React.FC = () => {
     try {
       const result = await sprayingApi.create({
         parcelId: selectedParcel.id,
-        preparationType: data.pesticideType,
+        preparationType: data.pesticideType || "",
         startTime: new Date(data.scheduledAt).toISOString(),
         expectedDurationHours: data.durationHours,
         bypassWeatherValidation: data.bypassWeatherValidation,
@@ -417,16 +410,12 @@ export const SprayingPage: React.FC = () => {
                           <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">
                             Pesticide Type
                           </label>
-                          <select
+                          <input
+                            type="text"
+                            placeholder="e.g. Herbicide (optional)"
                             {...register("pesticideType")}
                             className="block w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500/50 transition-all"
-                          >
-                            {PESTICIDE_TYPES.map((pt) => (
-                              <option key={pt} value={pt}>
-                                {pt}
-                              </option>
-                            ))}
-                          </select>
+                          />
                           {errors.pesticideType && (
                             <p className="mt-1.5 text-xs text-rose-400">
                               {errors.pesticideType.message}

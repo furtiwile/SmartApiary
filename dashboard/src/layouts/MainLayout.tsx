@@ -43,30 +43,46 @@ function AccountActions({ isAuthed, user, logout }: AccountActionsProps) {
           </Link>
         </li>
       )}
-      <li>
-        <Link
-          to="/dashboard/farms"
-          className="text-sm font-bold tracking-wide text-slate-400 hover:text-emerald-400 transition-colors duration-200"
-        >
-          FIELDS
-        </Link>
-      </li>
-      <li>
-        <Link
-          to="/dashboard/spraying"
-          className="text-sm font-bold tracking-wide text-slate-400 hover:text-rose-400 transition-colors duration-200"
-        >
-          SPRAYING
-        </Link>
-      </li>
-      <li>
-        <Link
-          to="/dashboard/smart-scales"
-          className="text-sm font-bold tracking-wide text-slate-400 hover:text-cyan-400 transition-colors duration-200"
-        >
-          SMART SCALES
-        </Link>
-      </li>
+      {user?.role === "Beekeeper" && (
+        <li>
+          <Link
+            to="/dashboard/crops-map"
+            className="text-sm font-bold tracking-wide text-slate-400 hover:text-emerald-400 transition-colors duration-200"
+          >
+            CROPS MAP
+          </Link>
+        </li>
+      )}
+      {user?.role !== "Beekeeper" && (
+        <>
+          <li>
+            <Link
+              to="/dashboard/farms"
+              className="text-sm font-bold tracking-wide text-slate-400 hover:text-emerald-400 transition-colors duration-200"
+            >
+              FIELDS
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/dashboard/spraying"
+              className="text-sm font-bold tracking-wide text-slate-400 hover:text-rose-400 transition-colors duration-200"
+            >
+              SPRAYING
+            </Link>
+          </li>
+        </>
+      )}
+      {user?.role !== "Farmer" && (
+        <li>
+          <Link
+            to="/dashboard/smart-scales"
+            className="text-sm font-bold tracking-wide text-slate-400 hover:text-cyan-400 transition-colors duration-200"
+          >
+            SMART SCALES
+          </Link>
+        </li>
+      )}
       <li>
         <span className="text-sm font-bold tracking-wide text-slate-400">
           {displayName}
