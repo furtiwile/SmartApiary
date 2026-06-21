@@ -51,7 +51,7 @@ namespace SmartApiary.Infrastructure.Persistence.AzureTable.Repositories
             await base.AddAsync(user, ct);
         }
 
-        public async Task UpadateUserAsync(User user, CancellationToken ct = default)
+        public async Task UpdateUserAsync(User user, CancellationToken ct = default)
         {
             await base.UpdateAsync(user, ct);
         }

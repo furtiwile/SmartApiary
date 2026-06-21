@@ -22,7 +22,8 @@ SELECT Id, Name, Location.Lat AS Latitude, Location.Long AS Longitude, FarmerId
 FROM dbo.Parcels
 WHERE Id = @Id;";
 
-            var parcels = await QueryParcelsAsync(sql, command => {
+            var parcels = await QueryParcelsAsync(sql, command =>
+            {
                 command.Parameters.Add(new SqlParameter("@Id", System.Data.SqlDbType.UniqueIdentifier) { Value = Guid.Parse(parcelId.Value) });
             }, ct);
             return parcels.FirstOrDefault();
@@ -35,7 +36,8 @@ SELECT Id, Name, Location.Lat AS Latitude, Location.Long AS Longitude, FarmerId
 FROM dbo.Parcels
 WHERE Id = @Id AND FarmerId = @FarmerId;";
 
-            var parcels = await QueryParcelsAsync(sql, command => {
+            var parcels = await QueryParcelsAsync(sql, command =>
+            {
                 command.Parameters.Add(new SqlParameter("@Id", System.Data.SqlDbType.UniqueIdentifier) { Value = Guid.Parse(parcelId.Value) });
                 command.Parameters.Add(new SqlParameter("@FarmerId", System.Data.SqlDbType.UniqueIdentifier) { Value = Guid.Parse(farmerId.Value) });
             }, ct);
@@ -49,7 +51,8 @@ SELECT Id, Name, Location.Lat AS Latitude, Location.Long AS Longitude, FarmerId
 FROM dbo.Parcels
 WHERE FarmerId = @FarmerId;";
 
-            return await QueryParcelsAsync(sql, command => {
+            return await QueryParcelsAsync(sql, command =>
+            {
                 command.Parameters.Add(new SqlParameter("@FarmerId", System.Data.SqlDbType.UniqueIdentifier) { Value = Guid.Parse(farmerId.Value) });
             }, ct);
         }
@@ -103,7 +106,8 @@ SELECT Id, Name, Location.Lat AS Latitude, Location.Long AS Longitude, FarmerId
 FROM dbo.Parcels
 WHERE Location.STDistance(@targetLocation) <= @Radius;";
 
-            return await QueryParcelsAsync(sql, command => {
+            return await QueryParcelsAsync(sql, command =>
+            {
                 string wkt = $"POINT({longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)} {latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)})";
                 command.Parameters.Add(new SqlParameter("@LocationWkt", System.Data.SqlDbType.NVarChar, -1) { Value = wkt });
                 command.Parameters.Add(new SqlParameter("@Radius", System.Data.SqlDbType.Float) { Value = radiusInMeters });

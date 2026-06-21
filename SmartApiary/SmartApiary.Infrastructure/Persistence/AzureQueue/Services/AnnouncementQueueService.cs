@@ -6,8 +6,6 @@ using SmartApiary.Application.Interfaces.Messaging;
 using SmartApiary.Domain.Enums;
 using SmartApiary.Infrastructure.Common.Options;
 using SmartApiary.Infrastructure.Persistence.AzureQueue.Messages;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace SmartApiary.Infrastructure.Persistence.AzureQueue.Services
 {

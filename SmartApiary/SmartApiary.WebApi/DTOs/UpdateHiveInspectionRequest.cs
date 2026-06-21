@@ -1,5 +1,4 @@
 using SmartApiary.Application.Features.HiveInspections.Commands;
-using System;
 
 namespace SmartApiary.WebApi.DTOs
 {

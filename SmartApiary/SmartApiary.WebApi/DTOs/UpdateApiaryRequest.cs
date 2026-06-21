@@ -1,11 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
-using SmartApiary.Application.Common;
 using SmartApiary.Application.Features.Apiaries;
 using SmartApiary.Application.Features.Apiaries.Commands;
 using SmartApiary.Domain.Common;
 using SmartApiary.Domain.Enums;
 using SmartApiary.WebApi.Extensions;
-using System.IO;
 
 namespace SmartApiary.WebApi.DTOs
 {
