@@ -1,5 +1,4 @@
 import React from "react";
-import { Toaster } from "react-hot-toast";
 import { Link, Outlet } from "react-router-dom";
 import { useAuth } from "../features/users/hooks/AuthHook";
 import LogoutButton from "../features/users/components/LogoutButton";
@@ -82,7 +81,6 @@ const MainLayout: React.FC = () => {
 
       {/* Main content */}
       <main className="flex-1 container mx-auto p-6">
-        <Toaster position="top-right" reverseOrder={false} />
         <Outlet />
       </main>
 

@@ -1,10 +1,12 @@
 import { createContext, useState, type ReactNode } from "react";
+import toast from "react-hot-toast";
 import { jwtDecode } from "jwt-decode";
 
 import type { AuthContextData } from "../models/AuthContextData";
 import type { UserDto } from "../models/UserDto";
 
 import { LocalStorage } from "../helpers/localStorageHelper";
+import { useNotificationStore } from "../../../hooks/useNotificationStore";
 
 
 
@@ -74,6 +76,8 @@ interface AuthProviderProps {
 
 
 export function AuthProvider({ children }: AuthProviderProps) {
+  const clearNotifications = useNotificationStore((state) => state.clear);
+
   const [user, setUser] = useState<UserDto | null>(() => {
     const savedToken = LocalStorage.get("authToken");
     if (savedToken && !isTokenExpired(savedToken)) {
@@ -106,12 +110,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
       console.error("Invalid or expired token");
       return;
     }
+    toast.dismiss();
+    clearNotifications();
     setToken(newToken);
     setUser(claims);
     LocalStorage.save("authToken", newToken);
   }
 
   function logout() {
+    toast.dismiss();
+    clearNotifications();
     setToken(null);
     setUser(null);
     LocalStorage.remove("authToken");
