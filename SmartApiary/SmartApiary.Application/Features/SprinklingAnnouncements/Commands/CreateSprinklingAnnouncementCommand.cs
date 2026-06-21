@@ -19,6 +19,7 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
         public DateTime StartTime { get; init; }
         public double ExpectedDurationHours { get; init; }
         public string PreparationType { get; init; } = string.Empty;
+        public bool BypassWeatherValidation { get; init; } = false;
     }
 
     public class CreateSprinklingAnnouncementValidator : AbstractValidator<CreateSprinklingAnnouncementCommand>
@@ -56,18 +57,25 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
                 return Result<string>.Failure("Unauthorized - you do not own this parcel.", ErrorType.Unauthorized);
 
             // Hard block: weather validation (SA.pdf requirement - must not spray in bad conditions)
-            var weatherResult = await weatherService.GetWeatherAsync(parcel.Latitude, parcel.Longitude, ct);
-            if (weatherResult.IsSuccess)
+            if (!request.BypassWeatherValidation)
             {
-                if (weatherResult.Value.WindSpeed > 5.0)
-                    return Result<string>.Failure("Bad weather conditions - postponing is recommended. Wind speed is too high.", ErrorType.Validation);
+                var weatherResult = await weatherService.GetWeatherAsync(parcel.Latitude, parcel.Longitude, ct);
+                if (weatherResult.IsSuccess)
+                {
+                    if (weatherResult.Value.WindSpeed > 5.0)
+                        return Result<string>.Failure("Bad weather conditions - postponing is recommended. Wind speed is too high.", ErrorType.Validation);
 
-                if (weatherResult.Value.Precipitation > 0 || weatherResult.Value.Description.Contains("rain", StringComparison.OrdinalIgnoreCase))
-                    return Result<string>.Failure("Bad weather conditions - postponing is recommended. Rain detected.", ErrorType.Validation);
+                    if (weatherResult.Value.Precipitation > 0 || weatherResult.Value.Description.Contains("rain", StringComparison.OrdinalIgnoreCase))
+                        return Result<string>.Failure("Bad weather conditions - postponing is recommended. Rain detected.", ErrorType.Validation);
+                }
             }
 
+            var utcStartTime = request.StartTime.Kind == DateTimeKind.Unspecified
+                ? DateTime.SpecifyKind(request.StartTime, DateTimeKind.Utc)
+                : request.StartTime.ToUniversalTime();
+
             var announcementResult = SprinklingAnnouncement.Create(
-                request.StartTime,
+                utcStartTime,
                 request.ExpectedDurationHours,
                 request.PreparationType,
                 false,

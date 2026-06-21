@@ -5,6 +5,7 @@ import type {
   CreateSprinklingPayload,
   CreateSprinklingResult,
   SprinklingRecord,
+  SprinklingStatus,
 } from "../models/Sprinkling";
 
 // ─── Crop API ────────────────────────────────────────────────────────────────
@@ -53,20 +54,47 @@ export class CropApi {
 
 // ─── Sprinkling API ──────────────────────────────────────────────────────────
 
+export type CreateSprinklingPayloadExtended = CreateSprinklingPayload & { bypassWeatherValidation?: boolean };
+
 export class SprayingApi {
   static async getByParcel(parcelId: string): Promise<SprinklingAnnouncementDto[]> {
     try {
-      const res = await api.get<{ data: SprinklingAnnouncementDto[] }>(
+      const res = await api.get<{ data: Record<string, unknown>[] }>(
         `/sprinklingannouncements?parcelId=${parcelId}`
       );
-      return res.data?.data ?? [];
+      return (res.data?.data ?? []).map((dto: Record<string, unknown>) => {
+        const start = new Date(dto.startTime as string);
+        const durationHours = (dto.expectedDurationHours as number) ?? 1;
+        const end = new Date(start.getTime() + durationHours * 3600 * 1000);
+        const now = new Date();
+        
+        let status: SprinklingStatus = "Scheduled";
+        if (dto.isCancelled) {
+          status = "Cancelled";
+        } else if (now > end) {
+          status = "Completed";
+        } else {
+          status = "Scheduled";
+        }
+
+        return {
+          id: dto.id as string,
+          parcelId: dto.parcelId as string,
+          pesticideType: (dto.preparationType as string) ?? "",
+          scheduledAt: dto.startTime as string,
+          durationMinutes: Math.round(durationHours * 60),
+          status: status,
+          beekeepersNotified: (dto.notifiedBeekeepersCount as number) ?? 0,
+          createdAt: dto.startTime as string,
+        };
+      });
     } catch (e) {
       console.error("Error fetching sprinkling announcements:", e);
       return [];
     }
   }
 
-  static async create(payload: CreateSprinklingPayload): Promise<CreateSprinklingResult | null> {
+  static async create(payload: CreateSprinklingPayloadExtended): Promise<CreateSprinklingResult | null> {
     try {
       const res = await api.post<{ id: string }>("/sprinklingannouncements", payload);
       const id = res.data?.id;
@@ -85,15 +113,22 @@ export class SprayingApi {
         };
       }
       return null;
-    } catch (e) {
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: { message?: string, error?: string } } };
+      if (err.response?.data?.message) {
+        throw new Error(err.response.data.message);
+      }
+      if (err.response?.data?.error) {
+        throw new Error(err.response.data.error);
+      }
       console.error("Error creating sprinkling announcement:", e);
       return null;
     }
   }
 
-  static async cancel(announcementId: string): Promise<boolean> {
+  static async cancel(announcementId: string, parcelId: string): Promise<boolean> {
     try {
-      await api.patch(`/sprinklingannouncements/${announcementId}/cancel`);
+      await api.post(`/sprinklingannouncements/${announcementId}/cancel?parcelId=${parcelId}`);
       return true;
     } catch (e) {
       console.error("Error cancelling announcement:", e);
@@ -103,13 +138,48 @@ export class SprayingApi {
 
   static async getRecordsByParcel(parcelId: string): Promise<SprinklingRecord[]> {
     try {
-      const res = await api.get<{ data: SprinklingRecord[] }>(
+      const res = await api.get<{ data: Record<string, unknown>[] }>(
         `/sprinklingrecords?parcelId=${parcelId}`
       );
-      return res.data?.data ?? [];
+      return (res.data?.data ?? []).map((dto: Record<string, unknown>) => {
+        const start = dto.actualStartTime ? new Date(dto.actualStartTime as string) : null;
+        const end = dto.actualEndTime ? new Date(dto.actualEndTime as string) : null;
+        const durationMs = start && end ? end.getTime() - start.getTime() : 0;
+        const durationMinutes = durationMs > 0 ? Math.round(durationMs / 60000) : 0;
+        return {
+          id: dto.id as string,
+          announcementId: dto.announcementId as string,
+          parcelId: (dto.parcelId as string) || parcelId,
+          parcelName: dto.parcelName as string,
+          pesticideType: (dto.preparationType as string) ?? "",
+          executedAt: (dto.actualStartTime as string) ?? new Date().toISOString(),
+          durationMinutes: durationMinutes,
+          weatherConditions: (dto.weatherCondition as string) ?? "",
+        };
+      });
     } catch (e) {
       console.error("Error fetching sprinkling records:", e);
       return [];
     }
+  }
+
+  static getExportUrl(parcelId: string, fromDate?: string, toDate?: string): string {
+    const params = new URLSearchParams();
+    params.append("parcelId", parcelId);
+    if (fromDate) params.append("fromDate", fromDate);
+    if (toDate) params.append("toDate", toDate);
+    return `${api.defaults.baseURL}/sprinklingrecords/export?${params.toString()}`;
+  }
+
+  static async exportRecordsPdf(parcelId: string, fromDate?: string, toDate?: string): Promise<Blob> {
+    const params = new URLSearchParams();
+    params.append("parcelId", parcelId);
+    if (fromDate) params.append("fromDate", fromDate);
+    if (toDate) params.append("toDate", toDate);
+    
+    const res = await api.get(`/sprinklingrecords/export?${params.toString()}`, {
+      responseType: 'blob'
+    });
+    return res.data;
   }
 }

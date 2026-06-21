@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { z } from "zod";
 import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,9 +18,10 @@ type SchemaType = z.infer<typeof schema>;
 
 interface CreateParcelModalProps {
   onCreated: (parcel: Omit<ParcelDto, "id" | "farmerId"> & { id?: string }) => void;
+  initialLocation?: {lat: number, lng: number} | null;
 }
 
-export function CreateParcelModal({ onCreated }: CreateParcelModalProps) {
+export function CreateParcelModal({ onCreated, initialLocation }: CreateParcelModalProps) {
   const [open, setOpen] = useState(false);
   const { success, error } = useNotify();
 
@@ -28,11 +29,20 @@ export function CreateParcelModal({ onCreated }: CreateParcelModalProps) {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<SchemaType>({
     resolver: zodResolver(schema) as unknown as Resolver<SchemaType>,
     defaultValues: { name: "", latitude: "" as unknown as number, longitude: "" as unknown as number },
   });
+
+  useEffect(() => {
+    if (initialLocation) {
+      setValue("latitude", initialLocation.lat);
+      setValue("longitude", initialLocation.lng);
+      setTimeout(() => setOpen(true), 0);
+    }
+  }, [initialLocation, setValue]);
 
   async function onSubmit(data: SchemaType) {
     try {

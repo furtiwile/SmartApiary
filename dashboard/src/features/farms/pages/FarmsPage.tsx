@@ -1,22 +1,26 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Tractor, X, MapPin, User } from "lucide-react";
+import { Tractor, MapPin, User, List } from "lucide-react";
 import { PageLayout } from "../../../layouts/PageLayout";
 import { useAuth } from "../../users/hooks/AuthHook";
 import type { ParcelDto } from "../models/Parcel";
 import { FarmApi } from "../api/farmApi";
+import { CropApi } from "../api/sprayingApi";
 import { ParcelTable } from "../components/ParcelTable";
 import { CreateParcelModal } from "../components/CreateParcelModal";
 import { CropManagementModal } from "../components/CropManagementModal";
 import { SprayingAnnouncementModal } from "../components/SprayingAnnouncementModal";
 import { SprayingRecordTable } from "../components/SprayingRecordTable";
 import { useNotify } from "../../../hooks/useNotify";
+import ApiaryParcelMap from "../../maps/components/ApiaryParcelMap";
 
 export const FarmsPage: React.FC = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [selectedParcel, setSelectedParcel] = useState<ParcelDto | null>(null);
+  const [mapCenter, setMapCenter] = useState<[number, number] | undefined>(undefined);
+  const [mapZoom, setMapZoom] = useState<number | undefined>(undefined);
   const { success, error } = useNotify();
 
   const { data: parcels = [], isLoading } = useQuery({
@@ -25,8 +29,33 @@ export const FarmsPage: React.FC = () => {
     enabled: !!user?.id,
   });
 
+  // Fetch crops for all parcels to show icons on the map
+  const { data: crops = [] } = useQuery({
+    queryKey: ["all-crops", parcels.map(p => p.id)],
+    queryFn: async () => {
+      const allCrops = await Promise.all(parcels.map(p => CropApi.getByParcel(p.id)));
+      return allCrops.flat();
+    },
+    enabled: parcels.length > 0,
+  });
+
+  const parcelMapFeatures = useMemo(() => {
+    return parcels.map((p) => {
+      const crop = crops.find(c => c.parcelId === p.id);
+      return {
+        id: p.id,
+        name: p.name,
+        location: { latitude: p.latitude, longitude: p.longitude },
+        cropType: crop?.cropType,
+        description: crop ? `Currently growing: ${crop.cropType}` : undefined,
+      };
+    });
+  }, [parcels, crops]);
+
   const handleEdit = (parcel: ParcelDto) => {
     setSelectedParcel(parcel);
+    setMapCenter([parcel.latitude, parcel.longitude]);
+    setMapZoom(16);
   };
 
   const handleDelete = async (parcelId: string) => {
@@ -40,6 +69,19 @@ export const FarmsPage: React.FC = () => {
     } else {
       error("Failed to delete", "Could not remove the parcel. Please try again.");
     }
+  };
+
+  const handleMarkerClick = (id: string, type: "apiary" | "parcel") => {
+    if (type === "parcel") {
+      const parcel = parcels.find(p => p.id === id);
+      if (parcel) handleEdit(parcel);
+    }
+  };
+
+  const [clickedCoord, setClickedCoord] = useState<{lat: number, lng: number} | null>(null);
+
+  const handleMapClick = (lat: number, lng: number) => {
+    setClickedCoord({ lat, lng });
   };
 
   return (
@@ -59,100 +101,129 @@ export const FarmsPage: React.FC = () => {
               <p className="text-sm uppercase tracking-[0.24em] text-slate-500">Farm overview</p>
               <h1 className="mt-1 text-2xl font-semibold text-slate-900">My parcels</h1>
               <p className="mt-1 max-w-2xl text-sm text-slate-600">
-                Manage farm parcels, crops, and spraying schedules.
+                Manage farm parcels, crops, and spraying schedules. Click on the map to place a pin for a new parcel.
               </p>
             </div>
           </div>
           {user?.id && (
             <CreateParcelModal
-              onCreated={(parcel) =>
-                queryClient.setQueryData<ParcelDto[]>(["parcels", user?.id], (old) => [
-                  ...(old || []),
-                  parcel as ParcelDto,
-                ])
-              }
+              initialLocation={clickedCoord}
+              onCreated={() => {
+                queryClient.invalidateQueries({ queryKey: ["parcels", user?.id] });
+                setClickedCoord(null);
+              }}
             />
           )}
         </motion.div>
 
-        {/* Parcels table */}
-        {isLoading ? (
-          <div className="flex justify-center items-center p-20 gap-3">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500" />
-            <span className="text-slate-500 font-medium">Loading parcels…</span>
-          </div>
-        ) : (
-          <ParcelTable parcels={parcels} onEdit={handleEdit} onDelete={handleDelete} />
-        )}
-
-        {/* Selected parcel detail panel */}
-        <AnimatePresence mode="popLayout">
-          {selectedParcel && (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.2 }}
-              className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden"
-            >
-            {/* Detail header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50">
-              <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10">
-                  <MapPin className="h-4 w-4 text-emerald-600" />
-                </div>
-                <h2 className="text-base font-bold text-slate-900">{selectedParcel.name}</h2>
-              </div>
-              <div className="flex items-center gap-2">
-                {/* Crop & Spraying action buttons */}
-                <CropManagementModal
-                  parcelId={selectedParcel.id}
-                  parcelName={selectedParcel.name}
-                />
-                <SprayingAnnouncementModal
-                  parcelId={selectedParcel.id}
-                  parcelName={selectedParcel.name}
-                />
-                <button
-                  onClick={() => setSelectedParcel(null)}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all ml-2"
-                  aria-label="Close"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-
-            {/* Info cards */}
-            <div className="grid grid-cols-2 gap-3 p-5">
-              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-500 flex items-center gap-1.5">
-                  <MapPin className="h-3 w-3" />
-                  Coordinates
-                </p>
-                <p className="mt-2 text-sm text-slate-700 font-mono">
-                  {selectedParcel.latitude.toFixed(5)}, {selectedParcel.longitude.toFixed(5)}
-                </p>
-              </div>
-              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-500 flex items-center gap-1.5">
-                  <User className="h-3 w-3" />
-                  Farmer ID
-                </p>
-                <p className="mt-2 text-sm font-mono text-slate-700 truncate">{selectedParcel.farmerId}</p>
-              </div>
-            </div>
-
-            {/* Spraying records + PDF export */}
-            <div className="px-5 pb-5">
-              <SprayingRecordTable
-                parcelId={selectedParcel.id}
-                parcelName={selectedParcel.name}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          {/* Left Column: Map */}
+          <div className="lg:col-span-3">
+            <div className="sticky top-6">
+              <ApiaryParcelMap
+                apiaries={[]}
+                parcels={parcelMapFeatures}
+                center={mapCenter}
+                zoom={mapZoom}
+                height="calc(100vh - 250px)"
+                onMapClick={handleMapClick}
+                onMarkerClick={handleMarkerClick}
               />
+              {clickedCoord && (
+                <div className="mt-3 p-3 bg-sky-50 text-sky-700 text-sm rounded-xl border border-sky-100 flex items-center justify-between">
+                  <span>Selected coordinates: {clickedCoord.lat.toFixed(5)}, {clickedCoord.lng.toFixed(5)}</span>
+                  <button onClick={() => setClickedCoord(null)} className="text-sky-500 hover:text-sky-800">Clear</button>
+                </div>
+              )}
             </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+          </div>
+
+          {/* Right Column: List and Details */}
+          <div className="lg:col-span-2 space-y-6">
+            <AnimatePresence mode="popLayout">
+              {selectedParcel ? (
+                <motion.div 
+                  key="detail"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.2 }}
+                  className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden"
+                >
+                  <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10">
+                        <MapPin className="h-4 w-4 text-emerald-600" />
+                      </div>
+                      <h2 className="text-base font-bold text-slate-900">{selectedParcel.name}</h2>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CropManagementModal
+                        parcelId={selectedParcel.id}
+                        parcelName={selectedParcel.name}
+                      />
+                      <SprayingAnnouncementModal
+                        parcelId={selectedParcel.id}
+                        parcelName={selectedParcel.name}
+                      />
+                      <button
+                        onClick={() => setSelectedParcel(null)}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all ml-2"
+                        aria-label="Back to list"
+                        title="Back to list"
+                      >
+                        <List className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 p-5">
+                    <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                      <p className="text-xs uppercase tracking-[0.18em] text-slate-500 flex items-center gap-1.5">
+                        <MapPin className="h-3 w-3" />
+                        Coordinates
+                      </p>
+                      <p className="mt-2 text-sm text-slate-700 font-mono">
+                        {selectedParcel.latitude.toFixed(5)}, {selectedParcel.longitude.toFixed(5)}
+                      </p>
+                    </div>
+                    <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                      <p className="text-xs uppercase tracking-[0.18em] text-slate-500 flex items-center gap-1.5">
+                        <User className="h-3 w-3" />
+                        Farmer ID
+                      </p>
+                      <p className="mt-2 text-sm font-mono text-slate-700 truncate">{selectedParcel.farmerId}</p>
+                    </div>
+                  </div>
+
+                  <div className="px-5 pb-5">
+                    <SprayingRecordTable
+                      parcelId={selectedParcel.id}
+                      parcelName={selectedParcel.name}
+                    />
+                  </div>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="list"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {isLoading ? (
+                    <div className="flex justify-center items-center p-20 gap-3 bg-white rounded-2xl border border-slate-200">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500" />
+                      <span className="text-slate-500 font-medium">Loading parcels…</span>
+                    </div>
+                  ) : (
+                    <ParcelTable parcels={parcels} onEdit={handleEdit} onDelete={handleDelete} />
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
       </div>
     </PageLayout>
   );

@@ -6,9 +6,12 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Siren, PlusCircle, X, XCircle, CheckCircle, Clock, AlertTriangle } from "lucide-react";
 import { SprayingApi } from "../api/sprayingApi";
+import { GeoApi } from "../../maps/api/geoApi";
 import { useNotify } from "../../../hooks/useNotify";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
+import { useAuth } from "../../users/hooks/AuthHook";
 import type { SprinklingStatus } from "../models/Sprinkling";
+import type { ParcelDto } from "../models/Parcel";
 
 const PESTICIDE_TYPES = [
   "Herbicide", "Fungicide", "Insecticide", "Rodenticide", "Nematicide", "Other",
@@ -34,6 +37,7 @@ const schema = z.object({
     { message: "Scheduled time must be in the future." }
   ),
   notes: z.string().optional(),
+  bypassWeatherValidation: z.boolean().optional(),
 });
 
 type SchemaType = z.infer<typeof schema>;
@@ -41,8 +45,10 @@ type SchemaType = z.infer<typeof schema>;
 export function SprayingAnnouncementModal({ parcelId, parcelName }: SprayingAnnouncementModalProps) {
   const [open, setOpen] = useState(false);
   const [cancelTarget, setCancelTarget] = useState<string | null>(null);
+  const [weatherWarning, setWeatherWarning] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const { success, error, warning } = useNotify();
+  const { user } = useAuth();
 
   const { data: announcements = [], isLoading } = useQuery({
     queryKey: ["announcements", parcelId],
@@ -57,29 +63,53 @@ export function SprayingAnnouncementModal({ parcelId, parcelName }: SprayingAnno
     formState: { errors, isSubmitting },
   } = useForm<SchemaType>({
     resolver: zodResolver(schema) as unknown as Resolver<SchemaType>,
-    defaultValues: { pesticideType: PESTICIDE_TYPES[0], durationHours: 1, scheduledAt: "", notes: "" },
+    defaultValues: { pesticideType: PESTICIDE_TYPES[0], durationHours: 1, scheduledAt: "", notes: "", bypassWeatherValidation: false },
   });
 
-  async function onSubmit(data: SchemaType) {
+  async function checkWeatherAndSubmit(data: SchemaType) {
+    if (!data.bypassWeatherValidation) {
+      try {
+        // Fetch parcel details to get coordinates
+        const parcels = queryClient.getQueryData<ParcelDto[]>(["parcels", user?.id]) || [];
+        const parcel = parcels.find(p => p.id === parcelId);
+        
+        if (parcel) {
+          const weather = await GeoApi.getWeather(parcel.latitude, parcel.longitude);
+          if (weather) {
+            if (weather.windSpeed > 5.0) {
+              setWeatherWarning("Bad weather conditions - postponing is recommended. Wind speed is too high.");
+              return; // Stop submission to allow user to bypass
+            }
+            if (weather.precipitation > 0 || weather.description.toLowerCase().includes("rain")) {
+              setWeatherWarning("Bad weather conditions - postponing is recommended. Rain detected.");
+              return; // Stop submission
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Failed to check weather", err);
+      }
+    }
+    
+    // If no warning or bypass is checked, proceed
+    await doSubmit(data);
+  }
+
+  async function doSubmit(data: SchemaType) {
     try {
       const result = await SprayingApi.create({
         parcelId,
         preparationType: data.pesticideType,
         startTime: data.scheduledAt,
         expectedDurationHours: data.durationHours,
+        bypassWeatherValidation: data.bypassWeatherValidation,
       });
 
       if (result) {
         queryClient.setQueryData<typeof announcements>(["announcements", parcelId], (old) => [result.announcement, ...(old || [])]);
         const notified = result.beekeepersNotified;
         
-        if (result.weatherWarning) {
-          warning(
-            "Weather Warning",
-            result.weatherWarning,
-            { duration: 15000 }
-          );
-        } else if (notified > 0) {
+        if (notified > 0) {
           success(
             "Spraying scheduled",
             `${notified} beekeeper${notified !== 1 ? "s" : ""} in a 5 km radius have been notified by email.`,
@@ -92,18 +122,21 @@ export function SprayingAnnouncementModal({ parcelId, parcelName }: SprayingAnno
             { duration: 8000 }
           );
         }
+        setOpen(false);
         reset();
+        setWeatherWarning(null);
       } else {
         error("Failed to schedule", "The server returned an error. Please try again.");
       }
-    } catch {
-      error("Failed to schedule", "An unexpected error occurred.");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "An unexpected error occurred.";
+      error("Failed to schedule", msg);
     }
   }
 
   async function handleCancel() {
     if (!cancelTarget) return;
-    const ok = await SprayingApi.cancel(cancelTarget);
+    const ok = await SprayingApi.cancel(cancelTarget, parcelId);
     if (ok) {
       queryClient.setQueryData<typeof announcements>(["announcements", parcelId], (old) =>
         old?.map((a) => a.id === cancelTarget ? { ...a, status: "Cancelled" } : a)
@@ -121,7 +154,13 @@ export function SprayingAnnouncementModal({ parcelId, parcelName }: SprayingAnno
 
   return (
     <>
-      <Dialog.Root open={open} onOpenChange={setOpen}>
+      <Dialog.Root open={open} onOpenChange={(val) => {
+        setOpen(val);
+        if (!val) {
+          reset();
+          setWeatherWarning(null);
+        }
+      }}>
         <Dialog.Trigger asChild>
           <button className="inline-flex items-center gap-1.5 rounded-lg bg-rose-50 border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-100 transition-all">
             <Siren className="h-3 w-3" />
@@ -203,7 +242,7 @@ export function SprayingAnnouncementModal({ parcelId, parcelName }: SprayingAnno
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-3">
                 Schedule New Spraying
               </p>
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
+              <form onSubmit={handleSubmit(checkWeatherAndSubmit)} className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1.5">
@@ -262,6 +301,20 @@ export function SprayingAnnouncementModal({ parcelId, parcelName }: SprayingAnno
                 <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
                   ⚠️ All beekeepers within <strong>5 km</strong> of this parcel will receive an email warning. Please schedule at least <strong>24 hours</strong> in advance when possible.
                 </div>
+
+                {weatherWarning && (
+                  <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 flex flex-col gap-2">
+                    <div className="flex items-center gap-2 font-semibold">
+                      <AlertTriangle className="h-4 w-4" />
+                      Weather Warning
+                    </div>
+                    <p>{weatherWarning}</p>
+                    <label className="flex items-center gap-2 mt-2">
+                      <input type="checkbox" {...register("bypassWeatherValidation")} className="rounded border-red-300 text-red-600 focus:ring-red-500" />
+                      <span>I understand the risks, schedule anyway</span>
+                    </label>
+                  </div>
+                )}
 
                 <button
                   type="submit"

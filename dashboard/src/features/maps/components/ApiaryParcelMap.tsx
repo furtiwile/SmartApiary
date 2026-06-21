@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "../styles/MapStyles.css";
@@ -55,6 +55,21 @@ function FitBounds({ positions }: { positions: [number, number][] }) {
 }
 
 // ---------------------------------------------------------------------------
+// Click handler helper
+// ---------------------------------------------------------------------------
+
+function MapEventsHandler({ onMapClick }: { onMapClick?: (lat: number, lng: number) => void }) {
+  useMapEvents({
+    click(e) {
+      if (onMapClick) {
+        onMapClick(e.latlng.lat, e.latlng.lng);
+      }
+    },
+  });
+  return null;
+}
+
+// ---------------------------------------------------------------------------
 // Public component
 // ---------------------------------------------------------------------------
 
@@ -64,6 +79,8 @@ type ApiaryParcelMapProps = {
   center?: [number, number];
   zoom?: number;
   height?: string;
+  onMapClick?: (lat: number, lng: number) => void;
+  onMarkerClick?: (id: string, type: "apiary" | "parcel") => void;
 };
 
 const DEFAULT_CENTER: [number, number] = [45.25, 19.842];
@@ -75,6 +92,8 @@ export default function ApiaryParcelMap({
   center = DEFAULT_CENTER,
   zoom = DEFAULT_ZOOM,
   height = "500px",
+  onMapClick,
+  onMarkerClick,
 }: ApiaryParcelMapProps) {
   const allPositions = useMemo<[number, number][]>(() => [
     ...apiaries.map((a) => [a.location.latitude, a.location.longitude] as [number, number]),
@@ -95,6 +114,8 @@ export default function ApiaryParcelMap({
         attribution="&copy; OpenStreetMap contributors"
       />
 
+      <MapEventsHandler onMapClick={onMapClick} />
+
       {/* Auto-fit when data changes */}
       {allPositions.length > 0 && <FitBounds positions={allPositions} />}
 
@@ -104,6 +125,7 @@ export default function ApiaryParcelMap({
           key={apiary.id}
           position={[apiary.location.latitude, apiary.location.longitude]}
           icon={apiaryIcon}
+          eventHandlers={{ click: () => onMarkerClick?.(apiary.id, "apiary") }}
         >
           <Popup>
             <div className="map-popup">
@@ -125,6 +147,7 @@ export default function ApiaryParcelMap({
           key={parcel.id}
           position={[parcel.location.latitude, parcel.location.longitude]}
           icon={getParcelIcon(parcel.cropType)}
+          eventHandlers={{ click: () => onMarkerClick?.(parcel.id, "parcel") }}
         >
           <Popup>
             <div className="map-popup">

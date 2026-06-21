@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi;
 using SmartApiary.Application;
 using SmartApiary.Infrastructure;
@@ -103,6 +103,7 @@ namespace SmartApiary.WebApi.Extensions
         public static IServiceCollection AddWebApiHostedServices(this IServiceCollection services)
         {
             services.AddHostedService<TelemetryBroadcastWorker>();
+            services.AddHostedService<SprinklingAnnouncementWorker>();
             return services;
         }
     }
