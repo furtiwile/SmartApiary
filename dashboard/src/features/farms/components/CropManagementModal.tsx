@@ -53,10 +53,15 @@ export function CropManagementModal({ parcelId, parcelName }: CropManagementModa
 
   async function onSubmit(data: SchemaType) {
     try {
+      const expectedDate = data.expectedBloomDate;
+      const expectedIso = data.expectedBloomDate.includes("T")
+        ? new Date(expectedDate).toISOString()
+        : `${expectedDate}T00:00:00Z`;
+
       const result = await cropApi.create({
         parcelId,
         type: data.cropType as CropType,
-        expectedFloweringTime: data.expectedBloomDate,
+        expectedFloweringTime: expectedIso,
         note: data.notes || "",
       });
       if (result) {
@@ -73,7 +78,7 @@ export function CropManagementModal({ parcelId, parcelName }: CropManagementModa
 
   async function confirmDeleteCrop() {
     if (!confirmDeleteId) return;
-    const deleted = await cropApi.delete(confirmDeleteId);
+    const deleted = await cropApi.delete(confirmDeleteId, parcelId);
     if (deleted) {
       queryClient.setQueryData<typeof crops>(["crops", parcelId], (old) => old?.filter((c) => c.id !== confirmDeleteId));
       success("Crop removed", "The crop has been removed from the parcel.");
