@@ -4,7 +4,6 @@ import { router } from "./routes";
 import { LoggerProvider } from "./shared/logger/LoggerProvider";
 import { SignalRProvider } from "./shared/signalr/SignalRProvider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { CONFIG } from "./config/config";
 
 const queryClient = new QueryClient({
@@ -27,7 +26,6 @@ function App() {
           <RouterProvider router={router} />
         </SignalRProvider>
       </LoggerProvider>
-      <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   );
 }

@@ -75,17 +75,17 @@ export function CreateParcelModal({ onCreated, initialLocation }: CreateParcelMo
       </Dialog.Trigger>
 
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=open]:fade-in" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl focus:outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
+        <Dialog.Overlay className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=open]:fade-in" />
+        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl focus:outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10">
-                <MapPin className="h-5 w-5 text-emerald-600" />
+                <MapPin className="h-5 w-5 text-emerald-400" />
               </div>
-              <Dialog.Title className="text-lg font-bold text-slate-900">New Parcel</Dialog.Title>
+              <Dialog.Title className="text-lg font-bold text-slate-200">New Parcel</Dialog.Title>
             </div>
             <Dialog.Close asChild>
-              <button className="rounded-lg p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all">
+              <button className="rounded-lg p-1.5 text-slate-500 hover:text-slate-300 hover:bg-slate-800 transition-all">
                 <X className="h-4 w-4" />
               </button>
             </Dialog.Close>
@@ -93,56 +93,56 @@ export function CreateParcelModal({ onCreated, initialLocation }: CreateParcelMo
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1.5">Parcel Name</label>
+              <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">Parcel Name</label>
               <input
                 type="text"
                 placeholder="e.g. North Field"
                 {...register("name")}
                 autoFocus
-                className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="block w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all"
               />
-              {errors.name && <p className="mt-1.5 text-xs text-rose-500">{errors.name.message}</p>}
+              {errors.name && <p className="mt-1.5 text-xs text-rose-400">{errors.name.message}</p>}
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1.5">Latitude</label>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">Latitude</label>
                 <input
                   type="number"
                   step="any"
                   placeholder="45.2500"
                   {...register("latitude")}
-                  className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="block w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all"
                 />
-                {errors.latitude && <p className="mt-1.5 text-xs text-rose-500">{errors.latitude.message}</p>}
+                {errors.latitude && <p className="mt-1.5 text-xs text-rose-400">{errors.latitude.message}</p>}
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1.5">Longitude</label>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">Longitude</label>
                 <input
                   type="number"
                   step="any"
                   placeholder="19.8420"
                   {...register("longitude")}
-                  className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="block w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all"
                 />
-                {errors.longitude && <p className="mt-1.5 text-xs text-rose-500">{errors.longitude.message}</p>}
+                {errors.longitude && <p className="mt-1.5 text-xs text-rose-400">{errors.longitude.message}</p>}
               </div>
             </div>
 
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-600">
               The parcel will be plotted on the map at the given coordinates. You can add crops and schedule spraying afterwards.
             </p>
 
             <div className="flex gap-3 pt-2">
               <Dialog.Close asChild>
-                <button type="button" className="flex-1 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-all">
+                <button type="button" className="flex-1 rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition-all">
                   Cancel
                 </button>
               </Dialog.Close>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500 disabled:opacity-60 transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500 disabled:opacity-50 transition-colors"
               >
                 {isSubmitting ? <span className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <PlusCircle className="h-4 w-4" />}
                 {isSubmitting ? "Creating…" : "Create Parcel"}

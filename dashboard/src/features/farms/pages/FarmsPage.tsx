@@ -29,7 +29,6 @@ export const FarmsPage: React.FC = () => {
     enabled: !!user?.id,
   });
 
-  // Fetch crops for all parcels to show icons on the map
   const { data: crops = [] } = useQuery({
     queryKey: ["all-crops", parcels.map(p => p.id)],
     queryFn: async () => {
@@ -88,20 +87,21 @@ export const FarmsPage: React.FC = () => {
     <PageLayout>
       <div className="space-y-6">
         {/* Page Header */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between rounded-3xl border border-slate-200 bg-slate-50 p-6 shadow-sm"
+          className="flex items-center justify-between"
         >
-          <div className="flex items-center gap-4">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-500/10">
-              <Tractor className="h-6 w-6 text-emerald-600" />
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10">
+              <Tractor className="h-5 w-5 text-emerald-400" />
             </div>
             <div>
-              <p className="text-sm uppercase tracking-[0.24em] text-slate-500">Farm overview</p>
-              <h1 className="mt-1 text-2xl font-semibold text-slate-900">My parcels</h1>
-              <p className="mt-1 max-w-2xl text-sm text-slate-600">
-                Manage farm parcels, crops, and spraying schedules. Click on the map to place a pin for a new parcel.
+              <h1 className="text-2xl font-bold text-slate-200 tracking-tight">My Parcels</h1>
+              <p className="text-slate-400 text-sm">
+                {parcels.length === 0
+                  ? "No parcels yet — create your first one below."
+                  : `${parcels.length} parcel${parcels.length === 1 ? "" : "s"} registered`}
               </p>
             </div>
           </div>
@@ -120,19 +120,21 @@ export const FarmsPage: React.FC = () => {
           {/* Left Column: Map */}
           <div className="lg:col-span-3">
             <div className="sticky top-6">
-              <ApiaryParcelMap
-                apiaries={[]}
-                parcels={parcelMapFeatures}
-                center={mapCenter}
-                zoom={mapZoom}
-                height="calc(100vh - 250px)"
-                onMapClick={handleMapClick}
-                onMarkerClick={handleMarkerClick}
-              />
+              <div className="rounded-2xl border border-slate-700 overflow-hidden">
+                <ApiaryParcelMap
+                  apiaries={[]}
+                  parcels={parcelMapFeatures}
+                  center={mapCenter}
+                  zoom={mapZoom}
+                  height="calc(100vh - 250px)"
+                  onMapClick={handleMapClick}
+                  onMarkerClick={handleMarkerClick}
+                />
+              </div>
               {clickedCoord && (
-                <div className="mt-3 p-3 bg-sky-50 text-sky-700 text-sm rounded-xl border border-sky-100 flex items-center justify-between">
-                  <span>Selected coordinates: {clickedCoord.lat.toFixed(5)}, {clickedCoord.lng.toFixed(5)}</span>
-                  <button onClick={() => setClickedCoord(null)} className="text-sky-500 hover:text-sky-800">Clear</button>
+                <div className="mt-3 p-3 bg-sky-500/5 border border-sky-500/20 text-sky-400 text-sm rounded-xl flex items-center justify-between">
+                  <span>Selected: {clickedCoord.lat.toFixed(5)}, {clickedCoord.lng.toFixed(5)}</span>
+                  <button onClick={() => setClickedCoord(null)} className="text-sky-500 hover:text-sky-300 text-xs font-semibold transition-colors">Clear</button>
                 </div>
               )}
             </div>
@@ -142,20 +144,20 @@ export const FarmsPage: React.FC = () => {
           <div className="lg:col-span-2 space-y-6">
             <AnimatePresence mode="popLayout">
               {selectedParcel ? (
-                <motion.div 
+                <motion.div
                   key="detail"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ duration: 0.2 }}
-                  className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden"
+                  className="rounded-2xl border border-slate-700 bg-slate-800/50 backdrop-blur-md shadow-sm overflow-hidden"
                 >
-                  <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50">
+                  <div className="flex items-center justify-between px-5 py-4 border-b border-slate-700/60 bg-slate-900/30">
                     <div className="flex items-center gap-3">
                       <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10">
-                        <MapPin className="h-4 w-4 text-emerald-600" />
+                        <MapPin className="h-4 w-4 text-emerald-400" />
                       </div>
-                      <h2 className="text-base font-bold text-slate-900">{selectedParcel.name}</h2>
+                      <h2 className="text-base font-bold text-slate-200">{selectedParcel.name}</h2>
                     </div>
                     <div className="flex items-center gap-2">
                       <CropManagementModal
@@ -168,7 +170,7 @@ export const FarmsPage: React.FC = () => {
                       />
                       <button
                         onClick={() => setSelectedParcel(null)}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all ml-2"
+                        className="p-1.5 rounded-lg text-slate-600 hover:text-slate-300 hover:bg-slate-800 transition-all ml-1"
                         aria-label="Back to list"
                         title="Back to list"
                       >
@@ -178,21 +180,21 @@ export const FarmsPage: React.FC = () => {
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 p-5">
-                    <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-                      <p className="text-xs uppercase tracking-[0.18em] text-slate-500 flex items-center gap-1.5">
+                    <div className="rounded-xl border border-slate-700/60 bg-slate-900/40 p-4">
+                      <p className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center gap-1.5">
                         <MapPin className="h-3 w-3" />
                         Coordinates
                       </p>
-                      <p className="mt-2 text-sm text-slate-700 font-mono">
+                      <p className="mt-2 text-sm text-slate-300 font-mono">
                         {selectedParcel.latitude.toFixed(5)}, {selectedParcel.longitude.toFixed(5)}
                       </p>
                     </div>
-                    <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-                      <p className="text-xs uppercase tracking-[0.18em] text-slate-500 flex items-center gap-1.5">
+                    <div className="rounded-xl border border-slate-700/60 bg-slate-900/40 p-4">
+                      <p className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center gap-1.5">
                         <User className="h-3 w-3" />
                         Farmer ID
                       </p>
-                      <p className="mt-2 text-sm font-mono text-slate-700 truncate">{selectedParcel.farmerId}</p>
+                      <p className="mt-2 text-sm font-mono text-slate-300 truncate">{selectedParcel.farmerId}</p>
                     </div>
                   </div>
 
@@ -212,9 +214,9 @@ export const FarmsPage: React.FC = () => {
                   transition={{ duration: 0.2 }}
                 >
                   {isLoading ? (
-                    <div className="flex justify-center items-center p-20 gap-3 bg-white rounded-2xl border border-slate-200">
+                    <div className="flex justify-center items-center p-20 gap-3 rounded-2xl border border-slate-700 bg-slate-800/50">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500" />
-                      <span className="text-slate-500 font-medium">Loading parcels…</span>
+                      <span className="text-slate-400 font-medium">Loading parcels…</span>
                     </div>
                   ) : (
                     <ParcelTable parcels={parcels} onEdit={handleEdit} onDelete={handleDelete} />
