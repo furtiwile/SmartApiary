@@ -16,6 +16,7 @@ const schema = z.object({
 type SchemaType = z.infer<typeof schema>;
 
 interface DevicePairingModalProps {
+  apiaryId: string;
   hiveId: string;
   hiveName: string;
   isPaired: boolean;
@@ -24,6 +25,7 @@ interface DevicePairingModalProps {
 }
 
 export function DevicePairingModal({
+  apiaryId,
   hiveId,
   hiveName,
   isPaired,
@@ -51,7 +53,7 @@ export function DevicePairingModal({
 
   async function onSubmit(data: SchemaType) {
     try {
-      const ok = await devicePairingApi.pair(hiveId, data.serialNumber);
+      const ok = await devicePairingApi.pair(apiaryId, hiveId, data.serialNumber);
       if (ok) {
         success(
           "Device paired",

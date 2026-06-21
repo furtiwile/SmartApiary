@@ -95,7 +95,7 @@ export function HiveDiary({ hiveId, hiveName }: HiveDiaryProps) {
 
   async function handleDelete() {
     if (!confirmDeleteId) return;
-    const ok = await inspectionApi.delete(confirmDeleteId);
+    const ok = await inspectionApi.delete(confirmDeleteId, hiveId);
     if (ok) {
       queryClient.setQueryData<InspectionEntry[]>(["inspections", hiveId], (old) =>
         old?.filter((e) => e.id !== confirmDeleteId)

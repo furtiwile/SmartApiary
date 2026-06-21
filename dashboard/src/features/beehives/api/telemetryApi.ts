@@ -5,11 +5,11 @@ import type { InspectionEntry, CreateInspectionPayload } from "../models/Inspect
 // ─── Telemetry API ──────────────────────────────────────────────────────────
 
 export class TelemetryApi {
-  /** Fetch historical telemetry readings for a hive (last N hours) */
-  static async getByHive(hiveId: string, hours = 48): Promise<TelemetryReading[]> {
+  /** Fetch historical telemetry readings for a smart scale (last N hours) */
+  static async getBySmartScale(smartScaleId: string, hours = 48): Promise<TelemetryReading[]> {
     try {
       const res = await api.get<{ data: TelemetryReading[] }>(
-        `/telemetry?hiveId=${hiveId}&hours=${hours}`
+        `/telemetry?smartScaleId=${smartScaleId}&hours=${hours}`
       );
       return res.data?.data ?? [];
     } catch (e) {
@@ -18,10 +18,10 @@ export class TelemetryApi {
     }
   }
 
-  /** Fetch the latest single reading for a hive (status card) */
-  static async getLatest(hiveId: string): Promise<TelemetryReading | null> {
+  /** Fetch the latest single reading for a smart scale (status card) */
+  static async getLatest(smartScaleId: string): Promise<TelemetryReading | null> {
     try {
-      const res = await api.get<{ data: TelemetryReading }>(`/telemetry/${hiveId}/latest`);
+      const res = await api.get<{ data: TelemetryReading }>(`/telemetry/latest?smartScaleId=${smartScaleId}`);
       return res.data?.data ?? null;
     } catch (e) {
       console.error("Error fetching latest telemetry:", e);
@@ -36,8 +36,18 @@ export class InspectionApi {
   /** Fetch all inspections for a hive, ordered by date desc */
   static async getByHive(hiveId: string): Promise<InspectionEntry[]> {
     try {
-      const res = await api.get<{ data: InspectionEntry[] }>(`/inspections?hiveId=${hiveId}`);
-      return res.data?.data ?? [];
+      const res = await api.get<{ data: any[] }>(`/hiveinspections?hiveId=${hiveId}`);
+      return (res.data?.data ?? []).map((item: any) => ({
+        id: item.id,
+        hiveId: item.hiveId,
+        inspectedAt: item.inspectionDate,
+        boardColor: item.bottomBoardColor,
+        framesOfHoney: item.honeyFrames,
+        honeyKg: item.honeyAmount,
+        framesOfBrood: item.broodFrames,
+        queenSeen: item.queenPresent,
+        notes: item.note,
+      }));
     } catch (e) {
       console.error("Error fetching inspections:", e);
       return [];
@@ -47,8 +57,25 @@ export class InspectionApi {
   /** Log a new inspection entry */
   static async create(payload: CreateInspectionPayload): Promise<InspectionEntry | null> {
     try {
-      const res = await api.post<{ data: InspectionEntry }>("/inspections", payload);
-      return res.data?.data ?? null;
+      const backendPayload = {
+        hiveId: payload.hiveId,
+        inspectionDate: new Date(payload.inspectedAt).toISOString(),
+        bottomBoardColor: payload.boardColor || "Unknown",
+        honeyFrames: payload.framesOfHoney || 0,
+        honeyAmount: payload.honeyKg || 0,
+        broodFrames: payload.framesOfBrood || 0,
+        queenPresent: payload.queenSeen,
+        note: payload.notes || ""
+      };
+      const res = await api.post<{ id: string }>("/hiveinspections", backendPayload);
+      const id = res.data?.id;
+      if (id) {
+        return {
+          id,
+          ...payload
+        };
+      }
+      return null;
     } catch (e) {
       console.error("Error creating inspection:", e);
       return null;
@@ -56,9 +83,9 @@ export class InspectionApi {
   }
 
   /** Delete an inspection entry */
-  static async delete(inspectionId: string): Promise<boolean> {
+  static async delete(inspectionId: string, hiveId: string): Promise<boolean> {
     try {
-      await api.delete(`/inspections/${inspectionId}`);
+      await api.delete(`/hiveinspections/${inspectionId}?hiveId=${hiveId}`);
       return true;
     } catch (e) {
       console.error("Error deleting inspection:", e);
@@ -72,11 +99,11 @@ export class InspectionApi {
 export class DevicePairingApi {
   /**
    * Pair a SmartScale device to a hive by serial number.
-   * POST /hives/{hiveId}/pair  { serialNumber: "SA-YYYY-XXXXX" }
+   * POST /smartscales/register  { apiaryId, hiveId, serialNumber }
    */
-  static async pair(hiveId: string, serialNumber: string): Promise<boolean> {
+  static async pair(apiaryId: string, hiveId: string, serialNumber: string): Promise<boolean> {
     try {
-      await api.post(`/hives/${hiveId}/pair`, { serialNumber });
+      await api.post(`/smartscales/register`, { apiaryId, hiveId, serialNumber });
       return true;
     } catch (e) {
       console.error("Error pairing device:", e);
@@ -86,11 +113,11 @@ export class DevicePairingApi {
 
   /**
    * Unpair / remove SmartScale from a hive.
-   * DELETE /hives/{hiveId}/pair
+   * DELETE /smartscales/unpair/{hiveId}
    */
   static async unpair(hiveId: string): Promise<boolean> {
     try {
-      await api.delete(`/hives/${hiveId}/pair`);
+      await api.delete(`/smartscales/unpair/${hiveId}`);
       return true;
     } catch (e) {
       console.error("Error unpairing device:", e);

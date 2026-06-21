@@ -88,7 +88,7 @@ export function TemperatureHumidityChart({ readings }: LineChartProps) {
 
   const data = sliced.map((r) => ({
     time: formatTime(r.timestamp),
-    temp: parseFloat(r.temperatureCelsius.toFixed(1)),
+    temp: parseFloat(r.temperatureC.toFixed(1)),
     humidity: parseFloat(r.humidityPercent.toFixed(0)),
   }));
 

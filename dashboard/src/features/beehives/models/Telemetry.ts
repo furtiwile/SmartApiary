@@ -8,7 +8,7 @@ export type TelemetryReading = {
   apiaryId: string;
   timestamp: string;        // ISO datetime
   weightKg: number;
-  temperatureCelsius: number;
+  temperatureC: number;
   humidityPercent: number;
   batteryPercent: number;
   isAlert: boolean;

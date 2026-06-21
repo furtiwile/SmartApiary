@@ -24,6 +24,13 @@ namespace SmartApiary.Domain.Models
             Status = status;
         }
 
+        public void Unpair()
+        {
+            HardwareId = string.Empty;
+            DeviceToken = string.Empty;
+            Status = DeviceStatusEnum.Unpaired;
+        }
+
         public void RefreshDeviceToken(string deviceToken)
         {
             DeviceToken = deviceToken;
@@ -145,6 +152,14 @@ namespace SmartApiary.Domain.Models
                     10.0
                 )
             );
+        }
+
+        public static string GenerateSerialNumber()
+        {
+            var random = new Random();
+            var year = DateTime.UtcNow.Year;
+            var randomFive = random.Next(10000, 99999);
+            return $"SA-{year}-{randomFive}";
         }
 
         /// <summary>
