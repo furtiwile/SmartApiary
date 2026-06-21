@@ -24,7 +24,7 @@ function imageOrFallback(src?: string) {
 function BeehivesPage() {
   const { user } = useAuth();
   const { success, error } = useNotify();
-  const { joinApiaryGroup, leaveApiaryGroup } = useApiarySignalR();
+  const { joinApiaryGroup, leaveApiaryGroup, connectionState } = useApiarySignalR();
   const { apiaries: apiaryApi, beehives: beehiveApi } = useApis();
 
   const queryClient = useQueryClient();
@@ -54,9 +54,9 @@ function BeehivesPage() {
     }
   }, [apiaries, activeApiaryId]);
 
-  // Join SignalR group when tab changes
+  // Join SignalR group when tab changes or connection establishes
   useEffect(() => {
-    if (!activeApiaryId) return;
+    if (!activeApiaryId || connectionState !== "Connected") return;
 
     // Join the new group
     joinApiaryGroup(activeApiaryId);
@@ -64,7 +64,7 @@ function BeehivesPage() {
     return () => {
       leaveApiaryGroup(activeApiaryId);
     };
-  }, [activeApiaryId, joinApiaryGroup, leaveApiaryGroup]);
+  }, [activeApiaryId, joinApiaryGroup, leaveApiaryGroup, connectionState]);
 
   async function confirmDeleteHive() {
     if (!deleteHiveTarget || !activeApiaryId) return;

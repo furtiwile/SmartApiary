@@ -21,13 +21,15 @@ export function ApiarySignalRProvider({ children }: { children: React.ReactNode 
   // ── Lifecycle ─────────────────────────────────────────────────────────────
   useEffect(() => {
     const conn = connection.current;
+    let isMounted = true;
 
-    conn.onreconnecting(() => setConnectionState(HubConnectionState.Reconnecting));
-    conn.onreconnected(() => setConnectionState(HubConnectionState.Connected));
-    conn.onclose(() => setConnectionState(HubConnectionState.Disconnected));
+    conn.onreconnecting(() => { if (isMounted) setConnectionState(HubConnectionState.Reconnecting); });
+    conn.onreconnected(() => { if (isMounted) setConnectionState(HubConnectionState.Connected); });
+    conn.onclose(() => { if (isMounted) setConnectionState(HubConnectionState.Disconnected); });
 
     // Listen for telemetry readings
     conn.on("ReceiveTelemetry", (reading: TelemetryReading) => {
+      if (!isMounted) return;
       setLatestReadings((prev) => ({ ...prev, [reading.hiveId]: reading }));
       telemetryHandlers.current.forEach((h) => h(reading));
 
@@ -45,12 +47,15 @@ export function ApiarySignalRProvider({ children }: { children: React.ReactNode 
 
     // Start connection
     const start = async () => {
+      if (!isMounted) return;
       if (conn.state === HubConnectionState.Disconnected) {
         try {
           await conn.start();
-          setConnectionState(HubConnectionState.Connected);
-        } catch (err) {
+          if (isMounted) setConnectionState(HubConnectionState.Connected);
+        } catch (err: any) {
+          if (!isMounted) return;
           console.error("SignalR start error:", err);
+          if (err.message && err.message.includes("abort")) return; // ignore aborts
           notifyError("Connection error", "Could not connect to real-time hub. Retrying…");
           setTimeout(start, 5000);
         }
@@ -60,6 +65,7 @@ export function ApiarySignalRProvider({ children }: { children: React.ReactNode 
     start();
 
     return () => {
+      isMounted = false;
       conn.off("ReceiveTelemetry");
       conn.stop();
     };
