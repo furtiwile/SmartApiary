@@ -96,7 +96,7 @@ export function SprayingAnnouncementModal({ parcelId, parcelName }: SprayingAnno
       const result = await sprayingApi.create({
         parcelId,
         preparationType: data.pesticideType,
-        startTime: data.scheduledAt,
+        startTime: new Date(data.scheduledAt).toISOString(),
         expectedDurationHours: data.durationHours,
         bypassWeatherValidation: data.bypassWeatherValidation,
       });
@@ -135,9 +135,11 @@ export function SprayingAnnouncementModal({ parcelId, parcelName }: SprayingAnno
     setCancelTarget(null);
   }
 
-  const [minDateTime] = useState(() =>
-    new Date(Date.now() + 5 * 60 * 1000).toISOString().slice(0, 16)
-  );
+  const [minDateTime] = useState(() => {
+    const d = new Date(Date.now() + 5 * 60 * 1000);
+    const offset = d.getTimezoneOffset() * 60000;
+    return new Date(d.getTime() - offset).toISOString().slice(0, 16);
+  });
 
   return (
     <>
