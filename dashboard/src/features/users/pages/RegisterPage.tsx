@@ -4,6 +4,7 @@ import { useAuth } from "../hooks/AuthHook";
 import { AuthApi } from "../api/AuthApi";
 import { PageLayout } from "../../../layouts/PageLayout";
 import type { UserRole } from "../models/UserRole";
+import { isAdminCreateFailure } from "../models/AuthResult";
 
 const MIN_NAME_LEN = 2;
 const MIN_EMAIL_LEN = 6;
@@ -13,7 +14,7 @@ export function RegisterPage() {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [role, setRole] = useState<UserRole>("Unknown");
+  const [role, setRole] = useState<Exclude<UserRole, "Unknown">>("Beekeeper");
   const { isAuthed, user } = useAuth();
   const navigate = useNavigate();
 
@@ -57,14 +58,23 @@ export function RegisterPage() {
 
     const result = await AuthApi.register(email, firstName, lastName, phoneNumber, role);
 
-    if (result.success) {
-      alert("Account created. Check your email for activation instructions.");
+    if (isAdminCreateFailure(result)) {
+      setEmail("");
+      alert(result.message);
+      return;
+    }
+
+    if (result.data?.userId) {
+      const activationMsg = result.data.activationLink
+        ? `\nActivation link: ${result.data.activationLink}`
+        : "";
+      alert(`Account created (userId: ${result.data.userId}).${activationMsg}`);
       navigate("/login");
       return;
     }
 
     setEmail("");
-    alert("Unknown error: Something went wrong...\n" + result.message);
+    alert(result.message || "Unknown error: Something went wrong...");
   }
   
 
@@ -168,10 +178,9 @@ export function RegisterPage() {
                   name="role"
                   id="role"
                   className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-black outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
-                  onChange={(event) => setRole(event.target.value as UserRole)}
-                  defaultValue="Unknown"
+                  onChange={(event) => setRole(event.target.value as Exclude<UserRole, "Unknown">)}
+                  defaultValue="Beekeeper"
                 >
-                  <option value="Unknown">Unknown</option>
                   <option value="Farmer">Farmer</option>
                   <option value="Beekeeper">Beekeeper</option>
                 </select>
