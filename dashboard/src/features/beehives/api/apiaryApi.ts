@@ -32,7 +32,7 @@ function normalizeApiary(apiary: ApiaryResponse): ApiaryDto {
  */
 export class ApiaryApi {
   /** Fetch all apiaries belonging to the current beekeeper */
-  static async getByBeekeeper(_beekeeperId: string): Promise<ApiaryDto[]> {
+  static async getByBeekeeper(): Promise<ApiaryDto[]> {
     try {
       const response = await api.get<{ data: ApiaryResponse[] }>("/apiaries");
       return (response.data?.data ?? []).map(normalizeApiary);
@@ -59,7 +59,7 @@ export class ApiaryApi {
       const response = await api.postForm<{ id: string }>("/apiaries", payload);
       const id = response.data?.id;
       if (id) {
-        const apiaries = await this.getByBeekeeper("");
+        const apiaries = await this.getByBeekeeper();
         const created = apiaries.find((apiary) => apiary.id === id);
         if (created) return created;
 

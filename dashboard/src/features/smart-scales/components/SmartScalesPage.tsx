@@ -1,40 +1,29 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Copy, Check, Scale } from "lucide-react";
 import { smartScalesApi } from "../api/smartScalesApi";
-import type { SmartScale } from "../types";
 
 export function SmartScalesPage() {
-  const [scales, setScales] = useState<SmartScale[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [generating, setGenerating] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const fetchScales = async () => {
-    try {
-      setLoading(true);
-      const data = await smartScalesApi.getUnpaired();
-      setScales(data);
-    } catch (error) {
-      console.error("Failed to fetch smart scales", error);
-    } finally {
-      setLoading(false);
+  const { data: scales = [], isLoading: loading } = useQuery({
+    queryKey: ["unpaired-scales"],
+    queryFn: () => smartScalesApi.getUnpaired(),
+  });
+
+  const { mutateAsync: generateScale, isPending: generating } = useMutation({
+    mutationFn: () => smartScalesApi.create(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["unpaired-scales"] });
+    },
+    onError: (error) => {
+      console.error("Failed to create smart scale", error);
     }
-  };
-
-  useEffect(() => {
-    fetchScales();
-  }, []);
+  });
 
   const handleGenerate = async () => {
-    try {
-      setGenerating(true);
-      await smartScalesApi.create();
-      await fetchScales();
-    } catch (error) {
-      console.error("Failed to create smart scale", error);
-    } finally {
-      setGenerating(false);
-    }
+    await generateScale();
   };
 
   const handleCopy = async (id: string, serialNumber: string) => {

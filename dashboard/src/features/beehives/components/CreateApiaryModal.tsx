@@ -6,7 +6,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { PlusCircle, X, Hexagon } from "lucide-react";
 import { useNotify } from "../../../hooks/useNotify";
 import type { ApiaryDto } from "../models/Apiary";
-import { useApis } from "../../../shared/api/useApis";
+import { useApiaries } from "../hooks/useApiaries";
 
 const schema = z.object({
   Name: z.string().min(1, "Apiary name is required."),
@@ -25,7 +25,7 @@ interface CreateApiaryModalProps {
 export function CreateApiaryModal({ onCreated }: CreateApiaryModalProps) {
   const [open, setOpen] = useState(false);
   const { success, error } = useNotify();
-  const { apiaries: apiaryApi } = useApis();
+  const { createApiary } = useApiaries();
 
   const {
     register,
@@ -39,13 +39,13 @@ export function CreateApiaryModal({ onCreated }: CreateApiaryModalProps) {
 
   async function onSubmit(data: SchemaType) {
     try {
-      const result = await apiaryApi.create({ 
+      const result = await createApiary({ 
         Name: data.Name.trim(), 
         Latitude: data.Latitude, 
         Longitude: data.Longitude,
         Description: data.Description.trim(),
         ImageFile: (data.ImageFile as FileList)[0],
-      });
+      } as unknown as Parameters<typeof createApiary>[0]);
       if (result) {
         success("Apiary created", `"${result.name}" has been added to your account.`);
         onCreated(result);

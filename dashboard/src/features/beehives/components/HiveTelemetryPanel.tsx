@@ -1,13 +1,11 @@
-import { useEffect, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { TelemetryStatusCards } from "./TelemetryStatusCards";
 import { NectarDeltaChart, TemperatureHumidityChart } from "./TelemetryCharts";
 import { HiveDiary } from "./HiveDiary";
 import { DevicePairingModal } from "./DevicePairingModal";
-import { useApiarySignalR } from "../hooks/useApiarySignalR";
-import type { TelemetryReading } from "../models/Telemetry";
 import type { Beehive } from "../models/Beehive";
-import { useApis } from "../../../shared/api/useApis";
+import { useTelemetryData } from "../hooks/useTelemetryData";
 
 interface HiveTelemetryPanelProps {
   hive: Beehive;
@@ -15,35 +13,10 @@ interface HiveTelemetryPanelProps {
 
 export function HiveTelemetryPanel({ hive }: HiveTelemetryPanelProps) {
   const queryClient = useQueryClient();
-  const { telemetry: telemetryApi } = useApis();
 
   const [isPaired, setIsPaired] = useState(!!hive.smartScaleId);
-  const [isLive, setIsLive] = useState(false);
 
-  const { data: history = [], isLoading } = useQuery({
-    queryKey: ["telemetry", hive.smartScaleId],
-    queryFn: () => telemetryApi.getBySmartScale(hive.smartScaleId!),
-    enabled: isPaired && !!hive.smartScaleId,
-  });
-
-  const { onTelemetry, latestReadings } = useApiarySignalR();
-
-  // Subscribe to live updates from the SignalR context
-  useEffect(() => {
-    const unsub = onTelemetry((reading) => {
-      if (reading.hiveId !== hive.id) return;
-      setIsLive(true);
-      if (hive.smartScaleId) {
-        queryClient.setQueryData<TelemetryReading[]>(["telemetry", hive.smartScaleId], (old) => [
-          ...(old || []).slice(-499),
-          reading,
-        ]);
-      }
-    });
-    return unsub;
-  }, [hive.id, hive.smartScaleId, onTelemetry, queryClient]);
-
-  const displayLatest = latestReadings[hive.id] || (history.length > 0 ? history[history.length - 1] : null);
+  const { history, isLoading, isLive, displayLatest } = useTelemetryData(hive, isPaired);
 
   if (!isPaired) {
     return (
@@ -107,7 +80,7 @@ export function HiveTelemetryPanel({ hive }: HiveTelemetryPanelProps) {
       )}
 
       {/* Hive Diary */}
-      <HiveDiary hiveId={hive.id} hiveName={hive.name} />
+      <HiveDiary hiveId={hive.id} />
     </div>
   );
 }
