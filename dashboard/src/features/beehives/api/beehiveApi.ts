@@ -61,7 +61,8 @@ export class BeehiveApi {
           id,
           apiaryId: payload.apiaryId,
           name: payload.designation, // Frontend uses name, payload uses designation
-          type: payload.type,
+          designation: payload.designation,
+          type: payload.type as Beehive["type"],
           superColor: payload.superColor,
           queenAge: payload.queenAge,
           note: payload.note,
