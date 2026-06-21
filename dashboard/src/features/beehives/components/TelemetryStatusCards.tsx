@@ -82,7 +82,7 @@ export function TelemetryStatusCards({ latest, isLive }: TelemetryStatusCardsPro
         <StatCard
           icon={Thermometer}
           label="Temperature"
-          value={latest.temperatureCelsius.toFixed(1)}
+          value={latest.temperatureC.toFixed(1)}
           unit="°C"
           color="bg-rose-500/10 text-rose-400"
         />

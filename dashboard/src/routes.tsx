@@ -6,6 +6,7 @@ import { LoginPage } from "./features/users/pages/LoginPage";
 import { RegisterPage } from "./features/users/pages/RegisterPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AdminRoute } from "./components/AdminRoute";
+import { SmartScalesPage } from "./features/smart-scales/components/SmartScalesPage";
 
 export const router = createBrowserRouter([
   {
@@ -33,6 +34,7 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <DashboardPage /> },
           { path: "farms", element: <FarmsPage /> },
+          { path: "smart-scales", element: <SmartScalesPage /> },
         ],
       },
     ],

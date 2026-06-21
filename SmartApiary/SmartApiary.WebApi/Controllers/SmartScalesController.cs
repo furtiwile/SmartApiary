@@ -21,6 +21,27 @@ namespace SmartApiary.WebApi.Controllers
             return result.ToActionResult();
         }
 
+        [HttpDelete("unpair/{hiveId}")]
+        public async Task<IActionResult> Unpair(string hiveId, CancellationToken ct)
+        {
+            var result = await mediator.Send(new UnpairSmartScaleCommand(hiveId), ct);
+            return result.ToActionResult();
+        }
+
+        [HttpGet("unpaired")]
+        public async Task<IActionResult> GetUnpaired(CancellationToken ct)
+        {
+            var result = await mediator.Send(new SmartApiary.Application.Features.SmartScales.Queries.GetUnpairedSmartScalesQuery(), ct);
+            return result.ToActionResult();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create(CancellationToken ct)
+        {
+            var result = await mediator.Send(new SmartApiary.Application.Features.SmartScales.Commands.CreateSmartScaleCommand(), ct);
+            return result.ToActionResult();
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetByBeekeeper(CancellationToken ct)
         {

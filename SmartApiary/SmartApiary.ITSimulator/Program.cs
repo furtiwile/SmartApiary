@@ -34,9 +34,11 @@ while (true)
     {
         Console.WriteLine("Select action:");
         Console.WriteLine("  1) Process SmartScale IDs (activate if needed and start telemetry)");
-        Console.WriteLine("  2) Start telemetry loop for a persisted SmartScale");
-        Console.WriteLine("  3) Exit");
-        Console.Write("Choice (1-3): ");
+        Console.WriteLine("  2) Start telemetry loop for a single persisted SmartScale");
+        Console.WriteLine("  3) Start telemetry loop for ALL persisted SmartScales");
+        Console.WriteLine("  4) Auto-discover and simulate ALL paired Smart Scales from Database");
+        Console.WriteLine("  5) Exit");
+        Console.Write("Choice (1-5): ");
         var choice = Console.ReadLine()?.Trim() ?? string.Empty;
 
         if (choice == "1")
@@ -95,6 +97,46 @@ while (true)
             Console.ResetColor();
         }
         else if (choice == "3")
+        {
+            var devices = smartSimulator.LoadDevices().ToList();
+            if (!devices.Any())
+            {
+                ConsoleUI.PrintError("No persisted devices found. Pair one first.");
+                continue;
+            }
+
+            foreach (var device in devices)
+            {
+                if (string.IsNullOrWhiteSpace(device.HiveId))
+                {
+                    device.HiveId = smartSimulator.PromptForHiveId(device.SerialNumber);
+                    smartSimulator.SaveDevice(device);
+                }
+                _ = Task.Run(() => smartSimulator.StartTelemetryLoopAsync(device, delayMs));
+            }
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"Started telemetry loop for ALL {devices.Count} devices.");
+            Console.ResetColor();
+        }
+        else if (choice == "4")
+        {
+            Console.WriteLine("Auto-discovering paired smart scales from Azurite...");
+            var discovered = await smartSimulator.AutoDiscoverFromDatabaseAsync();
+            if (!discovered.Any())
+            {
+                ConsoleUI.PrintError("No paired Smart Scales found in the database.");
+                continue;
+            }
+            
+            foreach (var device in discovered)
+            {
+                _ = Task.Run(() => smartSimulator.StartTelemetryLoopAsync(device, delayMs));
+            }
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"Started telemetry loop for ALL {discovered.Count()} discovered devices.");
+            Console.ResetColor();
+        }
+        else if (choice == "5")
         {
             Console.WriteLine("Exiting.");
             break;

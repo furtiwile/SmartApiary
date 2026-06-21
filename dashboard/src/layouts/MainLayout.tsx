@@ -44,6 +44,14 @@ function AccountActions({ isAuthed, user, logout }: AccountActionsProps) {
         </li>
       )}
       <li>
+        <Link
+          to="/dashboard/smart-scales"
+          className="text-sm font-bold tracking-wide text-slate-400 hover:text-cyan-400 transition-colors duration-200"
+        >
+          SMART SCALES
+        </Link>
+      </li>
+      <li>
         <span className="text-sm font-bold tracking-wide text-slate-400">
           {displayName}
         </span>

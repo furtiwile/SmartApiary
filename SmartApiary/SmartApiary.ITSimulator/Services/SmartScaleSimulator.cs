@@ -151,5 +151,78 @@ namespace SmartApiary.ITSimulator.Services
                 await Task.Delay(delayMs);
             }
         }
+
+        public async Task<IEnumerable<SmartScaleDevice>> AutoDiscoverFromDatabaseAsync()
+        {
+            var discovered = new List<SmartScaleDevice>();
+            try
+            {
+                var connectionString = "UseDevelopmentStorage=true";
+                var scalesTable = new Azure.Data.Tables.TableClient(connectionString, "SmartScales");
+                var hivesTable = new Azure.Data.Tables.TableClient(connectionString, "Hives");
+
+                var allHives = hivesTable.QueryAsync<Azure.Data.Tables.TableEntity>();
+
+                await foreach (var hiveEntity in allHives)
+                {
+                    var smartScaleId = hiveEntity.GetString("SmartScaleId");
+                    var hiveId = hiveEntity.RowKey;
+
+                    if (string.IsNullOrWhiteSpace(smartScaleId))
+                        continue;
+
+                    // Find the scale (it could be in Unpaired or Paired partition)
+                    var scales = scalesTable.QueryAsync<Azure.Data.Tables.TableEntity>(filter: $"RowKey eq '{smartScaleId}'");
+                    string? serialNumber = null;
+                    string? deviceToken = null;
+                    string? hardwareId = null;
+
+                    await foreach (var scaleEntity in scales)
+                    {
+                        serialNumber = scaleEntity.GetString("SerialNumber");
+                        deviceToken = scaleEntity.GetString("DeviceToken");
+                        hardwareId = scaleEntity.GetString("HardwareId");
+                        break;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(serialNumber))
+                    {
+                        // Even if it's Unpaired, we have the serial number. We need to activate it to get a token!
+                        if (string.IsNullOrWhiteSpace(deviceToken))
+                        {
+                            hardwareId = Guid.NewGuid().ToString();
+                            var activation = await _client.ActivateAsync(serialNumber, hardwareId);
+                            if (activation.IsSuccess && !string.IsNullOrWhiteSpace(activation.DeviceToken))
+                            {
+                                deviceToken = activation.DeviceToken;
+                                Console.WriteLine($"Activated auto-discovered scale: {serialNumber}");
+                            }
+                            else
+                            {
+                                ConsoleUI.PrintError($"Failed to activate {serialNumber}.");
+                                continue;
+                            }
+                        }
+
+                        var device = new SmartScaleDevice
+                        {
+                            SerialNumber = serialNumber,
+                            HardwareId = hardwareId ?? string.Empty,
+                            DeviceToken = deviceToken,
+                            HiveId = hiveId,
+                            PairedAt = DateTime.UtcNow
+                        };
+                        SaveDevice(device); 
+                        discovered.Add(device);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ConsoleUI.PrintError($"Error auto-discovering: {ex.Message}");
+            }
+
+            return discovered;
+        }
     }
 }
