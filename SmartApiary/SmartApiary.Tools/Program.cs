@@ -34,6 +34,7 @@ Console.WriteLine("3) Clear Azure Queues");
 Console.WriteLine("4) Clear SQL Tables");
 Console.WriteLine("5) Insert test users into SQL");
 Console.WriteLine("6) Initialize SQL Schema (Users, Apiaries, Parcels)");
+Console.WriteLine("7) Fix Blob Container Access (Set to BlobContainer)");
 Console.WriteLine("0) Exit");
 Console.WriteLine();
 
@@ -63,6 +64,9 @@ while (true)
                 break;
             case "6":
                 await EnsureSqlSchemaAsync(GetSqlConnectionString());
+                break;
+            case "7":
+                await FixBlobsAsync(defaultStorageConnectionString, blobContainers);
                 break;
             case "0":
                 return;
@@ -133,7 +137,31 @@ async Task ClearBlobsAsync(string connectionString, IReadOnlyCollection<string> 
             Console.ResetColor();
 
             Console.Write($"Creating blob container: {containerName}...");
-            await containerClient.CreateIfNotExistsAsync(PublicAccessType.None);
+            await containerClient.CreateIfNotExistsAsync(PublicAccessType.BlobContainer);
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine(" [OK]");
+            Console.ResetColor();
+        }
+        catch (Exception ex)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($" [FAILED] - {ex.Message}");
+            Console.ResetColor();
+        }
+    }
+}
+
+async Task FixBlobsAsync(string connectionString, IReadOnlyCollection<string> containers)
+{
+    var blobServiceClient = new BlobServiceClient(connectionString);
+
+    foreach (var containerName in containers)
+    {
+        try
+        {
+            var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+            Console.Write($"Setting access level for blob container: {containerName}...");
+            await containerClient.SetAccessPolicyAsync(PublicAccessType.BlobContainer);
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine(" [OK]");
             Console.ResetColor();
