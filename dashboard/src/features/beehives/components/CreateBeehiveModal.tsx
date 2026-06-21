@@ -4,9 +4,9 @@ import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as Dialog from "@radix-ui/react-dialog";
 import { PlusCircle, X, Hexagon } from "lucide-react";
-import { BeehiveApi } from "../api/beehiveApi";
 import { useNotify } from "../../../hooks/useNotify";
 import type { Beehive } from "../models/Beehive";
+import { useApis } from "../../../shared/api/useApis";
 
 const schema = z.object({
   designation: z.string().min(1, "Designation is required"),
@@ -26,6 +26,7 @@ interface CreateBeehiveModalProps {
 export function CreateBeehiveModal({ apiaryId, onCreated }: CreateBeehiveModalProps) {
   const [open, setOpen] = useState(false);
   const { success, error } = useNotify();
+  const { beehives: beehiveApi } = useApis();
 
   const {
     register,
@@ -39,7 +40,7 @@ export function CreateBeehiveModal({ apiaryId, onCreated }: CreateBeehiveModalPr
 
   async function onSubmit(data: SchemaType) {
     try {
-      const result = await BeehiveApi.create({
+      const result = await beehiveApi.create({
         ...data,
         apiaryId,
         note: data.note || "",

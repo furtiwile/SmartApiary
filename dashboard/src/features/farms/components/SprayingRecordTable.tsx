@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { FileText, Download, RefreshCw, Search } from "lucide-react";
-import { SprayingApi } from "../api/sprayingApi";
+import { useApis } from "../../../shared/api/useApis";
 
 interface SprayingRecordTableProps {
   parcelId: string;
@@ -24,9 +24,11 @@ function SortIcon({ currentField, sortField, sortDir }: { currentField: SortFiel
 }
 
 export function SprayingRecordTable({ parcelId, parcelName }: SprayingRecordTableProps) {
+  const { spraying: sprayingApi } = useApis();
+
   const { data: records = [], isLoading, refetch } = useQuery({
     queryKey: ["sprayingRecords", parcelId],
-    queryFn: () => SprayingApi.getRecordsByParcel(parcelId),
+    queryFn: () => sprayingApi.getRecordsByParcel(parcelId),
     enabled: !!parcelId,
   });
 
@@ -65,7 +67,7 @@ export function SprayingRecordTable({ parcelId, parcelName }: SprayingRecordTabl
   async function handleExportPDF() {
     try {
       setIsExporting(true);
-      const blob = await SprayingApi.exportRecordsPdf(parcelId);
+      const blob = await sprayingApi.exportRecordsPdf(parcelId);
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;

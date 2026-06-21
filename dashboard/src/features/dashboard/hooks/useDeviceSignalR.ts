@@ -3,11 +3,12 @@ import { useEffect, useState } from "react";
 import { HubConnectionState } from "@microsoft/signalr";
 import { useLogger } from "../../../shared/logger/useLogger";
 import type { DeviceStatus } from "../models/DeviceStatus";
-import { getDeviceStatuses } from "../api/getDeviceStatuses";
+import { useApis } from "../../../shared/api/useApis";
 
 export const useDeviceSignalR = (eventName: string) => {
   const logger = useLogger();
   const { connection, state } = useSignalR();
+  const { dashboard } = useApis();
 
   const [devices, setDevices] = useState<DeviceStatus[]>([]);
 
@@ -18,7 +19,7 @@ export const useDeviceSignalR = (eventName: string) => {
 
     const fetchInitialData = async () => {
       try {
-        const initial = await getDeviceStatuses();
+        const initial = await dashboard.getDeviceStatuses();
         if (isMounted) {
           setDevices(initial);
           logger.info("Initial device statuses fetched.");
@@ -51,7 +52,7 @@ export const useDeviceSignalR = (eventName: string) => {
       isMounted = false;
       connection.off(eventName);
     };
-  }, [connection, state, eventName, logger]);
+  }, [connection, state, eventName, logger, dashboard]);
 
   return { devices, state };
 };

@@ -4,8 +4,8 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Link2, X, ShieldCheck } from "lucide-react";
-import { DevicePairingApi } from "../api/telemetryApi";
 import { useNotify } from "../../../hooks/useNotify";
+import { useApis } from "../../../shared/api/useApis";
 
 const SERIAL_REGEX = /^SA-\d{4}-\d{5}$/;
 
@@ -33,6 +33,7 @@ export function DevicePairingModal({
   const [open, setOpen] = useState(false);
   const [isSubmittingUnpair, setIsSubmittingUnpair] = useState(false);
   const { success, error } = useNotify();
+  const { devicePairing: devicePairingApi } = useApis();
 
   const {
     register,
@@ -50,7 +51,7 @@ export function DevicePairingModal({
 
   async function onSubmit(data: SchemaType) {
     try {
-      const ok = await DevicePairingApi.pair(hiveId, data.serialNumber);
+      const ok = await devicePairingApi.pair(hiveId, data.serialNumber);
       if (ok) {
         success(
           "Device paired",
@@ -71,7 +72,7 @@ export function DevicePairingModal({
   async function handleUnpair() {
     setIsSubmittingUnpair(true);
     try {
-      const ok = await DevicePairingApi.unpair(hiveId);
+      const ok = await devicePairingApi.unpair(hiveId);
       if (ok) {
         success("Device unpaired", `The SmartScale has been unlinked from "${hiveName}".`);
         setOpen(false);

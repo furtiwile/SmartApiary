@@ -4,11 +4,11 @@ import { z } from "zod";
 import { useForm, useWatch, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ClipboardList, PlusCircle, Trash2, Check, ChevronDown, ChevronUp } from "lucide-react";
-import { InspectionApi } from "../api/telemetryApi";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import { useNotify } from "../../../hooks/useNotify";
 import type { InspectionEntry } from "../models/Inspection";
 import { BOARD_COLORS } from "../models/Inspection";
+import { useApis } from "../../../shared/api/useApis";
 
 interface HiveDiaryProps {
   hiveId: string;
@@ -32,11 +32,12 @@ type SchemaType = z.infer<typeof schema>;
 
 export function HiveDiary({ hiveId, hiveName }: HiveDiaryProps) {
   const queryClient = useQueryClient();
+  const { inspections: inspectionApi } = useApis();
 
   const { data: entries = [], isLoading } = useQuery({
     queryKey: ["inspections", hiveId],
     queryFn: () =>
-      InspectionApi.getByHive(hiveId).then((data) =>
+      inspectionApi.getByHive(hiveId).then((data) =>
         data.sort((a, b) => b.inspectedAt.localeCompare(a.inspectedAt))
       ),
     enabled: !!hiveId,
@@ -75,7 +76,7 @@ export function HiveDiary({ hiveId, hiveName }: HiveDiaryProps) {
 
   async function onSubmit(data: SchemaType) {
     try {
-      const result = await InspectionApi.create({ ...data, hiveId });
+      const result = await inspectionApi.create({ ...data, hiveId });
       if (result) {
         queryClient.setQueryData<InspectionEntry[]>(["inspections", hiveId], (old) => [
           result,
@@ -94,7 +95,7 @@ export function HiveDiary({ hiveId, hiveName }: HiveDiaryProps) {
 
   async function handleDelete() {
     if (!confirmDeleteId) return;
-    const ok = await InspectionApi.delete(confirmDeleteId);
+    const ok = await inspectionApi.delete(confirmDeleteId);
     if (ok) {
       queryClient.setQueryData<InspectionEntry[]>(["inspections", hiveId], (old) =>
         old?.filter((e) => e.id !== confirmDeleteId)

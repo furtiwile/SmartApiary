@@ -2,8 +2,8 @@ import React, { useEffect } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { uploadFirmware } from "../api/uploadFirmware";
 import toast from "react-hot-toast";
+import { useApis } from "../../../shared/api/useApis";
 
 const schema = z.object({
   deviceType: z.string().min(1, "Device Type is required"),
@@ -24,6 +24,8 @@ export const FirmwareUploadModal: React.FC<FirmwareUploadModalProps> = ({
   open,
   onClose,
 }) => {
+  const { devices: devicesApi } = useApis();
+
   const {
     register,
     handleSubmit,
@@ -44,7 +46,7 @@ export const FirmwareUploadModal: React.FC<FirmwareUploadModalProps> = ({
 
   const onSubmit = async (data: SchemaType) => {
     try {
-      await uploadFirmware({
+      await devicesApi.uploadFirmware({
         deviceType: data.deviceType,
         version: data.version,
         firmwareFile: data.firmwareFile[0],

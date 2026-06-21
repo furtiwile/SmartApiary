@@ -5,13 +5,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Siren, PlusCircle, X, XCircle, CheckCircle, Clock, AlertTriangle } from "lucide-react";
-import { SprayingApi } from "../api/sprayingApi";
-import { GeoApi } from "../../maps/api/geoApi";
 import { useNotify } from "../../../hooks/useNotify";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import { useAuth } from "../../users/hooks/AuthHook";
 import type { SprinklingStatus } from "../models/Sprinkling";
 import type { ParcelDto } from "../models/Parcel";
+import { useApis } from "../../../shared/api/useApis";
 
 const PESTICIDE_TYPES = [
   "Herbicide", "Fungicide", "Insecticide", "Rodenticide", "Nematicide", "Other",
@@ -49,10 +48,11 @@ export function SprayingAnnouncementModal({ parcelId, parcelName }: SprayingAnno
   const queryClient = useQueryClient();
   const { success, error, warning } = useNotify();
   const { user } = useAuth();
+  const { geo: geoApi, spraying: sprayingApi } = useApis();
 
   const { data: announcements = [], isLoading } = useQuery({
     queryKey: ["announcements", parcelId],
-    queryFn: () => SprayingApi.getByParcel(parcelId),
+    queryFn: () => sprayingApi.getByParcel(parcelId),
     enabled: open,
   });
 
@@ -72,7 +72,7 @@ export function SprayingAnnouncementModal({ parcelId, parcelName }: SprayingAnno
         const parcels = queryClient.getQueryData<ParcelDto[]>(["parcels", user?.id]) || [];
         const parcel = parcels.find(p => p.id === parcelId);
         if (parcel) {
-          const weather = await GeoApi.getWeather(parcel.latitude, parcel.longitude);
+          const weather = await geoApi.getWeather(parcel.latitude, parcel.longitude);
           if (weather) {
             if (weather.windSpeed > 5.0) {
               setWeatherWarning("Bad weather conditions - postponing is recommended. Wind speed is too high.");
@@ -93,7 +93,7 @@ export function SprayingAnnouncementModal({ parcelId, parcelName }: SprayingAnno
 
   async function doSubmit(data: SchemaType) {
     try {
-      const result = await SprayingApi.create({
+      const result = await sprayingApi.create({
         parcelId,
         preparationType: data.pesticideType,
         startTime: data.scheduledAt,
@@ -123,7 +123,7 @@ export function SprayingAnnouncementModal({ parcelId, parcelName }: SprayingAnno
 
   async function handleCancel() {
     if (!cancelTarget) return;
-    const ok = await SprayingApi.cancel(cancelTarget, parcelId);
+    const ok = await sprayingApi.cancel(cancelTarget, parcelId);
     if (ok) {
       queryClient.setQueryData<typeof announcements>(["announcements", parcelId], (old) =>
         old?.map((a) => a.id === cancelTarget ? { ...a, status: "Cancelled" } : a)

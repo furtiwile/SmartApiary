@@ -4,9 +4,9 @@ import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as Dialog from "@radix-ui/react-dialog";
 import { PlusCircle, X, Hexagon } from "lucide-react";
-import { ApiaryApi } from "../api/apiaryApi";
 import { useNotify } from "../../../hooks/useNotify";
 import type { ApiaryDto } from "../models/Apiary";
+import { useApis } from "../../../shared/api/useApis";
 
 const schema = z.object({
   Name: z.string().min(1, "Apiary name is required."),
@@ -25,6 +25,7 @@ interface CreateApiaryModalProps {
 export function CreateApiaryModal({ onCreated }: CreateApiaryModalProps) {
   const [open, setOpen] = useState(false);
   const { success, error } = useNotify();
+  const { apiaries: apiaryApi } = useApis();
 
   const {
     register,
@@ -38,7 +39,7 @@ export function CreateApiaryModal({ onCreated }: CreateApiaryModalProps) {
 
   async function onSubmit(data: SchemaType) {
     try {
-      const result = await ApiaryApi.create({ 
+      const result = await apiaryApi.create({ 
         Name: data.Name.trim(), 
         Latitude: data.Latitude, 
         Longitude: data.Longitude,

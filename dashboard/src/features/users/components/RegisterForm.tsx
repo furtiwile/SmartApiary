@@ -3,9 +3,9 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
 import { UserPlus, Mail, Phone, User, Shield } from "lucide-react";
-import { AuthApi } from "../api/AuthApi";
 import { useNotify } from "../../../hooks/useNotify";
 import type { UserRole } from "../models/UserRole";
+import { useApis } from "../../../shared/api/useApis";
 
 const MIN_NAME_LEN = 2;
 
@@ -27,6 +27,7 @@ type SchemaType = z.infer<typeof schema>;
 export function RegisterForm() {
   const { success, error } = useNotify();
   const navigate = useNavigate();
+  const { auth } = useApis();
 
   const {
     register,
@@ -43,7 +44,7 @@ export function RegisterForm() {
 
   async function onSubmit(data: SchemaType) {
     try {
-      const result = await AuthApi.register(data.email, data.firstName, data.lastName, data.phoneNumber, data.role as "Farmer" | "Beekeeper" | "Admin");
+      const result = await auth.register(data.email, data.firstName, data.lastName, data.phoneNumber, data.role as "Farmer" | "Beekeeper" | "Admin");
 
       if (result.success) {
         success(
