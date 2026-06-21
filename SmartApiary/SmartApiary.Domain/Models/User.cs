@@ -43,13 +43,13 @@ namespace SmartApiary.Domain.Models
         /// <param name="role"></param>
         /// <param name="isActive"></param>
         private User(
-            EntityId id, 
-            string email, 
-            string firstName, 
-            string lastName, 
+            EntityId id,
+            string email,
+            string firstName,
+            string lastName,
             string phoneNumber,
-            string passwordHash, 
-            RoleType role, 
+            string passwordHash,
+            RoleType role,
             bool isActive = true
         )
         {
@@ -75,12 +75,12 @@ namespace SmartApiary.Domain.Models
         /// <param name="active"></param>
         /// <returns></returns>
         public static Result<User> Create(
-            string email, 
-            string firstName, 
+            string email,
+            string firstName,
             string lastName,
-            string phoneNumber, 
-            string password, 
-            RoleType role, 
+            string phoneNumber,
+            string password,
+            RoleType role,
             bool active = true
         )
         {

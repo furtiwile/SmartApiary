@@ -13,7 +13,7 @@ namespace SmartApiary.Domain.Models
         public EntityId FarmerId { get; private set; }
         public Point Location { get; private set; }
         public ICollection<Crop> Crops { get; private set; } = [];
-        
+
         public ICollection<SprinklingAnnouncement> Announcements { get; private set; } = [];
 
         /// <summary>
@@ -24,7 +24,7 @@ namespace SmartApiary.Domain.Models
         /// <param name="latitude"></param>
         /// <param name="longitude"></param>
         /// <param name="farmerId"></param>
-        private Parcel(EntityId id, string name,Point location, EntityId farmerId)
+        private Parcel(EntityId id, string name, Point location, EntityId farmerId)
         {
             Id = id;
             Name = name;
@@ -84,7 +84,7 @@ namespace SmartApiary.Domain.Models
                 new Parcel(
                     idResult.Value,
                     name,
-                    location,               
+                    location,
                     farmerIdResult.Value
                 )
             );

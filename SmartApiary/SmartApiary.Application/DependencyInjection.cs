@@ -2,7 +2,6 @@
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using SmartApiary.Application.Common.Behaviors;
-using SmartApiary.Application.Extensions;
 using System.Reflection;
 
 namespace SmartApiary.Application
@@ -14,8 +13,6 @@ namespace SmartApiary.Application
             var assembly = Assembly.GetExecutingAssembly();
 
             services.AddValidatorsFromAssembly(assembly);
-
-            services.AddMappers();
 
             services.AddMediatR(cfg =>
             {

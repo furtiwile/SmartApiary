@@ -3,11 +3,6 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Queues;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace SmartApiary.WebApi.Controllers
 {
@@ -76,7 +71,7 @@ namespace SmartApiary.WebApi.Controllers
                     var connStr = Environment.GetEnvironmentVariable("SMARTAPIARY_SQL_CONNECTION_STRING") ?? SqlConnectionString;
                     await using var conn = new SqlConnection(connStr);
                     await conn.OpenAsync();
-                    
+
                     var query = $"SELECT COUNT(*) FROM dbo.{tableName};";
                     await using var cmd = new SqlCommand(query, conn);
                     var scalarVal = await cmd.ExecuteScalarAsync();
@@ -136,7 +131,7 @@ namespace SmartApiary.WebApi.Controllers
                     var query = $"SELECT * FROM dbo.{tableName};";
                     await using var cmd = new SqlCommand(query, conn);
                     await using var reader = await cmd.ExecuteReaderAsync();
-                    
+
                     var list = new List<Dictionary<string, object>>();
 
                     while (await reader.ReadAsync())
@@ -146,7 +141,7 @@ namespace SmartApiary.WebApi.Controllers
                         {
                             var name = reader.GetName(i);
                             var val = reader.GetValue(i);
-                            
+
                             if (val != null && (val.GetType().Name == "SqlGeography" || (val.GetType().FullName?.Contains("Spatial") == true) || val.GetType().Name.Contains("Geography")))
                             {
                                 row[name] = val.ToString() ?? string.Empty;
@@ -215,7 +210,7 @@ namespace SmartApiary.WebApi.Controllers
                 {
                     var queueClient = queueServiceClient.GetQueueClient(queue.Name);
                     var props = await queueClient.GetPropertiesAsync();
-                    
+
                     result.Add(new
                     {
                         queueName = queue.Name,

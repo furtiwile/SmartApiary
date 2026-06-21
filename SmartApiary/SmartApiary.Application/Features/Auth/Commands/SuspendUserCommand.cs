@@ -31,7 +31,7 @@ namespace SmartApiary.Application.Features.Auth.Commands
 
             user.ToggleActive();
 
-            await userRepository.UpadateUserAsync(user, ct);
+            await userRepository.UpdateUserAsync(user, ct);
 
             return Result.Success();
         }

@@ -1,13 +1,12 @@
 using FluentValidation;
 using MediatR;
-using SmartApiary.Application.Interfaces.Repositories;
+using NetTopologySuite.Geometries;
 using SmartApiary.Application.Interfaces;
+using SmartApiary.Application.Interfaces.Repositories;
 using SmartApiary.Application.Interfaces.Storage;
-using SmartApiary.Application.Features.Apiaries;
 using SmartApiary.Domain.Common;
 using SmartApiary.Domain.Enums;
 using SmartApiary.Domain.ValueObjects;
-using NetTopologySuite.Geometries;
 
 namespace SmartApiary.Application.Features.Apiaries.Commands
 {
@@ -28,7 +27,8 @@ namespace SmartApiary.Application.Features.Apiaries.Commands
             RuleFor(x => x.ApiaryId).NotEmpty();
             RuleFor(x => x.Name).NotEmpty();
             RuleFor(x => x.Description).NotEmpty();
-            When(x => x.ImageFile != null && x.ImageFile.Content != null && x.ImageFile.Content.Length > 0, () => {
+            When(x => x.ImageFile != null && x.ImageFile.Content != null && x.ImageFile.Content.Length > 0, () =>
+            {
                 RuleFor(x => x.ImageFile!.FileName)
                     .NotEmpty().WithMessage("Apiary image filename is required.")
                     .Must(name =>

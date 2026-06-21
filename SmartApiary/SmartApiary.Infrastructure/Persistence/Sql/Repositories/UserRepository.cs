@@ -103,7 +103,7 @@ VALUES
             await command.ExecuteNonQueryAsync(ct);
         }
 
-        public async Task UpadateUserAsync(User user, CancellationToken ct = default)
+        public async Task UpdateUserAsync(User user, CancellationToken ct = default)
         {
             const string sql = @"
 UPDATE dbo.Users

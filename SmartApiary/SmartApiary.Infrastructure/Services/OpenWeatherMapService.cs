@@ -4,8 +4,8 @@ using SmartApiary.Application.DTOs;
 using SmartApiary.Application.Interfaces;
 using SmartApiary.Domain.Common;
 using SmartApiary.Domain.Enums;
-using System.Text.Json;
 using SmartApiary.Infrastructure.Common.Options;
+using System.Text.Json;
 namespace SmartApiary.Infrastructure.Services
 {
     internal sealed class OpenWeatherMapService : IWeatherService
