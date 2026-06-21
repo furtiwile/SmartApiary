@@ -1,9 +1,9 @@
 using MediatR;
-using SmartApiary.Application.Interfaces.Repositories;
 using SmartApiary.Application.Interfaces;
+using SmartApiary.Application.Interfaces.Repositories;
 using SmartApiary.Domain.Common;
-using SmartApiary.Domain.ValueObjects;
 using SmartApiary.Domain.Enums;
+using SmartApiary.Domain.ValueObjects;
 
 namespace SmartApiary.Application.Features.SmartScales.Queries
 {

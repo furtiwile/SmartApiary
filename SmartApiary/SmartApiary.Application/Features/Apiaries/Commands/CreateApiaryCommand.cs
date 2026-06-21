@@ -1,14 +1,13 @@
 using FluentValidation;
 using MediatR;
-using SmartApiary.Application.Interfaces.Repositories;
+using NetTopologySuite.Geometries;
 using SmartApiary.Application.Interfaces;
+using SmartApiary.Application.Interfaces.Repositories;
 using SmartApiary.Application.Interfaces.Storage;
-using SmartApiary.Application.Features.Apiaries;
 using SmartApiary.Domain.Common;
 using SmartApiary.Domain.Enums;
 using SmartApiary.Domain.Models;
 using SmartApiary.Domain.ValueObjects;
-using NetTopologySuite.Geometries;
 
 namespace SmartApiary.Application.Features.Apiaries.Commands
 {

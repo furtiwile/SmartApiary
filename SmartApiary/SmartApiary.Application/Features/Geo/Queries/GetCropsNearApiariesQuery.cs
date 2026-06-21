@@ -4,11 +4,6 @@ using SmartApiary.Application.Interfaces.Repositories;
 using SmartApiary.Domain.Common;
 using SmartApiary.Domain.Enums;
 using SmartApiary.Domain.ValueObjects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace SmartApiary.Application.Features.Geo.Queries
 {
@@ -54,7 +49,7 @@ namespace SmartApiary.Application.Features.Geo.Queries
             foreach (var apiary in myApiaries)
             {
                 var parcels = await parcelRepository.GetParcelsWithinRadiusAsync(apiary.Latitude, apiary.Longitude, radiusMeters, ct);
-                
+
                 foreach (var parcel in parcels)
                 {
                     var farmer = await userRepository.GetUserByIdAsync(parcel.FarmerId, ct);

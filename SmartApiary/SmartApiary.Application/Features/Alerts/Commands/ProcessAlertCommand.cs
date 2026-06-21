@@ -1,12 +1,11 @@
 using MediatR;
 using Microsoft.Extensions.Logging;
+using SmartApiary.Application.Common.Models;
 using SmartApiary.Application.Interfaces;
-using SmartApiary.Application.Interfaces.Messaging;
 using SmartApiary.Application.Interfaces.Repositories;
 using SmartApiary.Domain.Common;
 using SmartApiary.Domain.Enums;
 using SmartApiary.Domain.ValueObjects;
-using SmartApiary.Application.Common.Models;
 
 namespace SmartApiary.Application.Features.Alerts.Commands
 {

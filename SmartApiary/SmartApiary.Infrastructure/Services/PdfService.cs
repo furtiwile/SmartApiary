@@ -1,12 +1,8 @@
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-using SmartApiary.Application.Interfaces;
 using SmartApiary.Application.Features.SprinklingRecords.Queries;
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
+using SmartApiary.Application.Interfaces;
 
 namespace SmartApiary.Infrastructure.Services
 {

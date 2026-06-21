@@ -1,5 +1,3 @@
-using System;
-
 namespace SmartApiary.ITSimulator.Models
 {
     public class SmartScaleDevice

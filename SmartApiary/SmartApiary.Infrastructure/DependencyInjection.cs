@@ -11,7 +11,7 @@ namespace SmartApiary.Infrastructure
     public static class DependencyInjection
     {
         public static IServiceCollection AddInfrastructure(
-            this IServiceCollection services, 
+            this IServiceCollection services,
             IConfiguration configuration)
         {
             services.Configure<AzureTableOptions>(configuration.GetSection("AzureTableOptions"));
@@ -39,7 +39,7 @@ namespace SmartApiary.Infrastructure
             {
                 var weatherOptions = serviceProvider.GetRequiredService<IOptions<WeatherOptions>>().Value;
                 client.BaseAddress = new Uri(weatherOptions.BaseUrl);
-                client.Timeout = TimeSpan.FromSeconds(10); 
+                client.Timeout = TimeSpan.FromSeconds(10);
             });
 
             services
@@ -50,7 +50,7 @@ namespace SmartApiary.Infrastructure
                 .AddHostedService<QueueInitializerHostedService>()
                 .AddTransient<IPdfService, PdfService>();
 
-            return services; 
+            return services;
         }
     }
 }

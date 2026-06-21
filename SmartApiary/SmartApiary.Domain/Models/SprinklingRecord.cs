@@ -25,12 +25,12 @@ namespace SmartApiary.Domain.Models
         /// <param name="precipitation"></param>
         /// <param name="announcementId"></param>
         private SprinklingRecord(
-            EntityId id, 
-            DateTime actualStartTime, 
-            DateTime actualEndTime, 
-            string preparationType, 
-            double windSpeed, 
-            double precipitation, 
+            EntityId id,
+            DateTime actualStartTime,
+            DateTime actualEndTime,
+            string preparationType,
+            double windSpeed,
+            double precipitation,
             string weatherCondition,
             EntityId announcementId
         )

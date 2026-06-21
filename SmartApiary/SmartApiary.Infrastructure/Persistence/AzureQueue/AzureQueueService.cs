@@ -2,10 +2,6 @@
 using Microsoft.Extensions.Logging;
 using SmartApiary.Application.Interfaces;
 using SmartApiary.Application.Interfaces.Messaging;
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace SmartApiary.Infrastructure.Persistence.AzureQueue
 {

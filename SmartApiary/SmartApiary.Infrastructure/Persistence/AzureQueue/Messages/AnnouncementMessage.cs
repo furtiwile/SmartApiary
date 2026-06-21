@@ -1,4 +1,3 @@
-using System;
 using SmartApiary.Domain.Enums;
 
 namespace SmartApiary.Infrastructure.Persistence.AzureQueue.Messages

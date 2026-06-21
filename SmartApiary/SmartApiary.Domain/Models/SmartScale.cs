@@ -158,12 +158,12 @@ namespace SmartApiary.Domain.Models
         /// <param name="timeOfLastReading"></param>
         /// <returns>Smart scale if all parameters are valid, error details otherwise</returns>
         public static Result<SmartScale> Load(
-            string id, 
-            string serialNumber, 
+            string id,
+            string serialNumber,
             string hardwareId,
             string deviceToken,
-            DeviceStatusEnum status, 
-            double latestReading, 
+            DeviceStatusEnum status,
+            double latestReading,
             DateTime timeOfLastReading,
             bool isBatteryWarningSent = false,
             double weightDropThreshold = 10.0
