@@ -22,19 +22,19 @@ export function BeehiveTable({ beehives, onDelete }: BeehiveTableProps) {
       <thead className="bg-slate-50/50 dark:bg-slate-900/30">
         <tr>
           <th className="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">
-            Name
+            Designation
           </th>
           <th className="px-6 py-4 text-center text-xs font-bold text-slate-400 uppercase tracking-widest">
             Type
           </th>
           <th className="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">
-            Designation
+            Super Color
+          </th>
+          <th className="px-6 py-4 text-center text-xs font-bold text-slate-400 uppercase tracking-widest">
+            Queen Age
           </th>
           <th className="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">
-            Terrain
-          </th>
-          <th className="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">
-            Coordinates
+            Note
           </th>
           <th className="px-6 py-4 text-center text-xs font-bold text-slate-400 uppercase tracking-widest">
             Actions
@@ -48,7 +48,7 @@ export function BeehiveTable({ beehives, onDelete }: BeehiveTableProps) {
             className="group hover:bg-slate-800/40 transition-colors"
           >
             <td className="px-6 py-4 text-sm font-semibold text-slate-200">
-              {hive.name}
+              {hive.designation || hive.name || "Unnamed hive"}
             </td>
             <td className="px-6 py-4 text-center">
               <span className="inline-flex items-center rounded-full bg-indigo-500/10 px-2.5 py-0.5 text-xs font-semibold text-indigo-400">
@@ -56,15 +56,13 @@ export function BeehiveTable({ beehives, onDelete }: BeehiveTableProps) {
               </span>
             </td>
             <td className="px-6 py-4 text-sm text-slate-400">
-              {hive.designation || "—"}
+              {hive.superColor || "—"}
             </td>
-            <td className="px-6 py-4 text-sm text-slate-400 max-w-xs truncate">
-              {hive.terrainDescription || "—"}
+            <td className="px-6 py-4 text-center text-sm text-slate-400">
+              {hive.queenAge != null ? `${hive.queenAge} yr` : "—"}
             </td>
-            <td className="px-6 py-4 text-sm text-slate-500 font-mono">
-              {hive.latitude != null && hive.longitude != null
-                ? `${hive.latitude.toFixed(4)}, ${hive.longitude.toFixed(4)}`
-                : "—"}
+            <td className="px-6 py-4 text-sm text-slate-400 max-w-sm truncate">
+              {hive.note || "—"}
             </td>
             <td className="px-6 py-4 text-center">
               <button
