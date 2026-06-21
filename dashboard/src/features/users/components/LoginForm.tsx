@@ -2,8 +2,8 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LogIn, Mail, Lock } from "lucide-react";
-import { AuthApi } from "../api/AuthApi";
 import { useNotify } from "../../../hooks/useNotify";
+import { useApis } from "../../../shared/api/useApis";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address."),
@@ -17,6 +17,7 @@ interface LoginFormProps {
 }
 
 export function LoginForm({ onSuccess }: LoginFormProps) {
+  const { auth } = useApis();
 
   const {
     register,
@@ -43,7 +44,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
       return;
     }
 
-    const result = await AuthApi.forgotPassword(currentEmail);
+    const result = await auth.forgotPassword(currentEmail);
 
     if (result.success) {
       notify({
@@ -62,7 +63,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 
   async function onSubmit(data: LoginSchemaType) {
     try {
-      const result = await AuthApi.login(data.email, data.password);
+      const result = await auth.login(data.email, data.password);
       if (result.data) {
         onSuccess(result.data.token);
       } else {

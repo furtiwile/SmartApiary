@@ -3,15 +3,16 @@ import { useQuery } from "@tanstack/react-query";
 
 import { DeviceList } from "../components/DeviceList";
 import { PageLayout } from "../../../layouts/PageLayout";
-import { getDevices } from "../api/getDevices";
 import { FirmwareUploadModal } from "../components/FirmwareUploadModal";
+import { useApis } from "../../../shared/api/useApis";
 
 const DevicesPage: React.FC = () => {
   const [isFirmwareModalOpen, setIsFirmwareModalOpen] = useState(false);
+  const { devices: devicesApi } = useApis();
 
   const { data: devices = [], isLoading } = useQuery({
     queryKey: ["devices"],
-    queryFn: getDevices,
+    queryFn: devicesApi.getDevices,
   });
 
   if (isLoading)

@@ -4,9 +4,9 @@ import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as Dialog from "@radix-ui/react-dialog";
 import { PlusCircle, X, MapPin } from "lucide-react";
-import { FarmApi } from "../api/farmApi";
 import { useNotify } from "../../../hooks/useNotify";
 import type { ParcelDto } from "../models/Parcel";
+import { useApis } from "../../../shared/api/useApis";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -24,6 +24,7 @@ interface CreateParcelModalProps {
 export function CreateParcelModal({ onCreated, initialLocation }: CreateParcelModalProps) {
   const [open, setOpen] = useState(false);
   const { success, error } = useNotify();
+  const { farms: farmApi } = useApis();
 
   const {
     register,
@@ -46,7 +47,7 @@ export function CreateParcelModal({ onCreated, initialLocation }: CreateParcelMo
 
   async function onSubmit(data: SchemaType) {
     try {
-      const result = await FarmApi.createParcel({
+      const result = await farmApi.createParcel({
         name: data.name,
         latitude: data.latitude,
         longitude: data.longitude,

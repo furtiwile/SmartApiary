@@ -6,8 +6,6 @@ import { Hexagon, Trash2, ChevronRight, ChevronDown } from "lucide-react";
 import { PageLayout } from "../../../layouts/PageLayout";
 import type { Beehive } from "../models/Beehive";
 import type { ApiaryDto } from "../models/Apiary";
-import { BeehiveApi } from "../api/beehiveApi";
-import { ApiaryApi } from "../api/apiaryApi";
 import { BeehiveTable } from "../components/BeehiveTable";
 import { CreateBeehiveModal } from "../components/CreateBeehiveModal";
 import { CreateApiaryModal } from "../components/CreateApiaryModal";
@@ -16,17 +14,19 @@ import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import { useNotify } from "../../../hooks/useNotify";
 import { useAuth } from "../../users/hooks/AuthHook";
 import { useApiarySignalR } from "../hooks/useApiarySignalR";
+import { useApis } from "../../../shared/api/useApis";
 
 function BeehivesPage() {
   const { user } = useAuth();
   const { success, error } = useNotify();
   const { joinApiaryGroup, leaveApiaryGroup } = useApiarySignalR();
+  const { apiaries: apiaryApi, beehives: beehiveApi } = useApis();
 
   const queryClient = useQueryClient();
 
   const { data: apiaries = [], isLoading: isLoadingApiaries } = useQuery({
     queryKey: ["apiaries", user?.id],
-    queryFn: () => (user?.id ? ApiaryApi.getByBeekeeper(user.id) : Promise.resolve([])),
+    queryFn: () => (user?.id ? apiaryApi.getByBeekeeper(user.id) : Promise.resolve([])),
     enabled: !!user?.id,
   });
 
@@ -35,7 +35,7 @@ function BeehivesPage() {
 
   const { data: currentHives = [], isLoading: isLoadingHives } = useQuery({
     queryKey: ["hives", activeApiaryId],
-    queryFn: () => (activeApiaryId ? BeehiveApi.getByApiaryId(activeApiaryId) : Promise.resolve([])),
+    queryFn: () => (activeApiaryId ? beehiveApi.getByApiaryId(activeApiaryId) : Promise.resolve([])),
     enabled: !!activeApiaryId,
   });
 
@@ -63,7 +63,7 @@ function BeehivesPage() {
 
   async function confirmDeleteHive() {
     if (!deleteHiveTarget || !activeApiaryId) return;
-    const deleted = await BeehiveApi.delete(deleteHiveTarget);
+    const deleted = await beehiveApi.delete(deleteHiveTarget);
     if (deleted) {
       queryClient.setQueryData<Beehive[]>(["hives", activeApiaryId], (old) =>
         old?.filter((h) => h.id !== deleteHiveTarget)
@@ -78,7 +78,7 @@ function BeehivesPage() {
 
   async function confirmDeleteApiary() {
     if (!deleteApiaryTarget) return;
-    const deleted = await ApiaryApi.delete(deleteApiaryTarget);
+    const deleted = await apiaryApi.delete(deleteApiaryTarget);
     if (deleted) {
       const remaining = apiaries.filter((a) => a.id !== deleteApiaryTarget);
       queryClient.setQueryData<ApiaryDto[]>(["apiaries", user?.id], remaining);

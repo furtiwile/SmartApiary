@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { TelemetryApi } from "../api/telemetryApi";
 import { TelemetryStatusCards } from "./TelemetryStatusCards";
 import { NectarDeltaChart, TemperatureHumidityChart } from "./TelemetryCharts";
 import { HiveDiary } from "./HiveDiary";
@@ -8,6 +7,7 @@ import { DevicePairingModal } from "./DevicePairingModal";
 import { useApiarySignalR } from "../hooks/useApiarySignalR";
 import type { TelemetryReading } from "../models/Telemetry";
 import type { Beehive } from "../models/Beehive";
+import { useApis } from "../../../shared/api/useApis";
 
 interface HiveTelemetryPanelProps {
   hive: Beehive;
@@ -15,13 +15,14 @@ interface HiveTelemetryPanelProps {
 
 export function HiveTelemetryPanel({ hive }: HiveTelemetryPanelProps) {
   const queryClient = useQueryClient();
+  const { telemetry: telemetryApi } = useApis();
 
   const [isPaired, setIsPaired] = useState(!!hive.smartScaleId);
   const [isLive, setIsLive] = useState(false);
 
   const { data: history = [], isLoading } = useQuery({
     queryKey: ["telemetry", hive.id],
-    queryFn: () => TelemetryApi.getByHive(hive.id),
+    queryFn: () => telemetryApi.getByHive(hive.id),
     enabled: isPaired,
   });
 

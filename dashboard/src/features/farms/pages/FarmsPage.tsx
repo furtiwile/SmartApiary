@@ -5,8 +5,6 @@ import { Tractor, MapPin, User, List } from "lucide-react";
 import { PageLayout } from "../../../layouts/PageLayout";
 import { useAuth } from "../../users/hooks/AuthHook";
 import type { ParcelDto } from "../models/Parcel";
-import { FarmApi } from "../api/farmApi";
-import { CropApi } from "../api/sprayingApi";
 import { ParcelTable } from "../components/ParcelTable";
 import { CreateParcelModal } from "../components/CreateParcelModal";
 import { CropManagementModal } from "../components/CropManagementModal";
@@ -14,6 +12,7 @@ import { SprayingAnnouncementModal } from "../components/SprayingAnnouncementMod
 import { SprayingRecordTable } from "../components/SprayingRecordTable";
 import { useNotify } from "../../../hooks/useNotify";
 import ApiaryParcelMap from "../../maps/components/ApiaryParcelMap";
+import { useApis } from "../../../shared/api/useApis";
 
 export const FarmsPage: React.FC = () => {
   const { user } = useAuth();
@@ -22,17 +21,18 @@ export const FarmsPage: React.FC = () => {
   const [mapCenter, setMapCenter] = useState<[number, number] | undefined>(undefined);
   const [mapZoom, setMapZoom] = useState<number | undefined>(undefined);
   const { success, error } = useNotify();
+  const { crops: cropApi, farms: farmApi } = useApis();
 
   const { data: parcels = [], isLoading } = useQuery({
     queryKey: ["parcels", user?.id],
-    queryFn: () => (user?.id ? FarmApi.getParcelsByFarmer(user.id) : Promise.resolve([])),
+    queryFn: () => (user?.id ? farmApi.getParcelsByFarmer(user.id) : Promise.resolve([])),
     enabled: !!user?.id,
   });
 
   const { data: crops = [] } = useQuery({
     queryKey: ["all-crops", parcels.map(p => p.id)],
     queryFn: async () => {
-      const allCrops = await Promise.all(parcels.map(p => CropApi.getByParcel(p.id)));
+      const allCrops = await Promise.all(parcels.map(p => cropApi.getByParcel(p.id)));
       return allCrops.flat();
     },
     enabled: parcels.length > 0,
@@ -58,7 +58,7 @@ export const FarmsPage: React.FC = () => {
   };
 
   const handleDelete = async (parcelId: string) => {
-    const deleted = await FarmApi.deleteParcel(parcelId);
+    const deleted = await farmApi.deleteParcel(parcelId);
     if (deleted) {
       queryClient.setQueryData<ParcelDto[]>(["parcels", user?.id], (old) =>
         old?.filter((p) => p.id !== parcelId)

@@ -5,11 +5,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Leaf, PlusCircle, Trash2, X } from "lucide-react";
-import { CropApi } from "../api/sprayingApi";
 import { useNotify } from "../../../hooks/useNotify";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import type { CropType } from "../models/Crop";
 import { CROP_OPTIONS } from "../models/Crop";
+import { useApis } from "../../../shared/api/useApis";
 
 const schema = z.object({
   cropType: z.enum(["Sunflower", "Rapeseed", "Lavender", "Linden", "Acacia", "Other"] as const),
@@ -29,10 +29,11 @@ export function CropManagementModal({ parcelId, parcelName }: CropManagementModa
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const { success, error } = useNotify();
+  const { crops: cropApi } = useApis();
 
   const { data: crops = [], isLoading } = useQuery({
     queryKey: ["crops", parcelId],
-    queryFn: () => CropApi.getByParcel(parcelId),
+    queryFn: () => cropApi.getByParcel(parcelId),
     enabled: open,
   });
 
@@ -52,7 +53,7 @@ export function CropManagementModal({ parcelId, parcelName }: CropManagementModa
 
   async function onSubmit(data: SchemaType) {
     try {
-      const result = await CropApi.create({
+      const result = await cropApi.create({
         parcelId,
         type: data.cropType as CropType,
         expectedFloweringTime: data.expectedBloomDate,
@@ -72,7 +73,7 @@ export function CropManagementModal({ parcelId, parcelName }: CropManagementModa
 
   async function confirmDeleteCrop() {
     if (!confirmDeleteId) return;
-    const deleted = await CropApi.delete(confirmDeleteId);
+    const deleted = await cropApi.delete(confirmDeleteId);
     if (deleted) {
       queryClient.setQueryData<typeof crops>(["crops", parcelId], (old) => old?.filter((c) => c.id !== confirmDeleteId));
       success("Crop removed", "The crop has been removed from the parcel.");
