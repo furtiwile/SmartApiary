@@ -29,7 +29,7 @@ export const BeehiveApi = {
 
 
 
-  async create(apiaryId: string, type: BeehiveType, designation: string, superColor: string, queenAge: number, note: string, smartScaleId: strinig) {
+  async create(apiaryId: string, type: BeehiveType, designation: string, superColor: string, queenAge: number, note: string, smartScaleId: string) {
     const PATH = `${BEEHIVE_PATH}`;
     const payload = { apiaryId, type, designation, superColor, queenAge, note, smartScaleId };
     console.log(payload);
