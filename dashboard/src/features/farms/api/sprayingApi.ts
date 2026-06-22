@@ -8,8 +8,6 @@ import type {
   SprinklingStatus,
 } from "../models/Sprinkling";
 
-// ─── Crop API ────────────────────────────────────────────────────────────────
-
 export class CropApi {
   static async getAll(): Promise<any[]> {
     try {
@@ -49,7 +47,6 @@ export class CropApi {
         return {
           id,
           ...payload,
-          // Map backend expected property names to frontend DTO names for local cache
           cropType: payload.type as unknown as CropDto["cropType"],
           expectedBloomDate: payload.expectedFloweringTime,
         } as unknown as CropDto;
@@ -73,9 +70,15 @@ export class CropApi {
   }
 }
 
-// ─── Sprinkling API ──────────────────────────────────────────────────────────
-
 export type CreateSprinklingPayloadExtended = CreateSprinklingPayload & { bypassWeatherValidation?: boolean };
+export type RescheduleSprinklingPayload = {
+  parcelId: string;
+  announcementId: string;
+  startTime: string;
+  expectedDurationHours: number;
+  preparationType: string;
+  bypassWeatherValidation?: boolean;
+};
 
 export class SprayingApi {
   static async getByParcel(parcelId: string): Promise<SprinklingAnnouncementDto[]> {
@@ -144,6 +147,29 @@ export class SprayingApi {
       }
       console.error("Error creating sprinkling announcement:", e);
       return null;
+    }
+  }
+
+  static async reschedule(payload: RescheduleSprinklingPayload): Promise<boolean> {
+    try {
+      await api.post(`/sprinklingannouncements/${payload.announcementId}/reschedule`, {
+        parcelId: payload.parcelId,
+        startTime: payload.startTime,
+        expectedDurationHours: payload.expectedDurationHours,
+        preparationType: payload.preparationType,
+        bypassWeatherValidation: payload.bypassWeatherValidation
+      });
+      return true;
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: { message?: string, error?: string } } };
+      if (err.response?.data?.message) {
+        throw new Error(err.response.data.message);
+      }
+      if (err.response?.data?.error) {
+        throw new Error(err.response.data.error);
+      }
+      console.error("Error rescheduling sprinkling announcement:", e);
+      return false;
     }
   }
 
