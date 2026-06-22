@@ -55,22 +55,9 @@ export function SprayingAnnouncementModal({ parcelId, parcelName }: SprayingAnno
   useEffect(() => {
     if (!connection) return;
 
-    const handleCalculationFinished = (data: { announcementId: string; beekeepersNotified: number }) => {
-      queryClient.invalidateQueries({ queryKey: ["announcements", parcelId] });
-      
-      const notified = data.beekeepersNotified;
-      if (notified > 0) {
-        success("Spraying scheduled", `${notified} hive${notified !== 1 ? "s" : ""} in a 5 km radius ${notified === 1 ? "has" : "have"} been notified by email.`, { duration: 8000 });
-      } else {
-        success("Spraying scheduled", "Spraying scheduled successfully. No nearby hives were affected.", { duration: 8000 });
-      }
-    };
+    // We no longer rely on SignalR for the calculation finished event
+    // since the HTTP response returns the count synchronously.
 
-    connection.on("SprinklingCalculationFinished", handleCalculationFinished);
-
-    return () => {
-      connection.off("SprinklingCalculationFinished", handleCalculationFinished);
-    };
   }, [connection, queryClient, parcelId]);
 
   const { data: announcements = [], isLoading } = useQuery({
@@ -124,14 +111,17 @@ export function SprayingAnnouncementModal({ parcelId, parcelName }: SprayingAnno
       });
 
       if (result) {
-        success(
-          "Spraying Submitted",
-          "The announcement has been submitted. Calculating and notifying nearby beekeepers in the background...",
-          { duration: 4000 }
-        );
+        const notified = result.beekeepersNotified;
+        if (notified > 0) {
+          success("Spraying scheduled", `${notified} hive${notified !== 1 ? "s" : ""} in a 5 km radius ${notified === 1 ? "has" : "have"} been notified by email.`, { duration: 8000 });
+        } else {
+          success("Spraying scheduled", "Spraying scheduled successfully. No nearby hives were affected.", { duration: 8000 });
+        }
+        
         setOpen(false);
         reset();
         setWeatherWarning(null);
+        queryClient.invalidateQueries({ queryKey: ["announcements", parcelId] });
       } else {
         error("Failed to schedule", "The server returned an error. Please try again.");
       }
@@ -223,7 +213,7 @@ export function SprayingAnnouncementModal({ parcelId, parcelName }: SprayingAnno
                             <p className="text-sm font-medium text-slate-200">
                               {ann.pesticideType}
                               <span className="ml-2 text-xs font-semibold px-2 py-0.5 rounded-md bg-slate-700 text-slate-300 border border-slate-600">
-                                {ann.beekeepersNotified ?? 0} notified
+                                {ann.beekeepersNotified ?? 0} hives affected
                               </span>
                             </p>
                             <p className="text-xs text-slate-500">

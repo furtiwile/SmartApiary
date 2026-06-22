@@ -33,7 +33,17 @@ namespace SmartApiary.Infrastructure.Persistence.AzureTable.Repositories
 
         public async Task<IReadOnlyCollection<Hive>> GetByApiaryIdAsync(EntityId apiaryId, CancellationToken ct = default)
         {
-            return await base.QueryByPartitionKeyAsync(apiaryId.Value, ct);
+            var lowerCaseHives = await base.QueryByPartitionKeyAsync(apiaryId.Value.ToLowerInvariant(), ct);
+            var upperCaseHives = await base.QueryByPartitionKeyAsync(apiaryId.Value.ToUpperInvariant(), ct);
+            
+            var originalCaseHives = await base.QueryByPartitionKeyAsync(apiaryId.Value, ct);
+
+            return lowerCaseHives
+                .Concat(upperCaseHives)
+                .Concat(originalCaseHives)
+                .GroupBy(h => h.Id.Value)
+                .Select(g => g.First())
+                .ToList();
         }
 
         public async Task SaveAsync(Hive hive, CancellationToken ct = default)

@@ -87,7 +87,7 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
                 }
             }
 
-            announcement.SetNotifiedCount(notifiedCount);
+            announcement.SetNotifiedCount(totalAffectedHives);
             await announcementRepository.UpdateAsync(announcement, ct);
 
             await notificationService.BroadcastNotifiedCountToFarmerAsync(announcement.Id.Value, totalAffectedHives, ct);
