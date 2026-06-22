@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using MediatR;
 using SmartApiary.Application.Common;
 using SmartApiary.Application.Interfaces.Repositories;
@@ -34,6 +34,9 @@ namespace SmartApiary.Application.Features.Telemetries.Commands
     internal class ProcessTelemetryCommandHandler(
         ITelemetryRepository telemetryRepository,
         ISmartScaleRepository smartScaleRepository,
+        IHiveRepository hiveRepository,
+        IApiaryRepository apiaryRepository,
+        IUserRepository userRepository,
         IMediator mediator // Koristimo IMediator za Publish
     ) : IRequestHandler<ProcessTelemetryCommand, Result>
     {
@@ -53,10 +56,34 @@ namespace SmartApiary.Application.Features.Telemetries.Commands
             {
                 var weightDrop = previousTelemetry.WeightKg - request.Weight;
 
-                if (weightDrop >= 5.0)
+                var hive = await hiveRepository.GetByIdAsync(previousTelemetry.HiveId, ct);
+                string hiveName = hive?.Designation ?? "Unknown Hive";
+
+                double effectiveThreshold = 10.0;
+                if (scale.WeightDropThreshold.HasValue)
                 {
+                    effectiveThreshold = scale.WeightDropThreshold.Value;
+                }
+                else if (hive != null)
+                {
+                    var apiary = await apiaryRepository.GetByIdAsync(hive.ApiaryId, ct);
+                    if (apiary != null)
+                    {
+                        var beekeeper = await userRepository.GetUserByIdAsync(apiary.BeekeeperId, ct);
+                        if (beekeeper != null)
+                        {
+                            effectiveThreshold = beekeeper.WeightDropThreshold;
+                        }
+                    }
+                }
+
+                if (weightDrop >= effectiveThreshold)
+                {
+
                     var anomalyEvent = new AnomalyDetectedDomainEvent(
                         scaleIdResult.Value,
+                        scale.SerialNumber,
+                        hiveName,
                         EntityId.New(),
                         previousTelemetry.WeightKg,
                         request.Weight,
@@ -65,6 +92,21 @@ namespace SmartApiary.Application.Features.Telemetries.Commands
                     );
 
                     await mediator.Publish(new DomainEventNotification<AnomalyDetectedDomainEvent>(anomalyEvent), ct);
+                }
+
+                // Check for battery transition below 15%
+                if (request.BatteryLevel < 15 && previousTelemetry.BatteryPercent >= 15)
+                {
+
+                    var batteryEvent = new BatteryLowDomainEvent(
+                        scaleIdResult.Value,
+                        scale.SerialNumber,
+                        hiveName,
+                        request.BatteryLevel,
+                        DateTime.UtcNow
+                    );
+
+                    await mediator.Publish(new DomainEventNotification<BatteryLowDomainEvent>(batteryEvent), ct);
                 }
             }
 

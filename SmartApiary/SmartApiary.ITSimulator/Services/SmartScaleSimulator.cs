@@ -46,7 +46,17 @@ namespace SmartApiary.ITSimulator.Services
 
                 if (string.IsNullOrWhiteSpace(device.HiveId))
                 {
-                    device.HiveId = PromptForHiveId(serial);
+                    device.HiveId = await FindHiveIdBySerialNumberAsync(serial);
+                    if (!string.IsNullOrWhiteSpace(device.HiveId))
+                    {
+                        Console.ForegroundColor = ConsoleColor.Cyan;
+                        Console.WriteLine($"Auto-discovered HiveId {device.HiveId} for SmartScale {serial} from the database.");
+                        Console.ResetColor();
+                    }
+                    else
+                    {
+                        device.HiveId = PromptForHiveId(serial);
+                    }
                     SaveDevice(device);
                 }
 
@@ -64,24 +74,6 @@ namespace SmartApiary.ITSimulator.Services
             }
 
             return devicesStarted;
-        }
-
-        public void SaveDevice(SmartScaleDevice device)
-        {
-            var list = LoadDevices().ToList();
-            var existing = list.FirstOrDefault(d => d.SerialNumber == device.SerialNumber);
-            if (existing != null)
-            {
-                list.Remove(existing);
-            }
-            list.Add(device);
-            var json = JsonSerializer.Serialize(list, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(_storePath, json);
-        }
-
-        public SmartScaleDevice? GetDevice(string serialNumber)
-        {
-            return LoadDevices().FirstOrDefault(device => device.SerialNumber.Equals(serialNumber, StringComparison.OrdinalIgnoreCase));
         }
 
         public string PromptForHiveId(string serialNumber)
@@ -109,6 +101,19 @@ namespace SmartApiary.ITSimulator.Services
             {
                 return Enumerable.Empty<SmartScaleDevice>();
             }
+        }
+
+        public void SaveDevice(SmartScaleDevice device)
+        {
+            var list = LoadDevices().ToList();
+            var existing = list.FirstOrDefault(d => d.SerialNumber == device.SerialNumber);
+            if (existing != null)
+            {
+                list.Remove(existing);
+            }
+            list.Add(device);
+            var json = JsonSerializer.Serialize(list, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(_storePath, json);
         }
 
         public async Task StartTelemetryLoopAsync(SmartScaleDevice device, int delayMs, double nominalWeight = 10)
@@ -150,6 +155,251 @@ namespace SmartApiary.ITSimulator.Services
                 counter++;
                 await Task.Delay(delayMs);
             }
+        }
+
+        public async Task<IEnumerable<SmartScaleDevice>> AutoDiscoverFromDatabaseAsync()
+        {
+            var discovered = new List<SmartScaleDevice>();
+            try
+            {
+                var connectionString = "UseDevelopmentStorage=true";
+                var scalesTable = new Azure.Data.Tables.TableClient(connectionString, "SmartScales");
+                var hivesTable = new Azure.Data.Tables.TableClient(connectionString, "Hives");
+
+                var allHives = hivesTable.QueryAsync<Azure.Data.Tables.TableEntity>();
+
+                await foreach (var hiveEntity in allHives)
+                {
+                    var smartScaleId = hiveEntity.GetString("SmartScaleId");
+                    var hiveId = hiveEntity.RowKey;
+
+                    if (string.IsNullOrWhiteSpace(smartScaleId))
+                        continue;
+
+                    // Find the scale (it could be in Unpaired or Paired partition)
+                    var scales = scalesTable.QueryAsync<Azure.Data.Tables.TableEntity>(filter: $"RowKey eq '{smartScaleId}'");
+                    string? serialNumber = null;
+                    string? deviceToken = null;
+                    string? hardwareId = null;
+
+                    await foreach (var scaleEntity in scales)
+                    {
+                        serialNumber = scaleEntity.GetString("SerialNumber");
+                        deviceToken = scaleEntity.GetString("DeviceToken");
+                        hardwareId = scaleEntity.GetString("HardwareId");
+                        break;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(serialNumber))
+                    {
+                        // Even if it's Unpaired, we have the serial number. We need to activate it to get a token!
+                        if (string.IsNullOrWhiteSpace(deviceToken))
+                        {
+                            hardwareId = Guid.NewGuid().ToString();
+                            var activation = await _client.ActivateAsync(serialNumber, hardwareId);
+                            if (activation.IsSuccess && !string.IsNullOrWhiteSpace(activation.DeviceToken))
+                            {
+                                deviceToken = activation.DeviceToken;
+                                Console.WriteLine($"Activated auto-discovered scale: {serialNumber}");
+                            }
+                            else
+                            {
+                                ConsoleUI.PrintError($"Failed to activate {serialNumber}.");
+                                continue;
+                            }
+                        }
+
+                        var device = new SmartScaleDevice
+                        {
+                            SerialNumber = serialNumber,
+                            HardwareId = hardwareId ?? string.Empty,
+                            DeviceToken = deviceToken,
+                            HiveId = hiveId,
+                            PairedAt = DateTime.UtcNow
+                        };
+                        SaveDevice(device); 
+                        discovered.Add(device);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ConsoleUI.PrintError($"Error auto-discovering: {ex.Message}");
+            }
+
+            return discovered;
+        }
+        public async Task SimulateHiveTheftOrOverturnAsync(SmartScaleDevice device, double nominalWeight = 40.0)
+        {
+            if (string.IsNullOrWhiteSpace(device.DeviceToken) || string.IsNullOrWhiteSpace(device.HiveId))
+            {
+                ConsoleUI.PrintError($"Cannot simulate theft for {device.SerialNumber}: missing token or HiveId.");
+                return;
+            }
+
+            var baseTelemetry = new
+            {
+                HiveId = device.HiveId,
+                Timestamp = DateTime.UtcNow.AddSeconds(-5),
+                WeightKg = Math.Round(nominalWeight, 2),
+                TemperatureC = 22.4,
+                HumidityPercent = 60.0,
+                BatteryPercent = 95.0
+            };
+
+            var sendResult1 = await _client.SendTelemetryAsync(device.DeviceToken, baseTelemetry);
+            if (sendResult1.IsSuccess)
+            {
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] Sent initial weight context: {baseTelemetry.WeightKg}kg");
+            }
+
+            await Task.Delay(1000);
+
+            var theftTelemetry = new
+            {
+                HiveId = device.HiveId,
+                Timestamp = DateTime.UtcNow,
+                WeightKg = 2.10,
+                TemperatureC = 22.4,
+                HumidityPercent = 60.0,
+                BatteryPercent = 95.0
+            };
+
+            var sendResult2 = await _client.SendTelemetryAsync(device.DeviceToken, theftTelemetry);
+            if (!sendResult2.IsSuccess)
+            {
+                ConsoleUI.PrintError($"Failed to send theft telemetry: {sendResult2.ResponseBody}");
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] ALERT SENT: Sudden weight drop simulated on hive {device.HiveId}! (40kg -> 2.1kg)");
+                Console.ResetColor();
+            }
+        }
+
+        public async Task SimulateLowBatteryWarningAsync(SmartScaleDevice device)
+        {
+            if (string.IsNullOrWhiteSpace(device.DeviceToken) || string.IsNullOrWhiteSpace(device.HiveId))
+            {
+                ConsoleUI.PrintError($"Cannot simulate low battery for {device.SerialNumber}: missing token or HiveId.");
+                return;
+            }
+
+            var lowBatteryTelemetry = new
+            {
+                HiveId = device.HiveId,
+                Timestamp = DateTime.UtcNow,
+                WeightKg = 35.5,
+                TemperatureC = 20.1,
+                HumidityPercent = 55.5,
+                BatteryPercent = 12.0
+            };
+
+            var sendResult = await _client.SendTelemetryAsync(device.DeviceToken, lowBatteryTelemetry);
+            if (!sendResult.IsSuccess)
+            {
+                ConsoleUI.PrintError($"Failed to send low battery telemetry: {sendResult.ResponseBody}");
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] ALERT SENT: Low battery simulated on hive {device.HiveId}! (Battery={lowBatteryTelemetry.BatteryPercent}%)");
+                Console.ResetColor();
+            }
+        }
+        public async Task SyncLocalStoreWithDatabaseAsync()
+        {
+            try
+            {
+                var connectionString = "UseDevelopmentStorage=true";
+                var scalesTable = new Azure.Data.Tables.TableClient(connectionString, "SmartScales");
+                var hivesTable = new Azure.Data.Tables.TableClient(connectionString, "Hives");
+
+                var syncedDevices = new List<SmartScaleDevice>();
+
+                var allHives = hivesTable.QueryAsync<Azure.Data.Tables.TableEntity>();
+                var hiveScaleMap = new Dictionary<string, string>();
+
+                await foreach (var hiveEntity in allHives)
+                {
+                    var smartScaleId = hiveEntity.GetString("SmartScaleId");
+                    var hiveId = hiveEntity.RowKey;
+
+                    if (!string.IsNullOrWhiteSpace(smartScaleId) && !string.IsNullOrWhiteSpace(hiveId))
+                    {
+                        hiveScaleMap[smartScaleId] = hiveId;
+                    }
+                }
+
+                var allScales = scalesTable.QueryAsync<Azure.Data.Tables.TableEntity>();
+
+                await foreach (var scaleEntity in allScales)
+                {
+                    var serialNumber = scaleEntity.GetString("SerialNumber");
+                    var deviceToken = scaleEntity.GetString("DeviceToken");
+                    var hardwareId = scaleEntity.GetString("HardwareId");
+                    var scaleId = scaleEntity.RowKey;
+
+                    if (string.IsNullOrWhiteSpace(serialNumber) || string.IsNullOrWhiteSpace(deviceToken))
+                    {
+                        continue;
+                    }
+
+                    hiveScaleMap.TryGetValue(scaleId, out var assignedHiveId);
+
+                    var device = new SmartScaleDevice
+                    {
+                        SerialNumber = serialNumber,
+                        HardwareId = hardwareId ?? string.Empty,
+                        DeviceToken = deviceToken,
+                        HiveId = assignedHiveId ?? string.Empty,
+                        PairedAt = DateTime.UtcNow
+                    };
+
+                    syncedDevices.Add(device);
+                }
+
+                var json = JsonSerializer.Serialize(syncedDevices, new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(_storePath, json);
+
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Successfully synchronized local store. Found {syncedDevices.Count} active device(s) in database.");
+                Console.ResetColor();
+            }
+            catch (Exception ex)
+            {
+                ConsoleUI.PrintError($"Failed to sync local store with database: {ex.Message}");
+            }
+        }
+
+        public async Task<string?> FindHiveIdBySerialNumberAsync(string serialNumber)
+        {
+            try
+            {
+                var connectionString = "UseDevelopmentStorage=true";
+                var scalesTable = new Azure.Data.Tables.TableClient(connectionString, "SmartScales");
+                var hivesTable = new Azure.Data.Tables.TableClient(connectionString, "Hives");
+                var scales = scalesTable.QueryAsync<Azure.Data.Tables.TableEntity>(filter: $"SerialNumber eq '{serialNumber}'");
+                string? smartScaleId = null;
+                await foreach (var scaleEntity in scales)
+                {
+                    smartScaleId = scaleEntity.RowKey;
+                    break;
+                }
+                if (string.IsNullOrWhiteSpace(smartScaleId))
+                    return null;
+                var hives = hivesTable.QueryAsync<Azure.Data.Tables.TableEntity>(filter: $"SmartScaleId eq '{smartScaleId}'");
+                await foreach (var hiveEntity in hives)
+                {
+                    return hiveEntity.RowKey;
+                }
+            }
+            catch (Exception ex)
+            {
+                ConsoleUI.PrintError($"Error looking up hive for scale {serialNumber}: {ex.Message}");
+            }
+            return null;
         }
     }
 }

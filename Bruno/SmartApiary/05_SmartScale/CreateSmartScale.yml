@@ -1,0 +1,27 @@
+info:
+  name: Create Smart Scale
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{smart_apiary_api_base_url}}/smartscales"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        console.log("DEBUG RESPONSE [CreateSmartScale.yml] status:", res.status, "body:", JSON.stringify(res.body));
+        if (res.status === 200 && res.body.data) {
+          bru.setGlobalEnvVar("scale_serial_number", res.body.data);
+        }
+    - type: before-request
+      code: |-
+        bru.setGlobalEnvVar("jwt_token", bru.getGlobalEnvVar("beekeeper_token"));

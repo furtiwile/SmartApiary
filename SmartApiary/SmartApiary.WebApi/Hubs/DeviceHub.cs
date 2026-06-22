@@ -39,5 +39,17 @@ namespace SmartApiary.WebApi.Hubs
             if (string.IsNullOrWhiteSpace(beekeeperId)) return Task.CompletedTask;
             return Groups.RemoveFromGroupAsync(Context.ConnectionId, $"beekeeper:{beekeeperId}");
         }
+
+        public Task JoinPrivateChannel(string userId)
+        {
+            if (string.IsNullOrWhiteSpace(userId)) return Task.CompletedTask;
+            return Groups.AddToGroupAsync(Context.ConnectionId, $"private:{userId}");
+        }
+
+        public Task LeavePrivateChannel(string userId)
+        {
+            if (string.IsNullOrWhiteSpace(userId)) return Task.CompletedTask;
+            return Groups.RemoveFromGroupAsync(Context.ConnectionId, $"private:{userId}");
+        }
     }
 }

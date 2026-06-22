@@ -1,20 +1,34 @@
 import { RouterProvider } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 import "./App.css";
 import { router } from "./routes";
 import { LoggerProvider } from "./shared/logger/LoggerProvider";
 import { SignalRProvider } from "./shared/signalr/SignalRProvider";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { CONFIG } from "./config/config";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 function App() {
   return (
-    <LoggerProvider>
-      <SignalRProvider
-        hubUrl={CONFIG.HUB_URL}
-        reconnectTimeoutMs={CONFIG.SIGNALR_RECONNECT_INTERVAL}
-      >
-        <RouterProvider router={router} />
-      </SignalRProvider>
-    </LoggerProvider>
+    <QueryClientProvider client={queryClient}>
+      <LoggerProvider>
+        <SignalRProvider
+          hubUrl={CONFIG.HUB_URL}
+          reconnectTimeoutMs={CONFIG.SIGNALR_RECONNECT_INTERVAL}
+        >
+          <Toaster position="top-right" reverseOrder={false} />
+          <RouterProvider router={router} />
+        </SignalRProvider>
+      </LoggerProvider>
+    </QueryClientProvider>
   );
 }
 

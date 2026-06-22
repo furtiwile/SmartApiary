@@ -48,19 +48,32 @@ namespace SmartApiary.Application.Features.SmartScales.Commands
                 return Result<string>.Failure("Hive not found", ErrorType.NotFound);
 
             var existing = await smartScaleRepository.GetBySerialNumberAsync(request.SerialNumber, ct);
+            if (existing != null && existing.Status == DeviceStatusEnum.Paired)
+                return Result<string>.Failure("Smart scale already registered and paired to another hive", ErrorType.Validation);
+
+            SmartScale smartScale;
             if (existing != null)
-                return Result<string>.Failure("Smart scale already registered", ErrorType.Validation);
+            {
+                smartScale = existing;
+                
+                // Ensure this scale isn't already assigned to another hive
+                var existingHive = await hiveRepository.GetBySmartScaleIdAsync(smartScale.Id, ct);
+                if (existingHive != null && existingHive.Id != hive.Id)
+                    return Result<string>.Failure("Smart scale already registered to another hive", ErrorType.Validation);
+            }
+            else
+            {
+                var smartScaleResult = SmartScale.CreateUnpaired(request.SerialNumber);
+                if (smartScaleResult.IsFailure)
+                    return Result<string>.Failure(smartScaleResult.Error!.Message, ErrorType.Validation);
+                smartScale = smartScaleResult.Value;
+                await smartScaleRepository.SaveAsync(smartScale, ct);
+            }
 
-            var smartScaleResult = SmartScale.CreateUnpaired(request.SerialNumber);
-            if (smartScaleResult.IsFailure)
-                return Result<string>.Failure(smartScaleResult.Error!.Message, ErrorType.Validation);
-
-            await smartScaleRepository.SaveAsync(smartScaleResult.Value, ct);
-
-            hive.PairSmartScale(smartScaleResult.Value.Id);
+            hive.PairSmartScale(smartScale.Id);
             await hiveRepository.UpdateAsync(hive, ct);
 
-            return Result<string>.Success(smartScaleResult.Value.Id.Value);
+            return Result<string>.Success(smartScale.Id.Value);
         }
     }
 }

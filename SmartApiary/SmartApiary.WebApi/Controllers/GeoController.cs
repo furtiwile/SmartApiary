@@ -11,6 +11,16 @@ namespace SmartApiary.WebApi.Controllers
     [ApiController]
     public class GeoController(IMediator mediator) : ControllerBase
     {
+        [HttpGet("weather")]
+        public async Task<IActionResult> GetWeather(
+            [FromQuery] double latitude,
+            [FromQuery] double longitude,
+            CancellationToken ct = default)
+        {
+            var result = await mediator.Send(new GetWeatherQuery(latitude, longitude), ct);
+            return result.ToActionResult();
+        }
+
         [HttpGet("apiaries-near-parcel")]
         public async Task<IActionResult> GetApiariesNearParcel(
             [FromQuery] string parcelId,

@@ -27,6 +27,8 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
     internal class CancelSprinklingAnnouncementHandler(
         ISprinklingAnnouncementRepository repository,
         IParcelRepository parcelRepository,
+        IApiaryRepository apiaryRepository,
+        IMediator mediator,
         IAnnouncementQueueService announcementQueueService,
         ICurrentUserContext currentUser
     )
@@ -59,6 +61,18 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
 
             announcement.Cancel();
             await repository.UpdateAsync(announcement, ct);
+
+            // Notify beekeepers live via SignalR about the cancellation
+            var apiaries = await apiaryRepository.GetApiariesWithinRadiusAsync(parcel.Latitude, parcel.Longitude, 5000, ct);
+            foreach (var apiary in apiaries)
+            {
+                var warningEvent = new SmartApiary.Domain.Events.PesticideWarningCancelledDomainEvent(
+                    apiary.Id,
+                    apiary.Name,
+                    DateTime.UtcNow
+                );
+                await mediator.Publish(new SmartApiary.Application.Common.DomainEventNotification<SmartApiary.Domain.Events.PesticideWarningCancelledDomainEvent>(warningEvent), ct);
+            }
 
             await announcementQueueService.SendAnnouncementMessageAsync(announcement.Id.Value, AnnouncementAction.Cancelled, ct);
 

@@ -2,6 +2,7 @@ import React from "react";
 import { useAuth } from "../../users/hooks/AuthHook";
 import BeehivesPage from "../../beehives/pages/BeehivesPage";
 import { FarmsPage } from "../../farms/pages/FarmsPage";
+import { AdminUsersPage } from "../../users/pages/AdminUsersPage";
 
 export const DashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -15,8 +16,12 @@ export const DashboardPage: React.FC = () => {
     return <BeehivesPage />;
   }
 
-  // Farmers and Admins see parcels
-  if (user.role === "Farmer" || user.role === "Admin") {
+  if (user.role === "Admin") {
+    return <AdminUsersPage />;
+  }
+
+  // Farmers see parcels
+  if (user.role === "Farmer") {
     return <FarmsPage />;
   }
 

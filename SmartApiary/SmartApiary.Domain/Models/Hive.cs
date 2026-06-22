@@ -20,6 +20,11 @@ namespace SmartApiary.Domain.Models
             SmartScaleId = smartScaleId;
         }
 
+        public void UnpairSmartScale()
+        {
+            SmartScaleId = null;
+        }
+
         public void MoveToApiary(EntityId apiaryId)
         {
             ApiaryId = apiaryId;

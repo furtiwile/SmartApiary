@@ -14,26 +14,34 @@ namespace SmartApiary.Infrastructure.Services
     {
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            var tableNames = new[]
+            try
             {
-                options.Value.UserTable,
-                options.Value.ApiariesTable,
-                options.Value.HivesTable,
-                options.Value.HiveInspectionsTable,
-                options.Value.ParcelsTable,
-                options.Value.CropsTable,
-                options.Value.SmartScalesTable,
-                options.Value.SprinklingAnnouncementsTable,
-                options.Value.SprinklingRecordsTable,
-                options.Value.TelemetriesTable,
+                var tableNames = new[]
+                {
+                    options.Value.UserTable,
+                    options.Value.ApiariesTable,
+                    options.Value.HivesTable,
+                    options.Value.HiveInspectionsTable,
+                    options.Value.ParcelsTable,
+                    options.Value.CropsTable,
+                    options.Value.SmartScalesTable,
+                    options.Value.SprinklingAnnouncementsTable,
+                    options.Value.SprinklingRecordsTable,
+                    options.Value.TelemetriesTable,
 
-                options.Value.ActivationTokensTable,
-                options.Value.PasswordResetTokensTable
-            };
+                    options.Value.ActivationTokensTable,
+                    options.Value.PasswordResetTokensTable,
+                    options.Value.NotificationsTable
+                };
 
-            foreach (var tableName in tableNames)
+                foreach (var tableName in tableNames)
+                {
+                    await EnsureTableExistsAsync(tableName, cancellationToken);
+                }
+            }
+            catch (Exception ex)
             {
-                await EnsureTableExistsAsync(tableName, cancellationToken);
+                logger.LogError(ex, "Failed to initialize Azure Tables during application startup.");
             }
         }
 

@@ -24,6 +24,13 @@ namespace SmartApiary.Domain.Models
             Status = status;
         }
 
+        public void Unpair()
+        {
+            HardwareId = string.Empty;
+            DeviceToken = string.Empty;
+            Status = DeviceStatusEnum.Unpaired;
+        }
+
         public void RefreshDeviceToken(string deviceToken)
         {
             DeviceToken = deviceToken;
@@ -39,7 +46,7 @@ namespace SmartApiary.Domain.Models
         public double LatestReading { get; private set; }
         public DateTime TimeOfLastReading { get; private set; }
         public bool IsBatteryWarningSent { get; private set; }
-        public double WeightDropThreshold { get; private set; } = 10.0;
+        public double? WeightDropThreshold { get; private set; }
 
         public void UpdateReading(double reading, DateTime timestamp)
         {
@@ -50,6 +57,11 @@ namespace SmartApiary.Domain.Models
         public void UpdateBatteryWarningStatus(bool isSent)
         {
             IsBatteryWarningSent = isSent;
+        }
+
+        public void UpdateWeightDropThreshold(double? newThreshold)
+        {
+            WeightDropThreshold = newThreshold;
         }
 
         /// <summary>
@@ -70,7 +82,7 @@ namespace SmartApiary.Domain.Models
             double latestReading,
             DateTime timeOfLastReading,
             bool isBatteryWarningSent = false,
-            double weightDropThreshold = 10.0)
+            double? weightDropThreshold = null)
         {
             Id = id;
             SerialNumber = serialNumber;
@@ -100,7 +112,7 @@ namespace SmartApiary.Domain.Models
             double latestReading,
             DateTime timeOfLastReading,
             bool isBatteryWarningSent = false,
-            double weightDropThreshold = 10.0
+            double? weightDropThreshold = null
         )
         {
             if (string.IsNullOrWhiteSpace(serialNumber))
@@ -142,9 +154,17 @@ namespace SmartApiary.Domain.Models
                     0,
                     DateTime.MinValue,
                     false,
-                    10.0
+                    null
                 )
             );
+        }
+
+        public static string GenerateSerialNumber()
+        {
+            var random = new Random();
+            var year = DateTime.UtcNow.Year;
+            var randomFive = random.Next(10000, 99999);
+            return $"SA-{year}-{randomFive}";
         }
 
         /// <summary>
@@ -166,7 +186,7 @@ namespace SmartApiary.Domain.Models
             double latestReading,
             DateTime timeOfLastReading,
             bool isBatteryWarningSent = false,
-            double weightDropThreshold = 10.0
+            double? weightDropThreshold = null
         )
         {
             var idResult = EntityId.Create(id);

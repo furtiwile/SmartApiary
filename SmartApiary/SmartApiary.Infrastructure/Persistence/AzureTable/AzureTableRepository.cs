@@ -1,4 +1,4 @@
-﻿using Azure;
+using Azure;
 using Azure.Data.Tables;
 using SmartApiary.Infrastructure.Persistence.AzureTable.Common;
 
@@ -57,7 +57,9 @@ namespace SmartApiary.Infrastructure.Persistence.AzureTable
 
         public async Task<List<TDomain>> QueryAsync(string filter, CancellationToken ct)
         {
-            var query = _tableClient.QueryAsync<TEntity>(filter, cancellationToken: ct);
+            var query = string.IsNullOrWhiteSpace(filter)
+                ? _tableClient.QueryAsync<TEntity>(cancellationToken: ct)
+                : _tableClient.QueryAsync<TEntity>(filter, cancellationToken: ct);
             var results = new List<TDomain>();
 
             await foreach (var entity in query)

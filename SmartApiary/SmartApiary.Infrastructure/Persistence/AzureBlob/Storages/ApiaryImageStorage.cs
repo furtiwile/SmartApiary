@@ -33,7 +33,7 @@ namespace SmartApiary.Infrastructure.Persistence.AzureBlob.Storages
             if (!IsAllowedExtension(extension))
                 return Result<ApiaryImageUploadResult>.Failure("Only JPG, JPEG, PNG, WEBP and GIF images are allowed.", SmartApiary.Domain.Enums.ErrorType.Validation);
 
-            await _containerClient.CreateIfNotExistsAsync(cancellationToken: ct);
+            await _containerClient.CreateIfNotExistsAsync(PublicAccessType.BlobContainer, cancellationToken: ct);
 
             var imageBlobName = $"apiaries/{apiaryId.Value}/original{extension}";
             var thumbnailBlobName = $"apiaries/{apiaryId.Value}/thumbnail.jpg";

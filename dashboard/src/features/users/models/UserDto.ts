@@ -7,4 +7,5 @@ export type UserDto = {
   lastName: string;
   phoneNumber: string;
   role: UserRole;
+  isActive?: boolean;
 }

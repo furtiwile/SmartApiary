@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -17,6 +17,11 @@ namespace SmartApiary.WebApi.Extensions
             // Add infrastructure & application layers
             services.AddInfrastructure(configuration)
                     .AddApplication();
+
+            services.AddMediatR(cfg =>
+            {
+                cfg.RegisterServicesFromAssembly(typeof(ServiceCollectionExtensions).Assembly);
+            });
 
             // Controllers + JSON enums
             services.AddControllers()
@@ -103,6 +108,7 @@ namespace SmartApiary.WebApi.Extensions
         public static IServiceCollection AddWebApiHostedServices(this IServiceCollection services)
         {
             services.AddHostedService<TelemetryBroadcastWorker>();
+            services.AddHostedService<SprinklingAnnouncementWorker>();
             return services;
         }
     }

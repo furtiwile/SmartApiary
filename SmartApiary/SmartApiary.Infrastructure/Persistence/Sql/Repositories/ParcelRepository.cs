@@ -114,6 +114,15 @@ WHERE Location.STDistance(@targetLocation) <= @Radius;";
             }, ct);
         }
 
+        public async Task<IReadOnlyCollection<Parcel>> GetAllAsync(CancellationToken ct = default)
+        {
+            const string sql = @"
+SELECT Id, Name, Location.Lat AS Latitude, Location.Long AS Longitude, FarmerId
+FROM dbo.Parcels;";
+
+            return await QueryParcelsAsync(sql, command => { }, ct);
+        }
+
         private async Task<IReadOnlyCollection<Parcel>> QueryParcelsAsync(string sql, Action<SqlCommand> configureCommand, CancellationToken ct)
         {
             var parcels = new List<Parcel>();
