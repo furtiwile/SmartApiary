@@ -6,10 +6,15 @@ using SmartApiary.Application.Interfaces.Repositories;
 using SmartApiary.Domain.Common;
 using SmartApiary.Domain.Enums;
 using SmartApiary.Domain.ValueObjects;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
 {
-    public record RescheduleSprinklingAnnouncementCommand : IRequest<Result>
+    public record RescheduleAnnouncementResponse(string WarningMessage);
+
+    public record RescheduleSprinklingAnnouncementCommand : IRequest<Result<RescheduleAnnouncementResponse>>
     {
         public string ParcelId { get; init; } = string.Empty;
         public string AnnouncementId { get; init; } = string.Empty;
@@ -35,45 +40,46 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
         IWeatherService weatherService,
         IParcelRepository parcelRepository,
         ICurrentUserContext currentUser
-    )
-        : IRequestHandler<RescheduleSprinklingAnnouncementCommand, Result>
+    ) : IRequestHandler<RescheduleSprinklingAnnouncementCommand, Result<RescheduleAnnouncementResponse>>
     {
-        public async Task<Result> Handle(RescheduleSprinklingAnnouncementCommand request, CancellationToken ct)
+        public async Task<Result<RescheduleAnnouncementResponse>> Handle(RescheduleSprinklingAnnouncementCommand request, CancellationToken ct)
         {
             if (!currentUser.IsAuthenticated || string.IsNullOrWhiteSpace(currentUser.UserId))
-                return Result.Failure("Unauthorized", ErrorType.Unauthorized);
+                return Result<RescheduleAnnouncementResponse>.Failure("Unauthorized", ErrorType.Unauthorized);
 
             var parcelIdResult = EntityId.Create(request.ParcelId);
             if (parcelIdResult.IsFailure)
-                return Result.Failure(parcelIdResult.Error!.Message, ErrorType.Validation);
+                return Result<RescheduleAnnouncementResponse>.Failure(parcelIdResult.Error!.Message, ErrorType.Validation);
 
             var announcementIdResult = EntityId.Create(request.AnnouncementId);
             if (announcementIdResult.IsFailure)
-                return Result.Failure(announcementIdResult.Error!.Message, ErrorType.Validation);
+                return Result<RescheduleAnnouncementResponse>.Failure(announcementIdResult.Error!.Message, ErrorType.Validation);
 
-            // Verify parcel ownership
             var parcel = await parcelRepository.GetByIdAsync(parcelIdResult.Value, ct);
             if (parcel == null)
-                return Result.Failure("Target parcel does not exist.", ErrorType.NotFound);
+                return Result<RescheduleAnnouncementResponse>.Failure("Target parcel does not exist.", ErrorType.NotFound);
 
             if (parcel.FarmerId.Value != currentUser.UserId)
-                return Result.Failure("Unauthorized - you do not own this parcel.", ErrorType.Unauthorized);
+                return Result<RescheduleAnnouncementResponse>.Failure("Unauthorized - you do not own this parcel.", ErrorType.Unauthorized);
 
             var announcement = await repository.GetByIdAsync(parcelIdResult.Value, announcementIdResult.Value, ct);
             if (announcement == null)
-                return Result.Failure("Announcement not found", ErrorType.NotFound);
+                return Result<RescheduleAnnouncementResponse>.Failure("Announcement not found", ErrorType.NotFound);
 
-            // Hard block: weather validation
+            var warningMessage = string.Empty;
             if (!request.BypassWeatherValidation)
             {
                 var weatherResult = await weatherService.GetWeatherAsync(parcel.Latitude, parcel.Longitude, ct);
                 if (weatherResult.IsSuccess)
                 {
-                    if (weatherResult.Value.WindSpeed > 5.0)
-                        return Result.Failure("Bad weather conditions - postponing is recommended. Wind speed is too high.", ErrorType.Validation);
+                    var isWindTooHigh = weatherResult.Value.WindSpeed > 5.0;
+                    var isRaining = weatherResult.Value.Precipitation > 0 ||
+                                     weatherResult.Value.Description.Contains("rain", StringComparison.OrdinalIgnoreCase);
 
-                    if (weatherResult.Value.Precipitation > 0 || weatherResult.Value.Description.Contains("rain", StringComparison.OrdinalIgnoreCase))
-                        return Result.Failure("Bad weather conditions - postponing is recommended. Rain detected.", ErrorType.Validation);
+                    if (isWindTooHigh || isRaining)
+                    {
+                        warningMessage = "Bad weather conditions - we recommend another date";
+                    }
                 }
             }
 
@@ -86,7 +92,7 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
 
             await announcementQueueService.SendAnnouncementMessageAsync(announcement.Id.Value, AnnouncementAction.Rescheduled, ct);
 
-            return Result.Success();
+            return Result<RescheduleAnnouncementResponse>.Success(new RescheduleAnnouncementResponse(warningMessage));
         }
     }
 }

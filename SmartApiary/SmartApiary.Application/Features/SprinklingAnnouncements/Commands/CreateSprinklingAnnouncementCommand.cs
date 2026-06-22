@@ -7,10 +7,15 @@ using SmartApiary.Domain.Common;
 using SmartApiary.Domain.Enums;
 using SmartApiary.Domain.Models;
 using SmartApiary.Domain.ValueObjects;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
 {
-    public record CreateSprinklingAnnouncementCommand : IRequest<Result<string>>
+    public record CreateAnnouncementResponse(string AnnouncementId, string WarningMessage);
+
+    public record CreateSprinklingAnnouncementCommand : IRequest<Result<CreateAnnouncementResponse>>
     {
         public string ParcelId { get; init; } = string.Empty;
         public DateTime StartTime { get; init; }
@@ -36,36 +41,38 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
         IAnnouncementQueueService announcementQueueService,
         IWeatherService weatherService,
         ICurrentUserContext currentUser
-    ) : IRequestHandler<CreateSprinklingAnnouncementCommand, Result<string>>
+    ) : IRequestHandler<CreateSprinklingAnnouncementCommand, Result<CreateAnnouncementResponse>>
     {
-        public async Task<Result<string>> Handle(CreateSprinklingAnnouncementCommand request, CancellationToken ct)
+        public async Task<Result<CreateAnnouncementResponse>> Handle(CreateSprinklingAnnouncementCommand request, CancellationToken ct)
         {
             if (!currentUser.IsAuthenticated || string.IsNullOrWhiteSpace(currentUser.UserId))
-                return Result<string>.Failure("Unauthorized", ErrorType.Unauthorized);
+                return Result<CreateAnnouncementResponse>.Failure("Unauthorized", ErrorType.Unauthorized);
 
             var parcelIdResult = EntityId.Create(request.ParcelId);
             if (parcelIdResult.IsFailure)
-                return Result<string>.Failure(parcelIdResult.Error!.Message, ErrorType.Validation);
+                return Result<CreateAnnouncementResponse>.Failure(parcelIdResult.Error!.Message, ErrorType.Validation);
 
             var parcel = await parcelRepository.GetByIdAsync(parcelIdResult.Value, ct);
             if (parcel == null)
-                return Result<string>.Failure("Target parcel does not exist.", ErrorType.NotFound);
+                return Result<CreateAnnouncementResponse>.Failure("Target parcel does not exist.", ErrorType.NotFound);
 
-            // Verify parcel ownership
             if (parcel.FarmerId.Value != currentUser.UserId)
-                return Result<string>.Failure("Unauthorized - you do not own this parcel.", ErrorType.Unauthorized);
+                return Result<CreateAnnouncementResponse>.Failure("Unauthorized - you do not own this parcel.", ErrorType.Unauthorized);
 
-            // Hard block: weather validation (SA.pdf requirement - must not spray in bad conditions)
+            var warningMessage = string.Empty;
             if (!request.BypassWeatherValidation)
             {
                 var weatherResult = await weatherService.GetWeatherAsync(parcel.Latitude, parcel.Longitude, ct);
                 if (weatherResult.IsSuccess)
                 {
-                    if (weatherResult.Value.WindSpeed > 5.0)
-                        return Result<string>.Failure("Bad weather conditions - postponing is recommended. Wind speed is too high.", ErrorType.Validation);
+                    var isWindTooHigh = weatherResult.Value.WindSpeed > 5.0;
+                    var isRaining = weatherResult.Value.Precipitation > 0 ||
+                                     weatherResult.Value.Description.Contains("rain", StringComparison.OrdinalIgnoreCase);
 
-                    if (weatherResult.Value.Precipitation > 0 || weatherResult.Value.Description.Contains("rain", StringComparison.OrdinalIgnoreCase))
-                        return Result<string>.Failure("Bad weather conditions - postponing is recommended. Rain detected.", ErrorType.Validation);
+                    if (isWindTooHigh || isRaining)
+                    {
+                        warningMessage = "Bad weather conditions - we recommend another date";
+                    }
                 }
             }
 
@@ -82,7 +89,7 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
             );
 
             if (announcementResult.IsFailure)
-                return Result<string>.Failure(announcementResult.Error!.Message, ErrorType.Validation);
+                return Result<CreateAnnouncementResponse>.Failure(announcementResult.Error!.Message, ErrorType.Validation);
 
             await announcementRepository.SaveAsync(announcementResult.Value, ct);
 
@@ -100,7 +107,8 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
 
             await announcementQueueService.SendAnnouncementMessageAsync(announcementResult.Value.Id.Value, AnnouncementAction.Created, ct);
 
-            return Result<string>.Success(announcementResult.Value.Id.Value);
+            var response = new CreateAnnouncementResponse(announcementResult.Value.Id.Value, warningMessage);
+            return Result<CreateAnnouncementResponse>.Success(response);
         }
     }
 }
