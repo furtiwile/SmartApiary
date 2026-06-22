@@ -45,7 +45,12 @@ namespace SmartApiary.Application.Features.Auth.Commands
             var rawToken = oneTime.RawToken;
             var link = linkProvider.BuildResetLink(rawToken);
 
-            var email = new EmailMessage(user.Email, "Reset your SmartApiary password", $"<p>Reset password: <a href=\"{link}\">link</a></p>", $"Reset: {link}");
+            var email = new EmailMessage(
+                user.Email, 
+                "Reset your SmartApiary password", 
+                $"<p>Hello,</p><p>We received a request to reset your password for your SmartApiary account. Please click the link below to set a new password:</p><p><a href=\"{link}\">Reset Password</a></p><p>If you did not request a password reset, please ignore this email.</p>", 
+                $"Hello,\n\nWe received a request to reset your password for your SmartApiary account. Please use the following link to set a new password:\n\n{link}\n\nIf you did not request a password reset, please ignore this email."
+            );
             _ = emailSender.SendAsync(email, cancellationToken);
 
             return Result<string?>.Success(linkProvider.ReturnLinkInResponse ? link : null);
