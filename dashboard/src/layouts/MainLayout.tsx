@@ -3,6 +3,8 @@ import { Link, Outlet } from "react-router-dom";
 import { useAuth } from "../features/users/hooks/AuthHook";
 import LogoutButton from "../features/users/components/LogoutButton";
 import { NotificationDrawer } from "../components/ui/NotificationDrawer";
+import { useNotify } from "../hooks/useNotify";
+import { useApis } from "../shared/api/useApis";
 import type { UserDto } from "../features/users/models/UserDto";
 
 
@@ -81,6 +83,14 @@ function AccountActions({ isAuthed, user, logout }: AccountActionsProps) {
               SPRAYING
             </Link>
           </li>
+          <li>
+            <Link
+              to="/dashboard/spraying-records"
+              className="text-sm font-bold tracking-wide text-slate-400 hover:text-cyan-400 transition-colors duration-200"
+            >
+              RECORDS
+            </Link>
+          </li>
         </>
       )}
       <li>
@@ -100,6 +110,48 @@ function AccountActions({ isAuthed, user, logout }: AccountActionsProps) {
 
 const MainLayout: React.FC = () => {
   const {isAuthed, user, logout} = useAuth();
+  const { notifications } = useApis();
+  const { info, warning, error } = useNotify();
+
+  React.useEffect(() => {
+    if (!isAuthed || !user) return;
+
+    let mounted = true;
+
+    async function fetchNotifications() {
+      try {
+        const unpushed = await notifications.getUnpushed();
+        if (!mounted || unpushed.length === 0) return;
+
+        const idsToMark = [];
+
+        for (const notif of unpushed) {
+          const type = notif.type.toLowerCase();
+          const title = `Alert: ${notif.type}`;
+          
+          if (type === "critical") {
+            error(title, notif.message, { duration: 10000 });
+          } else if (type === "warning") {
+            warning(title, notif.message, { duration: 8000 });
+          } else {
+            info(title, notif.message, { duration: 6000 });
+          }
+
+          idsToMark.push(notif.id);
+        }
+
+        if (idsToMark.length > 0) {
+          await notifications.markAsPushed(idsToMark);
+        }
+      } catch (err) {
+        console.error("Failed to fetch notifications on login", err);
+      }
+    }
+
+    fetchNotifications();
+
+    return () => { mounted = false; };
+  }, [isAuthed, user, notifications, info, warning, error]);
   
   return (
     <div className="flex flex-col min-h-screen bg-slate-950 text-slate-200">
