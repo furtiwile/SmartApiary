@@ -50,7 +50,11 @@ namespace SmartApiary.WebApi.Controllers
             var result = await mediator.Send(cmd, ct);
             if (result.IsSuccess)
             {
-                return Ok(new { resetLink = result.Value });
+                return Ok(new 
+                { 
+                    resetLink = result.Value,
+                    message = "A password reset link has been successfully sent to your email."
+                });
             }
 
             return result.ToActionResult();
