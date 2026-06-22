@@ -4,7 +4,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SmartApiary.Application;
+using SmartApiary.Application.Interfaces;
 using SmartApiary.Functions.Middlewares;
+using SmartApiary.Functions.Services;
 using SmartApiary.Infrastructure;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -46,5 +48,5 @@ builder.Services
 builder.Services
     .AddInfrastructure(builder.Configuration)
     .AddApplication();
-
+builder.Services.AddScoped<ISprinklingNotificationService,NullSprinklingNotificationService>();
 builder.Build().Run();
