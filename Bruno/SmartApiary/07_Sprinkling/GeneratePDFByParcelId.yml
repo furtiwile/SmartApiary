@@ -1,11 +1,11 @@
 info:
-  name: Cancel Sprinkling Announcement
+  name: Generate PDF by parcelId
   type: http
-  seq: 3
+  seq: 11
 
 http:
-  method: POST
-  url: "{{smart_apiary_api_base_url}}/sprinklingannouncements/{{announcement_id}}/cancel?parcelId={{parcel_id}}"
+  method: GET
+  url: "{{smart_apiary_api_base_url}}/sprinklingrecords/export?parcelId={{parcel_id}}"
   params:
     - name: parcelId
       value: "{{parcel_id}}"
@@ -22,7 +22,7 @@ runtime:
   scripts:
     - type: after-response
       code: |-
-        console.log("DEBUG RESPONSE [CancelSprinklingAnnouncement.yml] status:", res.status, "body:", JSON.stringify(res.body));
+        console.log("DEBUG RESPONSE [GeneratePDFByParcelId.yml] status:", res.status, "body:", JSON.stringify(res.body));
     - type: before-request
       code: |-
         bru.setGlobalEnvVar("jwt_token", bru.getGlobalEnvVar("farmer_token"));

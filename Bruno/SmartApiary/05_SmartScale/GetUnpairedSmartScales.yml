@@ -1,11 +1,11 @@
 info:
-  name: Get Smart Scales By Beekeeper
+  name: Get Unpaired Smart Scales
   type: http
-  seq: 4
+  seq: 5
 
 http:
   method: GET
-  url: "{{smart_apiary_api_base_url}}/smartscales"
+  url: "{{smart_apiary_api_base_url}}/smartscales/unpaired"
   auth: inherit
 
 settings:
@@ -18,7 +18,7 @@ runtime:
   scripts:
     - type: after-response
       code: |-
-        console.log("DEBUG RESPONSE [GetSmartScales.yml] status:", res.status, "body:", JSON.stringify(res.body));
+        console.log("DEBUG RESPONSE [GetUnpairedSmartScales.yml] status:", res.status, "body:", JSON.stringify(res.body));
     - type: before-request
       code: |-
         bru.setGlobalEnvVar("jwt_token", bru.getGlobalEnvVar("beekeeper_token"));

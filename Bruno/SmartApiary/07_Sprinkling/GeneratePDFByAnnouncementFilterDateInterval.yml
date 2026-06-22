@@ -1,7 +1,7 @@
 info:
-  name: Generate PDF by annocment filter date interval
+  name: Generate PDF by announcement filter date interval
   type: http
-  seq: 9
+  seq: 12
 
 http:
   method: GET
@@ -28,7 +28,7 @@ runtime:
   scripts:
     - type: after-response
       code: |-
-        console.log("DEBUG RESPONSE [Generate PDF by annocment filter date interval.yml] status:", res.status, "body:", JSON.stringify(res.body));
+        console.log("DEBUG RESPONSE [GeneratePDFByAnnouncementFilterDateInterval.yml] status:", res.status, "body:", JSON.stringify(res.body));
     - type: before-request
       code: |-
         bru.setGlobalEnvVar("jwt_token", bru.getGlobalEnvVar("farmer_token"));
