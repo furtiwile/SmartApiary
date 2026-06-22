@@ -14,22 +14,29 @@ namespace SmartApiary.Infrastructure.Services
     {
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            var queueNames = new[]
+            try
             {
-                options.Value.TelemetryQueue,
-                options.Value.AlertQueue,
-
-                options.Value.AnnouncementQueue
-            };
-
-            foreach (var queueName in queueNames)
-            {
-                if (!string.IsNullOrWhiteSpace(queueName))
+                var queueNames = new[]
                 {
-                    var queueClient = queueServiceClient.GetQueueClient(queueName);
-                    await queueClient.CreateIfNotExistsAsync(cancellationToken: cancellationToken);
-                    logger.LogInformation("Ensured Azure Queue exists: {QueueName}", queueName);
+                    options.Value.TelemetryQueue,
+                    options.Value.AlertQueue,
+
+                    options.Value.AnnouncementQueue
+                };
+
+                foreach (var queueName in queueNames)
+                {
+                    if (!string.IsNullOrWhiteSpace(queueName))
+                    {
+                        var queueClient = queueServiceClient.GetQueueClient(queueName);
+                        await queueClient.CreateIfNotExistsAsync(cancellationToken: cancellationToken);
+                        logger.LogInformation("Ensured Azure Queue exists: {QueueName}", queueName);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to initialize Azure Queues during application startup.");
             }
         }
 
