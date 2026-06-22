@@ -110,7 +110,7 @@ namespace SmartApiary.Application.Features.Hives.Commands
                 hive.Id.Value,
                 hive.ApiaryId.Value,
                 hive.Designation,
-                (int)hive.Type,
+                hive.Type,
                 hive.SuperColor,
                 hive.QueenAge,
                 hive.Note,

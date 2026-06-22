@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using MediatR;
 using SmartApiary.Application.Common;
 using SmartApiary.Application.Interfaces.Repositories;
@@ -34,6 +34,7 @@ namespace SmartApiary.Application.Features.Telemetries.Commands
     internal class ProcessTelemetryCommandHandler(
         ITelemetryRepository telemetryRepository,
         ISmartScaleRepository smartScaleRepository,
+        IHiveRepository hiveRepository,
         IMediator mediator // Koristimo IMediator za Publish
     ) : IRequestHandler<ProcessTelemetryCommand, Result>
     {
@@ -55,8 +56,13 @@ namespace SmartApiary.Application.Features.Telemetries.Commands
 
                 if (weightDrop >= 5.0)
                 {
+                    var hive = await hiveRepository.GetByIdAsync(previousTelemetry.HiveId, ct);
+                    string hiveName = hive?.Designation ?? "Unknown Hive";
+
                     var anomalyEvent = new AnomalyDetectedDomainEvent(
                         scaleIdResult.Value,
+                        scale.SerialNumber,
+                        hiveName,
                         EntityId.New(),
                         previousTelemetry.WeightKg,
                         request.Weight,
@@ -65,6 +71,23 @@ namespace SmartApiary.Application.Features.Telemetries.Commands
                     );
 
                     await mediator.Publish(new DomainEventNotification<AnomalyDetectedDomainEvent>(anomalyEvent), ct);
+                }
+
+                // Check for battery transition below 15%
+                if (request.BatteryLevel < 15 && previousTelemetry.BatteryPercent >= 15)
+                {
+                    var hive = await hiveRepository.GetByIdAsync(previousTelemetry.HiveId, ct);
+                    string hiveName = hive?.Designation ?? "Unknown Hive";
+
+                    var batteryEvent = new BatteryLowDomainEvent(
+                        scaleIdResult.Value,
+                        scale.SerialNumber,
+                        hiveName,
+                        request.BatteryLevel,
+                        DateTime.UtcNow
+                    );
+
+                    await mediator.Publish(new DomainEventNotification<BatteryLowDomainEvent>(batteryEvent), ct);
                 }
             }
 

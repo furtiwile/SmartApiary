@@ -20,15 +20,20 @@ const typeColor: Record<NotificationType, string> = {
 };
 
 function NotificationItem({ n }: { n: NotificationPayload }) {
+  const [isExpanded, setIsExpanded] = useState(false);
   const Icon = typeIcon[n.type];
   return (
-    <div className="flex items-start gap-3 px-4 py-3 hover:bg-white/5 transition-colors">
+    <div 
+      className="flex items-start gap-3 px-4 py-3 hover:bg-white/5 transition-colors cursor-pointer"
+      onClick={() => setIsExpanded(!isExpanded)}
+    >
       <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${typeColor[n.type]}`} />
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-slate-200 leading-snug">{n.title}</p>
-        <p className="text-xs text-slate-400 leading-relaxed mt-0.5 line-clamp-2">{n.message}</p>
-        <p className="text-[10px] text-slate-600 mt-1">
-          {n.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+        <p className={`text-xs text-slate-400 leading-relaxed mt-0.5 ${isExpanded ? '' : 'line-clamp-2'}`}>{n.message}</p>
+        <p className="text-[10px] text-slate-600 mt-1 flex justify-between">
+          <span>{n.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+          <span className="text-slate-500 opacity-60">{isExpanded ? "Show less" : "Read more"}</span>
         </p>
       </div>
     </div>
