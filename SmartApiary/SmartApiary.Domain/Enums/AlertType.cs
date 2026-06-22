@@ -1,10 +1,11 @@
-﻿namespace SmartApiary.Domain.Enums
+namespace SmartApiary.Domain.Enums
 {
     public enum AlertType
     {
         Info,
         Warning,
         Critical,
-        WeightDrop
+        WeightDrop,
+        PesticideWarning
     }
 }

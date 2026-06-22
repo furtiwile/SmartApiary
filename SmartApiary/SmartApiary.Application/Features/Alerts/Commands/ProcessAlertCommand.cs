@@ -20,7 +20,8 @@ namespace SmartApiary.Application.Features.Alerts.Commands
         IApiaryRepository apiaryRepository,
         IUserRepository userRepository,
         IEmailSender emailSender,
-        INotificationRepository notificationRepository)
+        INotificationRepository notificationRepository,
+        IDomainEventDispatcher domainEventDispatcher)
         : IRequestHandler<ProcessAlertCommand, Result>
     {
         public async Task<Result> Handle(ProcessAlertCommand request, CancellationToken ct)
@@ -62,6 +63,8 @@ namespace SmartApiary.Application.Features.Alerts.Commands
                         if (notificationResult.IsSuccess)
                         {
                             await notificationRepository.SaveAsync(notificationResult.Value, ct);
+                            await domainEventDispatcher.DispatchAsync(notificationResult.Value.DomainEvents, ct);
+                            notificationResult.Value.ClearDomainEvents();
                         }
                     }
                 }

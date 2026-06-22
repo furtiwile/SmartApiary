@@ -19,8 +19,17 @@ namespace SmartApiary.WebApi.BackgroundServices
         IHiveRepository hiveRepository,
         ILogger<AlertSignalRBroadcastEventHandler> logger) : 
         INotificationHandler<DomainEventNotification<AnomalyDetectedDomainEvent>>,
-        INotificationHandler<DomainEventNotification<BatteryLowDomainEvent>>
+        INotificationHandler<DomainEventNotification<BatteryLowDomainEvent>>,
+        INotificationHandler<DomainEventNotification<PesticideWarningDomainEvent>>
     {
+        public async Task Handle(DomainEventNotification<PesticideWarningDomainEvent> notification, CancellationToken ct)
+        {
+            var alert = notification.Event.Alert;
+            var apiaryId = notification.Event.ApiaryId;
+
+            await BroadcastAlertToApiary(alert, apiaryId, ct);
+        }
+
         public async Task Handle(DomainEventNotification<AnomalyDetectedDomainEvent> notification, CancellationToken ct)
         {
             var alert = notification.Event.Alert;
@@ -49,7 +58,7 @@ namespace SmartApiary.WebApi.BackgroundServices
                     {
                         var alertDto = new
                         {
-                            Title = $"Alert: {alert.AlertType}",
+                            Title = alert.AlertType == SmartApiary.Domain.Enums.AlertType.PesticideWarning ? "⚠️ Pesticide Warning" : $"Alert: {alert.AlertType}",
                             Message = alert.Message.Value,
                             Type = alert.AlertType.ToString()
                         };
@@ -64,6 +73,32 @@ namespace SmartApiary.WebApi.BackgroundServices
             catch (Exception ex)
             {
                 logger.LogError(ex, "[SIGNALR] Failed to broadcast alert to SignalR.");
+            }
+        }
+
+        private async Task BroadcastAlertToApiary(SmartApiary.Domain.ValueObjects.Alert alert, EntityId apiaryId, CancellationToken ct)
+        {
+            try
+            {
+                var apiary = await apiaryRepository.GetByIdAsync(apiaryId, ct);
+                if (apiary != null)
+                {
+                    var alertDto = new
+                    {
+                        Title = alert.AlertType == SmartApiary.Domain.Enums.AlertType.PesticideWarning ? "⚠️ Pesticide Warning" : $"Alert: {alert.AlertType}",
+                        Message = alert.Message.Value,
+                        Type = alert.AlertType.ToString()
+                    };
+
+                    await hubContext.Clients.Group($"beekeeper:{apiary.BeekeeperId.Value}")
+                        .SendAsync("ReceiveAlert", alertDto, ct);
+                        
+                    logger.LogInformation("[SIGNALR] Broadcasted apiary alert to Beekeeper {BeekeeperId}", apiary.BeekeeperId.Value);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "[SIGNALR] Failed to broadcast apiary alert to SignalR.");
             }
         }
     }

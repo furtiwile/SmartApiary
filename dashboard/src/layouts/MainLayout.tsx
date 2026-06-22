@@ -122,13 +122,16 @@ const MainLayout: React.FC = () => {
   const {isAuthed, user, logout} = useAuth();
   const { notifications } = useApis();
   const { info, warning, error } = useNotify();
-  const { connectionState, joinBeekeeperGroup, leaveBeekeeperGroup } = useApiarySignalR();
+  const { connectionState, joinBeekeeperGroup, leaveBeekeeperGroup, joinPrivateChannel, leavePrivateChannel } = useApiarySignalR();
 
   React.useEffect(() => {
     if (!isAuthed || !user) return;
 
-    if (user.role === "Beekeeper" && connectionState === HubConnectionState.Connected) {
-      joinBeekeeperGroup(user.id);
+    if (connectionState === HubConnectionState.Connected) {
+      if (user.role === "Beekeeper") {
+        joinBeekeeperGroup(user.id);
+      }
+      joinPrivateChannel(user.id);
     }
 
     let mounted = true;
@@ -170,8 +173,9 @@ const MainLayout: React.FC = () => {
       if (user?.role === "Beekeeper") {
         leaveBeekeeperGroup(user.id);
       }
+      leavePrivateChannel(user.id);
     };
-  }, [isAuthed, user, notifications, info, warning, error, joinBeekeeperGroup, leaveBeekeeperGroup, connectionState]);
+  }, [isAuthed, user, notifications, info, warning, error, joinBeekeeperGroup, leaveBeekeeperGroup, joinPrivateChannel, leavePrivateChannel, connectionState]);
   
   return (
     <div className="flex flex-col min-h-screen bg-slate-950 text-slate-200">

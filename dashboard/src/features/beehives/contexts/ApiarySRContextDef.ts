@@ -12,6 +12,10 @@ export interface ApiarySRContextValue {
   joinBeekeeperGroup: (beekeeperId: string) => Promise<void>;
   /** Leave the global Beekeeper group */
   leaveBeekeeperGroup: (beekeeperId: string) => Promise<void>;
+  /** Join the private SignalR channel for the logged-in user */
+  joinPrivateChannel: (userId: string) => Promise<void>;
+  /** Leave the private SignalR channel for the logged-in user */
+  leavePrivateChannel: (userId: string) => Promise<void>;
   /** Subscribe to incoming telemetry readings from the current group */
   onTelemetry: (handler: (reading: TelemetryReading) => void) => () => void;
   /** Latest reading per hiveId (live-updated state) */
