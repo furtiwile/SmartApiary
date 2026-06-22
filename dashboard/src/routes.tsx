@@ -5,6 +5,7 @@ import { FarmsPage } from "./features/farms/pages/FarmsPage";
 import { SprayingPage } from "./features/farms/pages/SprayingPage";
 import { LoginPage } from "./features/users/pages/LoginPage";
 import { RegisterPage } from "./features/users/pages/RegisterPage";
+import { ActivatePage } from "./features/users/pages/ActivatePage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AdminRoute } from "./components/AdminRoute";
 import { SmartScalesPage } from "./features/smart-scales/components/SmartScalesPage";
@@ -17,6 +18,10 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <LoginPage /> },
       { path: "login", element: <LoginPage /> },
+      {
+        path: "activate",
+        element: <ActivatePage />,
+      },
       {
         // Register is protected — Admin only. Guests and non-admins are redirected.
         path: "register",
