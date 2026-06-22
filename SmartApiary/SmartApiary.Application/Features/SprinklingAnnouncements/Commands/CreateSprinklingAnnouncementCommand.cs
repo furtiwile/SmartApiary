@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
 {
-    public record CreateAnnouncementResponse(string AnnouncementId, string WarningMessage);
+    public record CreateAnnouncementResponse(string AnnouncementId, string WarningMessage, int NotifiedHivesCount);
 
     public record CreateSprinklingAnnouncementCommand : IRequest<Result<CreateAnnouncementResponse>>
     {
@@ -37,6 +37,7 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
         ISprinklingAnnouncementRepository announcementRepository,
         IParcelRepository parcelRepository,
         IApiaryRepository apiaryRepository,
+        IHiveRepository hiveRepository,
         IMediator mediator,
         IAnnouncementQueueService announcementQueueService,
         IWeatherService weatherService,
@@ -93,10 +94,14 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
 
             await announcementRepository.SaveAsync(announcementResult.Value, ct);
 
-            // Notify beekeepers live via SignalR
+            // Notify beekeepers live via SignalR and count affected hives
+            int totalAffectedHives = 0;
             var apiaries = await apiaryRepository.GetApiariesWithinRadiusAsync(parcel.Latitude, parcel.Longitude, 5000, ct);
             foreach (var apiary in apiaries)
             {
+                var hives = await hiveRepository.GetByApiaryIdAsync(apiary.Id, ct);
+                totalAffectedHives += hives.Count;
+
                 var warningEvent = new SmartApiary.Domain.Events.PesticideWarningDomainEvent(
                     apiary.Id,
                     apiary.Name,
@@ -107,7 +112,7 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
 
             await announcementQueueService.SendAnnouncementMessageAsync(announcementResult.Value.Id.Value, AnnouncementAction.Created, ct);
 
-            var response = new CreateAnnouncementResponse(announcementResult.Value.Id.Value, warningMessage);
+            var response = new CreateAnnouncementResponse(announcementResult.Value.Id.Value, warningMessage, totalAffectedHives);
             return Result<CreateAnnouncementResponse>.Success(response);
         }
     }
