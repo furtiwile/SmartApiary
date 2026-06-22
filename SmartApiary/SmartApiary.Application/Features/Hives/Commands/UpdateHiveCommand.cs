@@ -36,6 +36,7 @@ namespace SmartApiary.Application.Features.Hives.Commands
     internal class UpdateHiveHandler(
         IHiveRepository hiveRepository,
         IApiaryRepository apiaryRepository,
+        ISmartScaleRepository smartScaleRepository,
         ICurrentUserContext currentUser
     ) : IRequestHandler<UpdateHiveCommand, Result<UpdatedHiveDto>>
     {
@@ -92,6 +93,19 @@ namespace SmartApiary.Application.Features.Hives.Commands
 
             await hiveRepository.UpdateAsync(hive, ct);
 
+            string? smartScaleSerialNumber = null;
+            bool isSmartScaleActivated = false;
+            if (hive.SmartScaleId != null)
+            {
+                var scale = await smartScaleRepository.GetByIdAsync(hive.SmartScaleId, ct);
+                if (scale != null)
+                {
+                    smartScaleSerialNumber = scale.SerialNumber;
+                    isSmartScaleActivated = scale.Status == DeviceStatusEnum.Paired;
+                }
+            }
+
+
             var dto = new UpdatedHiveDto(
                 hive.Id.Value,
                 hive.ApiaryId.Value,
@@ -100,7 +114,9 @@ namespace SmartApiary.Application.Features.Hives.Commands
                 hive.SuperColor,
                 hive.QueenAge,
                 hive.Note,
-                hive.SmartScaleId?.Value
+                hive.SmartScaleId?.Value,
+                smartScaleSerialNumber,
+                isSmartScaleActivated
             );
 
             return Result<UpdatedHiveDto>.Success(dto);

@@ -46,7 +46,17 @@ namespace SmartApiary.ITSimulator.Services
 
                 if (string.IsNullOrWhiteSpace(device.HiveId))
                 {
-                    device.HiveId = PromptForHiveId(serial);
+                    device.HiveId = await FindHiveIdBySerialNumberAsync(serial);
+                    if (!string.IsNullOrWhiteSpace(device.HiveId))
+                    {
+                        Console.ForegroundColor = ConsoleColor.Cyan;
+                        Console.WriteLine($"Auto-discovered HiveId {device.HiveId} for SmartScale {serial} from the database.");
+                        Console.ResetColor();
+                    }
+                    else
+                    {
+                        device.HiveId = PromptForHiveId(serial);
+                    }
                     SaveDevice(device);
                 }
 
@@ -64,24 +74,6 @@ namespace SmartApiary.ITSimulator.Services
             }
 
             return devicesStarted;
-        }
-
-        public void SaveDevice(SmartScaleDevice device)
-        {
-            var list = LoadDevices().ToList();
-            var existing = list.FirstOrDefault(d => d.SerialNumber == device.SerialNumber);
-            if (existing != null)
-            {
-                list.Remove(existing);
-            }
-            list.Add(device);
-            var json = JsonSerializer.Serialize(list, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(_storePath, json);
-        }
-
-        public SmartScaleDevice? GetDevice(string serialNumber)
-        {
-            return LoadDevices().FirstOrDefault(device => device.SerialNumber.Equals(serialNumber, StringComparison.OrdinalIgnoreCase));
         }
 
         public string PromptForHiveId(string serialNumber)
@@ -109,6 +101,19 @@ namespace SmartApiary.ITSimulator.Services
             {
                 return Enumerable.Empty<SmartScaleDevice>();
             }
+        }
+
+        public void SaveDevice(SmartScaleDevice device)
+        {
+            var list = LoadDevices().ToList();
+            var existing = list.FirstOrDefault(d => d.SerialNumber == device.SerialNumber);
+            if (existing != null)
+            {
+                list.Remove(existing);
+            }
+            list.Add(device);
+            var json = JsonSerializer.Serialize(list, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(_storePath, json);
         }
 
         public async Task StartTelemetryLoopAsync(SmartScaleDevice device, int delayMs, double nominalWeight = 10)
@@ -223,6 +228,35 @@ namespace SmartApiary.ITSimulator.Services
             }
 
             return discovered;
+        }
+
+        public async Task<string?> FindHiveIdBySerialNumberAsync(string serialNumber)
+        {
+            try
+            {
+                var connectionString = "UseDevelopmentStorage=true";
+                var scalesTable = new Azure.Data.Tables.TableClient(connectionString, "SmartScales");
+                var hivesTable = new Azure.Data.Tables.TableClient(connectionString, "Hives");
+                var scales = scalesTable.QueryAsync<Azure.Data.Tables.TableEntity>(filter: $"SerialNumber eq '{serialNumber}'");
+                string? smartScaleId = null;
+                await foreach (var scaleEntity in scales)
+                {
+                    smartScaleId = scaleEntity.RowKey;
+                    break;
+                }
+                if (string.IsNullOrWhiteSpace(smartScaleId))
+                    return null;
+                var hives = hivesTable.QueryAsync<Azure.Data.Tables.TableEntity>(filter: $"SmartScaleId eq '{smartScaleId}'");
+                await foreach (var hiveEntity in hives)
+                {
+                    return hiveEntity.RowKey;
+                }
+            }
+            catch (Exception ex)
+            {
+                ConsoleUI.PrintError($"Error looking up hive for scale {serialNumber}: {ex.Message}");
+            }
+            return null;
         }
     }
 }

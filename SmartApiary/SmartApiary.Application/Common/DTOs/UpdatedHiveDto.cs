@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,6 +14,8 @@ namespace SmartApiary.Application.Common.DTOs
         string SuperColor,
         int QueenAge,
         string Note,
-        string? SmartScaleId
+        string? SmartScaleId,
+        string? SmartScaleSerialNumber = null,
+        bool IsSmartScaleActivated = false
     );
 }

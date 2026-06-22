@@ -20,11 +20,10 @@ var apiBaseUrl = configuration["SimulatorSettings:ApiBaseUrl"]
 var functionsBaseUrl = configuration["SimulatorSettings:FunctionsBaseUrl"]
     ?? throw new InvalidOperationException("Functions base URL is not configured");
 
-using var apiClient = new HttpClient { BaseAddress = new Uri(apiBaseUrl) };
 using var functionsClient = new HttpClient { BaseAddress = new Uri(functionsBaseUrl) };
 
 // Use SmartScaleClient + SmartScaleSimulator for pairing and telemetry
-var smartClient = new SmartScaleClient(apiClient, functionsClient);
+var smartClient = new SmartScaleClient(functionsClient);
 var smartSimulator = new SmartScaleSimulator(smartClient);
 
 while (true)
@@ -86,7 +85,11 @@ while (true)
             var device = devices[idx - 1];
             if (string.IsNullOrWhiteSpace(device.HiveId))
             {
-                device.HiveId = smartSimulator.PromptForHiveId(device.SerialNumber);
+                device.HiveId = await smartSimulator.FindHiveIdBySerialNumberAsync(device.SerialNumber);
+                if (string.IsNullOrWhiteSpace(device.HiveId))
+                {
+                    device.HiveId = smartSimulator.PromptForHiveId(device.SerialNumber);
+                }
                 smartSimulator.SaveDevice(device);
             }
 
@@ -108,7 +111,11 @@ while (true)
             {
                 if (string.IsNullOrWhiteSpace(device.HiveId))
                 {
-                    device.HiveId = smartSimulator.PromptForHiveId(device.SerialNumber);
+                    device.HiveId = await smartSimulator.FindHiveIdBySerialNumberAsync(device.SerialNumber);
+                    if (string.IsNullOrWhiteSpace(device.HiveId))
+                    {
+                        device.HiveId = smartSimulator.PromptForHiveId(device.SerialNumber);
+                    }
                     smartSimulator.SaveDevice(device);
                 }
                 _ = Task.Run(() => smartSimulator.StartTelemetryLoopAsync(device, delayMs));

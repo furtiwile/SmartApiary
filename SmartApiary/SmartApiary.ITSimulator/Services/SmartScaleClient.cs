@@ -6,29 +6,11 @@ namespace SmartApiary.ITSimulator.Services
 {
     public class SmartScaleClient
     {
-        private readonly HttpClient _apiClient;
         private readonly HttpClient _functionsClient;
 
-        public SmartScaleClient(HttpClient apiClient, HttpClient functionsClient)
+        public SmartScaleClient(HttpClient functionsClient)
         {
-            _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
             _functionsClient = functionsClient ?? throw new ArgumentNullException(nameof(functionsClient));
-        }
-
-        public async Task<string?> RegisterAsync(string apiaryId, string hiveId, string serialNumber)
-        {
-            var payload = new
-            {
-                ApiaryId = apiaryId,
-                HiveId = hiveId,
-                SerialNumber = serialNumber
-            };
-
-            var response = await _apiClient.PostAsJsonAsync("/api/smartscales/register", payload);
-            if (!response.IsSuccessStatusCode) return null;
-
-            var body = await response.Content.ReadFromJsonAsync<ApiResponse<string>>();
-            return body?.Data;
         }
 
         public async Task<ActivationResult> ActivateAsync(string serialNumber, string hardwareId)
@@ -113,13 +95,5 @@ namespace SmartApiary.ITSimulator.Services
             };
         }
 
-        public async Task<IEnumerable<SmartScaleDto>?> GetSmartScalesAsync()
-        {
-            var response = await _apiClient.GetAsync("/api/smartscales");
-            if (!response.IsSuccessStatusCode) return null;
-
-            var body = await response.Content.ReadFromJsonAsync<ApiResponse<IEnumerable<SmartScaleDto>>>();
-            return body?.Data;
-        }
     }
 }

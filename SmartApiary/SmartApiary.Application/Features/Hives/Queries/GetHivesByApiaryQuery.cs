@@ -15,7 +15,9 @@ namespace SmartApiary.Application.Features.Hives.Queries
         string SuperColor,
         int QueenAge,
         string Note,
-        string? SmartScaleId
+        string? SmartScaleId,
+        string? SmartScaleSerialNumber = null,
+        bool IsSmartScaleActivated = false
     );
 
     public record GetHivesByApiaryQuery(string ApiaryId) : IRequest<Result<IReadOnlyCollection<HiveDto>>>;
@@ -23,6 +25,7 @@ namespace SmartApiary.Application.Features.Hives.Queries
     internal class GetHivesByApiaryHandler(
         IHiveRepository hiveRepository,
         IApiaryRepository apiaryRepository,
+        ISmartScaleRepository smartScaleRepository,
         ICurrentUserContext currentUser
     )
         : IRequestHandler<GetHivesByApiaryQuery, Result<IReadOnlyCollection<HiveDto>>>
@@ -46,8 +49,21 @@ namespace SmartApiary.Application.Features.Hives.Queries
 
             var hives = await hiveRepository.GetByApiaryIdAsync(apiaryIdResult.Value, ct);
 
-            var result = hives
-                .Select(h => new HiveDto(
+             var result = new List<HiveDto>();
+            foreach (var h in hives)
+            {
+                string? serialNumber = null;
+                bool isActivated = false;
+                if (h.SmartScaleId != null)
+                {
+                    var scale = await smartScaleRepository.GetByIdAsync(h.SmartScaleId, ct);
+                    if (scale != null)
+                    {
+                        serialNumber = scale.SerialNumber;
+                        isActivated = scale.Status == DeviceStatusEnum.Paired;
+                    }
+                }
+                result.Add(new HiveDto(
                     h.Id.Value,
                     h.ApiaryId.Value,
                     h.Designation,
@@ -55,8 +71,10 @@ namespace SmartApiary.Application.Features.Hives.Queries
                     h.SuperColor,
                     h.QueenAge,
                     h.Note,
-                    h.SmartScaleId?.Value))
-                .ToList();
+                    h.SmartScaleId?.Value,
+                    serialNumber,
+                    isActivated));
+            }
 
             return Result<IReadOnlyCollection<HiveDto>>.Success(result);
         }
