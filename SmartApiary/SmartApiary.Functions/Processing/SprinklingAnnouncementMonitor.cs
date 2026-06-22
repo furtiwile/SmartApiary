@@ -14,19 +14,28 @@ namespace SmartApiary.Functions.Processing
         public async Task RunAsync(
             [QueueTrigger("%AzureQueueOptions:AnnouncementQueue%", Connection = "AzureWebJobsStorage")] AnnouncementMessage message)
         {
-            logger.LogInformation("[QUEUE] Processing sprinkling announcement message for announcement: {AnnouncementId}, Action: {ActionType}",
-                message.AnnouncementId, message.ActionType);
-
-            var result = await mediator.Send(new ProcessSprinklingAnnouncementCommand(message.AnnouncementId, message.ActionType));
-
-            if (result.IsFailure)
+            try
             {
-                logger.LogError("[QUEUE] Sprinkling announcement processing failed: {Error}",
-                    result.Error?.Message);
+                logger.LogInformation("[QUEUE] Processing sprinkling announcement message for announcement: {AnnouncementId}, Action: {ActionType}",
+                    message.AnnouncementId, message.ActionType);
+
+                var result = await mediator.Send(new ProcessSprinklingAnnouncementCommand(message.AnnouncementId, message.ActionType));
+
+                if (result.IsFailure)
+                {
+                    logger.LogError("[QUEUE] Sprinkling announcement processing failed: {Error}",
+                        result.Error?.Message);
+                }
+                else
+                {
+                    logger.LogInformation("[QUEUE] Sprinkling announcement processed successfully.");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                logger.LogInformation("[QUEUE] Sprinkling announcement processed successfully.");
+                logger.LogError(ex, "[QUEUE] Exception occurred while processing sprinkling announcement message for announcement: {AnnouncementId}", 
+                    message?.AnnouncementId);
+                throw;
             }
         }
     }

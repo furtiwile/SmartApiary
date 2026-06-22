@@ -1,6 +1,7 @@
 using Microsoft.OpenApi;
 using SmartApiary.WebApi.Extensions;
 using SmartApiary.WebApi.Hubs;
+using SmartApiary.WebApi.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,8 @@ builder.Services
     .AddWebApiHostedServices();
 
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseCors(corsPolicyName);
 
