@@ -35,10 +35,38 @@ export const router = createBrowserRouter([
         ),
         children: [
           { index: true, element: <DashboardPage /> },
-          { path: "farms", element: <FarmsPage /> },
-          { path: "spraying", element: <SprayingPage /> },
-          { path: "smart-scales", element: <SmartScalesPage /> },
-          { path: "crops-map", element: <CropsMapPage /> },
+          {
+            path: "farms",
+            element: (
+              <ProtectedRoute requiredRole="Farmer">
+                <FarmsPage />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "spraying",
+            element: (
+              <ProtectedRoute requiredRole="Farmer">
+                <SprayingPage />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "smart-scales",
+            element: (
+              <ProtectedRoute requiredRole="Beekeeper">
+                <SmartScalesPage />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "crops-map",
+            element: (
+              <ProtectedRoute requiredRole="Beekeeper">
+                <CropsMapPage />
+              </ProtectedRoute>
+            ),
+          },
         ],
       },
     ],
