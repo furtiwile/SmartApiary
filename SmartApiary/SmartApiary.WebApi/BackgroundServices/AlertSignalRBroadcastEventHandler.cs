@@ -20,8 +20,16 @@ namespace SmartApiary.WebApi.BackgroundServices
         ILogger<AlertSignalRBroadcastEventHandler> logger) : 
         INotificationHandler<DomainEventNotification<AnomalyDetectedDomainEvent>>,
         INotificationHandler<DomainEventNotification<BatteryLowDomainEvent>>,
-        INotificationHandler<DomainEventNotification<PesticideWarningDomainEvent>>
+        INotificationHandler<DomainEventNotification<PesticideWarningDomainEvent>>,
+        INotificationHandler<DomainEventNotification<PesticideWarningCancelledDomainEvent>>
     {
+        public async Task Handle(DomainEventNotification<PesticideWarningCancelledDomainEvent> notification, CancellationToken ct)
+        {
+            var alert = notification.Event.Alert;
+            var apiaryId = notification.Event.ApiaryId;
+
+            await BroadcastAlertToApiary(alert, apiaryId, ct);
+        }
         public async Task Handle(DomainEventNotification<PesticideWarningDomainEvent> notification, CancellationToken ct)
         {
             var alert = notification.Event.Alert;
@@ -58,7 +66,9 @@ namespace SmartApiary.WebApi.BackgroundServices
                     {
                         var alertDto = new
                         {
-                            Title = alert.AlertType == SmartApiary.Domain.Enums.AlertType.PesticideWarning ? "⚠️ Pesticide Warning" : $"Alert: {alert.AlertType}",
+                            Title = alert.AlertType == SmartApiary.Domain.Enums.AlertType.PesticideWarning ? "⚠️ Pesticide Warning" : 
+                                    alert.AlertType == SmartApiary.Domain.Enums.AlertType.PesticideWarningCancelled ? "✅ Pesticide Warning Cancelled" :
+                                    $"Alert: {alert.AlertType}",
                             Message = alert.Message.Value,
                             Type = alert.AlertType.ToString()
                         };
@@ -85,7 +95,9 @@ namespace SmartApiary.WebApi.BackgroundServices
                 {
                     var alertDto = new
                     {
-                        Title = alert.AlertType == SmartApiary.Domain.Enums.AlertType.PesticideWarning ? "⚠️ Pesticide Warning" : $"Alert: {alert.AlertType}",
+                        Title = alert.AlertType == SmartApiary.Domain.Enums.AlertType.PesticideWarning ? "⚠️ Pesticide Warning" : 
+                                alert.AlertType == SmartApiary.Domain.Enums.AlertType.PesticideWarningCancelled ? "✅ Pesticide Warning Cancelled" :
+                                $"Alert: {alert.AlertType}",
                         Message = alert.Message.Value,
                         Type = alert.AlertType.ToString()
                     };
