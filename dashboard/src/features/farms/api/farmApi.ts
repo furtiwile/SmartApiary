@@ -5,7 +5,7 @@ export class FarmApi {
   static async getParcelsByFarmer(farmerId: string): Promise<ParcelDto[]> {
     try {
       const response = await api.get<{ data: ParcelDto[] }>(`/parcels?farmerId=${farmerId}`);
-      return response.data?.data ?? [];
+      const data = response.data?.data ?? []; console.log('Parcels from API:', data); return data;
     } catch (error) {
       console.error("Error fetching parcels:", error);
       return [];
@@ -33,8 +33,13 @@ export class FarmApi {
 
   static async updateParcel(parcel: ParcelDto): Promise<ParcelDto | null> {
     try {
-      const response = await api.put<{ data: ParcelDto }>(`/parcels/${parcel.id}`, parcel);
-      return response.data?.data ?? null;
+      await api.put(`/parcels/${parcel.id}`, {
+        name: parcel.name,
+        latitude: parcel.latitude,
+        longitude: parcel.longitude,
+      });
+      // Backend returns 200 OK with no data body — optimistically return what we sent
+      return parcel;
     } catch (error) {
       console.error("Error updating parcel:", error);
       return null;

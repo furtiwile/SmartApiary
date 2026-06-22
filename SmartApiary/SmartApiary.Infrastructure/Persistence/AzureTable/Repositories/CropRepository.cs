@@ -30,6 +30,11 @@ namespace SmartApiary.Infrastructure.Persistence.AzureTable.Repositories
             return await base.QueryByPartitionKeyAsync(parcelId.Value, ct);
         }
 
+        public async Task<IReadOnlyCollection<Crop>> GetAllAsync(CancellationToken ct = default)
+        {
+            return await base.QueryAsync(string.Empty, ct);
+        }
+
         public async Task SaveAsync(Crop crop, CancellationToken ct = default)
         {
             await base.AddAsync(crop, ct);

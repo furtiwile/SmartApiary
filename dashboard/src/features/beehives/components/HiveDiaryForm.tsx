@@ -5,7 +5,11 @@ import { PlusCircle, Check } from "lucide-react";
 import { BOARD_COLORS } from "../models/Inspection";
 import type { InspectionEntry } from "../models/Inspection";
 
-const todayIso = () => new Date().toISOString().slice(0, 16);
+const todayIso = () => {
+  const d = new Date();
+  const offset = d.getTimezoneOffset() * 60000;
+  return new Date(d.getTime() - offset).toISOString().slice(0, 16);
+};
 
 const schema = z.object({
   inspectedAt: z.string().min(1, "Date is required."),

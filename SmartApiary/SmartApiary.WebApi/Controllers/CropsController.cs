@@ -22,6 +22,13 @@ namespace SmartApiary.WebApi.Controllers
             return result.ToActionResult();
         }
 
+        [HttpGet("all")]
+        public async Task<IActionResult> GetAll(CancellationToken ct)
+        {
+            var result = await mediator.Send(new GetAllCropsQuery(), ct);
+            return result.ToActionResult();
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetByParcel([FromQuery] string parcelId, CancellationToken ct)
         {
