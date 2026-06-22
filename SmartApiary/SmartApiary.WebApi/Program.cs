@@ -1,7 +1,9 @@
 using Microsoft.OpenApi;
+using SmartApiary.Application.Interfaces;
 using SmartApiary.WebApi.Extensions;
 using SmartApiary.WebApi.Hubs;
 using SmartApiary.WebApi.Middlewares;
+using SmartApiary.WebApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +17,8 @@ builder.Services
     .AddWebApiCors(reactOrigin)
     .AddWebApiSignalR()
     .AddWebApiHostedServices();
+
+builder.Services.AddScoped<ISprinklingNotificationService,SignalRSprinklingNotificationService>();
 
 var app = builder.Build();
 
