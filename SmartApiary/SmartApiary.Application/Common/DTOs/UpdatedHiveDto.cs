@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SmartApiary.Domain.Enums;
 
 namespace SmartApiary.Application.Common.DTOs
 {
@@ -10,7 +11,7 @@ namespace SmartApiary.Application.Common.DTOs
         string Id,
         string ApiaryId,
         string Designation,
-        int Type,
+        HiveType Type,
         string SuperColor,
         int QueenAge,
         string Note,

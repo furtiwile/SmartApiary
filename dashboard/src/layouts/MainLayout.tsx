@@ -5,6 +5,8 @@ import LogoutButton from "../features/users/components/LogoutButton";
 import { NotificationDrawer } from "../components/ui/NotificationDrawer";
 import { useNotify } from "../hooks/useNotify";
 import { useApis } from "../shared/api/useApis";
+import { useApiarySignalR } from "../features/beehives/hooks/useApiarySignalR";
+import { HubConnectionState } from "@microsoft/signalr";
 import type { UserDto } from "../features/users/models/UserDto";
 
 
@@ -47,6 +49,14 @@ function AccountActions({ isAuthed, user, logout }: AccountActionsProps) {
       )}
       {user?.role === "Beekeeper" && (
         <>
+          <li>
+            <Link
+              to="/dashboard"
+              className="text-sm font-bold tracking-wide text-slate-400 hover:text-indigo-400 transition-colors duration-200"
+            >
+              APIARIES
+            </Link>
+          </li>
           <li>
             <Link
               to="/dashboard/crops-map"
@@ -112,9 +122,14 @@ const MainLayout: React.FC = () => {
   const {isAuthed, user, logout} = useAuth();
   const { notifications } = useApis();
   const { info, warning, error } = useNotify();
+  const { connectionState, joinBeekeeperGroup, leaveBeekeeperGroup } = useApiarySignalR();
 
   React.useEffect(() => {
     if (!isAuthed || !user) return;
+
+    if (user.role === "Beekeeper" && connectionState === HubConnectionState.Connected) {
+      joinBeekeeperGroup(user.id);
+    }
 
     let mounted = true;
 
@@ -150,8 +165,13 @@ const MainLayout: React.FC = () => {
 
     fetchNotifications();
 
-    return () => { mounted = false; };
-  }, [isAuthed, user, notifications, info, warning, error]);
+    return () => { 
+      mounted = false; 
+      if (user?.role === "Beekeeper") {
+        leaveBeekeeperGroup(user.id);
+      }
+    };
+  }, [isAuthed, user, notifications, info, warning, error, joinBeekeeperGroup, leaveBeekeeperGroup, connectionState]);
   
   return (
     <div className="flex flex-col min-h-screen bg-slate-950 text-slate-200">

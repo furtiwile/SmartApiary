@@ -12,7 +12,7 @@ export type TelemetryReading = {
   humidityPercent: number;
   batteryPercent: number;
   isAlert: boolean;
-  alertType?: "Theft" | "BatteryLow" | "PesticideWarning";
+  alertType?: "Theft" | "BatteryLow" | "PesticideWarning" | "WeightDrop";
 };
 
 /** Nectar Gain/Loss reading derived from morning/evening weight delta */
