@@ -5,6 +5,7 @@ using SmartApiary.Application.Interfaces;
 using SmartApiary.Application.Interfaces.Repositories;
 using SmartApiary.Domain.Common;
 using SmartApiary.Domain.Enums;
+using SmartApiary.Domain.Models;
 using SmartApiary.Domain.ValueObjects;
 
 namespace SmartApiary.Application.Features.Alerts.Commands
@@ -18,7 +19,8 @@ namespace SmartApiary.Application.Features.Alerts.Commands
         IHiveRepository hiveRepository,
         IApiaryRepository apiaryRepository,
         IUserRepository userRepository,
-        IEmailSender emailSender)
+        IEmailSender emailSender,
+        INotificationRepository notificationRepository)
         : IRequestHandler<ProcessAlertCommand, Result>
     {
         public async Task<Result> Handle(ProcessAlertCommand request, CancellationToken ct)
@@ -49,6 +51,18 @@ namespace SmartApiary.Application.Features.Alerts.Commands
                         );
 
                         await emailSender.SendAsync(emailMessage, ct);
+
+                        var notificationResult = Notification.Create(
+                            userId: user.Id,
+                            message: $"Alert on hive {hive.Designation}: {alert.Message}",
+                            type: alert.AlertType,
+                            createdAt: DateTime.UtcNow
+                        );
+
+                        if (notificationResult.IsSuccess)
+                        {
+                            await notificationRepository.SaveAsync(notificationResult.Value, ct);
+                        }
                     }
                 }
             }

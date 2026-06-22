@@ -3,6 +3,7 @@ import MainLayout from "./layouts/MainLayout";
 import { DashboardPage } from "./features/dashboard/pages/DashboardPage";
 import { FarmsPage } from "./features/farms/pages/FarmsPage";
 import { SprayingPage } from "./features/farms/pages/SprayingPage";
+import { SprayingRecordsPage } from "./features/farms/pages/SprayingRecordsPage";
 import { LoginPage } from "./features/users/pages/LoginPage";
 import { RegisterPage } from "./features/users/pages/RegisterPage";
 import { ActivatePage } from "./features/users/pages/ActivatePage";
@@ -55,6 +56,14 @@ export const router = createBrowserRouter([
             element: (
               <ProtectedRoute requiredRole="Farmer">
                 <SprayingPage />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "spraying-records",
+            element: (
+              <ProtectedRoute requiredRole="Farmer">
+                <SprayingRecordsPage />
               </ProtectedRoute>
             ),
           },
