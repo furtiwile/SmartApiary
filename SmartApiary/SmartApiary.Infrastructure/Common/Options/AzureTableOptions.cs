@@ -13,7 +13,7 @@ namespace SmartApiary.Infrastructure.Common.Options
         public string SprinklingAnnouncementsTable { get; init; } = string.Empty;
         public string SprinklingRecordsTable { get; init; } = string.Empty;
         public string TelemetriesTable { get; init; } = string.Empty;
-
+        public string NotificationsTable { get; init; } = "Notifications";
         public string ActivationTokensTable { get; init; } = "ActivationTokens";
         public string PasswordResetTokensTable { get; init; } = "PasswordResetTokens";
     }

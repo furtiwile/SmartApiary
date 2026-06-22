@@ -25,6 +25,7 @@ using var functionsClient = new HttpClient { BaseAddress = new Uri(functionsBase
 // Use SmartScaleClient + SmartScaleSimulator for pairing and telemetry
 var smartClient = new SmartScaleClient(functionsClient);
 var smartSimulator = new SmartScaleSimulator(smartClient);
+await smartSimulator.SyncLocalStoreWithDatabaseAsync();
 
 while (true)
 {
@@ -36,7 +37,9 @@ while (true)
         Console.WriteLine("  3) Start telemetry loop for ALL persisted SmartScales");
         Console.WriteLine("  4) Auto-discover and simulate ALL paired Smart Scales from Database");
         Console.WriteLine("  5) Exit");
-        Console.Write("Choice (1-5): ");
+        Console.WriteLine("  6) Simulate Hive Theft / Wind Overturn (Sudden Weight Drop)");
+        Console.WriteLine("  7) Simulate Low Battery Warning (< 15%)");
+        Console.Write("Choice (1-7): ");
         var choice = Console.ReadLine()?.Trim() ?? string.Empty;
 
         if (choice == "1")
@@ -146,6 +149,66 @@ while (true)
         {
             Console.WriteLine("Exiting.");
             break;
+        }
+        else if (choice == "6")
+        {
+            var devices = smartSimulator.LoadDevices().ToList();
+            if (!devices.Any())
+            {
+                ConsoleUI.PrintError("No persisted devices found. Pair or discover one first.");
+                continue;
+            }
+
+            Console.WriteLine("Select device to simulate Hive Theft / Overturn:");
+            for (int i = 0; i < devices.Count; i++)
+            {
+                Console.WriteLine($"  {i + 1}. {devices[i].SerialNumber} (Hive: {devices[i].HiveId})");
+            }
+            Console.Write("Choice: ");
+            if (!int.TryParse(Console.ReadLine(), out int idx) || idx < 1 || idx > devices.Count)
+            {
+                ConsoleUI.PrintError("Invalid selection.");
+                continue;
+            }
+
+            var device = devices[idx - 1];
+            if (string.IsNullOrWhiteSpace(device.HiveId))
+            {
+                device.HiveId = smartSimulator.PromptForHiveId(device.SerialNumber);
+                smartSimulator.SaveDevice(device);
+            }
+
+            await smartSimulator.SimulateHiveTheftOrOverturnAsync(device);
+        }
+        else if (choice == "7")
+        {
+            var devices = smartSimulator.LoadDevices().ToList();
+            if (!devices.Any())
+            {
+                ConsoleUI.PrintError("No persisted devices found. Pair or discover one first.");
+                continue;
+            }
+
+            Console.WriteLine("Select device to simulate Low Battery Warning:");
+            for (int i = 0; i < devices.Count; i++)
+            {
+                Console.WriteLine($"  {i + 1}. {devices[i].SerialNumber} (Hive: {devices[i].HiveId})");
+            }
+            Console.Write("Choice: ");
+            if (!int.TryParse(Console.ReadLine(), out int idx) || idx < 1 || idx > devices.Count)
+            {
+                ConsoleUI.PrintError("Invalid selection.");
+                continue;
+            }
+
+            var device = devices[idx - 1];
+            if (string.IsNullOrWhiteSpace(device.HiveId))
+            {
+                device.HiveId = smartSimulator.PromptForHiveId(device.SerialNumber);
+                smartSimulator.SaveDevice(device);
+            }
+
+            await smartSimulator.SimulateLowBatteryWarningAsync(device);
         }
         else
         {

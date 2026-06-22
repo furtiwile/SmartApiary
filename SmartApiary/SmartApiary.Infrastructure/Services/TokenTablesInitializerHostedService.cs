@@ -30,7 +30,8 @@ namespace SmartApiary.Infrastructure.Services
                     options.Value.TelemetriesTable,
 
                     options.Value.ActivationTokensTable,
-                    options.Value.PasswordResetTokensTable
+                    options.Value.PasswordResetTokensTable,
+                    options.Value.NotificationsTable
                 };
 
                 foreach (var tableName in tableNames)
