@@ -28,6 +28,7 @@ export const CropsMapPage: React.FC = () => {
       location: { latitude: a.latitude, longitude: a.longitude },
       description: a.description,
       beekeeperName: user?.firstName ? `${user.firstName} ${user.lastName}` : "Me",
+      thumbnailUrl: a.thumbnailUrl,
     }));
   }, [apiaries, user]);
 
@@ -37,7 +38,9 @@ export const CropsMapPage: React.FC = () => {
       name: c.parcelName || "Parcel",
       location: { latitude: c.latitude, longitude: c.longitude },
       cropType: c.cropType,
-      description: c.expectedBloomDate ? `Blooming: ${c.expectedBloomDate}` : undefined,
+      description: c.expectedBloomDate
+        ? `Blooming: ${new Date(c.expectedBloomDate).toLocaleDateString(undefined, { timeZone: "UTC" })}`
+        : undefined,
     }));
   }, [allCrops]);
 

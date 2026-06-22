@@ -158,7 +158,7 @@ export function CropManagementModal({ parcelId, parcelName }: CropManagementModa
                           <div>
                             <p className="text-sm font-medium text-slate-200">{crop.cropType}</p>
                             <p className="text-xs text-slate-500">
-                              Bloom: {new Date(crop.expectedBloomDate).toLocaleDateString()}
+                              Bloom: {new Date(crop.expectedBloomDate).toLocaleDateString(undefined, { timeZone: "UTC" })}
                             </p>
                           </div>
                         </div>

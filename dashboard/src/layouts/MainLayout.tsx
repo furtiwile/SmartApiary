@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../features/users/hooks/AuthHook";
 import LogoutButton from "../features/users/components/LogoutButton";
 import { NotificationDrawer } from "../components/ui/NotificationDrawer";
@@ -36,81 +36,6 @@ function AccountActions({ isAuthed, user, logout }: AccountActionsProps) {
 
   return (
     <>
-      {/* Register link — only shown to Admin; route itself is also guarded */}
-      {user?.role === "Admin" && (
-        <li>
-          <Link
-            to="/register"
-            className="text-sm font-bold tracking-wide text-slate-400 hover:text-cyan-400 transition-colors duration-200"
-          >
-            REGISTER
-          </Link>
-        </li>
-      )}
-      {user?.role === "Beekeeper" && (
-        <>
-          <li>
-            <Link
-              to="/dashboard"
-              className="text-sm font-bold tracking-wide text-slate-400 hover:text-indigo-400 transition-colors duration-200"
-            >
-              APIARIES
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/dashboard/crops-map"
-              className="text-sm font-bold tracking-wide text-slate-400 hover:text-emerald-400 transition-colors duration-200"
-            >
-              CROPS MAP
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/dashboard/smart-scales"
-              className="text-sm font-bold tracking-wide text-slate-400 hover:text-cyan-400 transition-colors duration-200"
-            >
-              SMART SCALES
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/dashboard/settings"
-              className="text-sm font-bold tracking-wide text-slate-400 hover:text-amber-400 transition-colors duration-200"
-            >
-              SETTINGS
-            </Link>
-          </li>
-        </>
-      )}
-      {user?.role === "Farmer" && (
-        <>
-          <li>
-            <Link
-              to="/dashboard/farms"
-              className="text-sm font-bold tracking-wide text-slate-400 hover:text-emerald-400 transition-colors duration-200"
-            >
-              FIELDS
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/dashboard/spraying"
-              className="text-sm font-bold tracking-wide text-slate-400 hover:text-rose-400 transition-colors duration-200"
-            >
-              SPRAYING
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/dashboard/spraying-records"
-              className="text-sm font-bold tracking-wide text-slate-400 hover:text-cyan-400 transition-colors duration-200"
-            >
-              RECORDS
-            </Link>
-          </li>
-        </>
-      )}
       <li>
         <span className="text-sm font-bold tracking-wide text-slate-400">
           {displayName}
@@ -122,6 +47,124 @@ function AccountActions({ isAuthed, user, logout }: AccountActionsProps) {
       <li>
         <LogoutButton logout={logout} />
       </li>
+    </>
+  );
+}
+
+type NavigationTabsProps = {
+  user: UserDto | null;
+};
+
+function NavigationTabs({ user }: NavigationTabsProps) {
+  const location = useLocation();
+
+  if (!user) return null;
+
+  const role = user.role;
+  const tabs = [];
+
+  if (role === "Beekeeper") {
+    tabs.push(
+      {
+        path: "/dashboard",
+        label: "APIARIES",
+        activeColor: "text-indigo-400",
+        hoverColor: "hover:text-indigo-400",
+        indicatorClass: "bg-indigo-400 shadow-[0_0_8px_rgba(129,140,248,0.6)]",
+        isActive: location.pathname === "/dashboard",
+      },
+      {
+        path: "/dashboard/crops-map",
+        label: "CROPS MAP",
+        activeColor: "text-emerald-400",
+        hoverColor: "hover:text-emerald-400",
+        indicatorClass: "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]",
+        isActive: location.pathname === "/dashboard/crops-map",
+      },
+      {
+        path: "/dashboard/smart-scales",
+        label: "SMART SCALES",
+        activeColor: "text-cyan-400",
+        hoverColor: "hover:text-cyan-400",
+        indicatorClass: "bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.6)]",
+        isActive: location.pathname === "/dashboard/smart-scales",
+      },
+      {
+        path: "/dashboard/settings",
+        label: "SETTINGS",
+        activeColor: "text-amber-400",
+        hoverColor: "hover:text-amber-400",
+        indicatorClass: "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.6)]",
+        isActive: location.pathname === "/dashboard/settings",
+      }
+    );
+  } else if (role === "Farmer") {
+    tabs.push(
+      {
+        path: "/dashboard/farms",
+        label: "FIELDS",
+        activeColor: "text-emerald-400",
+        hoverColor: "hover:text-emerald-400",
+        indicatorClass: "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]",
+        isActive: location.pathname === "/dashboard/farms",
+      },
+      {
+        path: "/dashboard/spraying",
+        label: "SPRAYING",
+        activeColor: "text-rose-400",
+        hoverColor: "hover:text-rose-400",
+        indicatorClass: "bg-rose-400 shadow-[0_0_8px_rgba(251,113,133,0.6)]",
+        isActive: location.pathname === "/dashboard/spraying",
+      },
+      {
+        path: "/dashboard/spraying-records",
+        label: "RECORDS",
+        activeColor: "text-cyan-400",
+        hoverColor: "hover:text-cyan-400",
+        indicatorClass: "bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.6)]",
+        isActive: location.pathname === "/dashboard/spraying-records",
+      }
+    );
+  } else if (role === "Admin") {
+    tabs.push(
+      {
+        path: "/dashboard",
+        label: "USERS",
+        activeColor: "text-indigo-400",
+        hoverColor: "hover:text-indigo-400",
+        indicatorClass: "bg-indigo-400 shadow-[0_0_8px_rgba(129,140,248,0.6)]",
+        isActive: location.pathname === "/dashboard",
+      },
+      {
+        path: "/register",
+        label: "REGISTER",
+        activeColor: "text-cyan-400",
+        hoverColor: "hover:text-cyan-400",
+        indicatorClass: "bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.6)]",
+        isActive: location.pathname === "/register",
+      }
+    );
+  }
+
+  return (
+    <>
+      {tabs.map((tab) => (
+        <li key={tab.path} className="relative py-2">
+          <Link
+            to={tab.path}
+            className={`text-sm font-bold tracking-wide transition-all duration-200 ${
+              tab.isActive ? tab.activeColor : `text-slate-400 ${tab.hoverColor}`
+            }`}
+          >
+            {tab.label}
+          </Link>
+          {tab.isActive && (
+            <span
+              className={`absolute bottom-0 left-0 right-0 h-[2.5px] rounded-full transition-all duration-300 ${tab.indicatorClass}`}
+            />
+          )}
+        </li>
+      ))}
     </>
   );
 }
@@ -190,16 +233,34 @@ const MainLayout: React.FC = () => {
       {/* Header */}
       <header className="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 shadow-xl">
         <div className="container mx-auto flex items-center justify-between p-4">
-          <Link to="/dashboard" className="group">
-            <h1 className="text-xl font-black bg-linear-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent group-hover:from-indigo-300 group-hover:to-cyan-300 transition-all">
-              SmartApiary
-            </h1>
-          </Link>
-          <nav>
-            <ul className="flex items-center space-x-4">
-              <AccountActions isAuthed={isAuthed} user={user} logout={logout} />
-            </ul>
-          </nav>
+          {/* Left: Logo */}
+          <div className="flex-1 flex justify-start">
+            <Link to="/dashboard" className="group">
+              <h1 className="text-xl font-black bg-linear-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent group-hover:from-indigo-300 group-hover:to-cyan-300 transition-all">
+                SmartApiary
+              </h1>
+            </Link>
+          </div>
+
+          {/* Center: Tabs */}
+          {user && (
+            <div className="flex-none flex justify-center">
+              <nav>
+                <ul className="flex items-center space-x-6">
+                  <NavigationTabs user={user} />
+                </ul>
+              </nav>
+            </div>
+          )}
+
+          {/* Right: Actions */}
+          <div className="flex-1 flex justify-end">
+            <nav>
+              <ul className="flex items-center space-x-4">
+                <AccountActions isAuthed={isAuthed} user={user} logout={logout} />
+              </ul>
+            </nav>
+          </div>
         </div>
       </header>
 
