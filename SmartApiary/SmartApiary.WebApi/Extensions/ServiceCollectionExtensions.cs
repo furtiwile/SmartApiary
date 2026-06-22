@@ -18,6 +18,11 @@ namespace SmartApiary.WebApi.Extensions
             services.AddInfrastructure(configuration)
                     .AddApplication();
 
+            services.AddMediatR(cfg =>
+            {
+                cfg.RegisterServicesFromAssembly(typeof(ServiceCollectionExtensions).Assembly);
+            });
+
             // Controllers + JSON enums
             services.AddControllers()
                 .AddJsonOptions(options =>

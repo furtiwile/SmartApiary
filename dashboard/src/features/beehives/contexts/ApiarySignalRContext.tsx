@@ -33,15 +33,26 @@ export function ApiarySignalRProvider({ children }: { children: React.ReactNode 
       setLatestReadings((prev) => ({ ...prev, [reading.hiveId]: reading }));
       telemetryHandlers.current.forEach((h) => h(reading));
 
-      // Surface global alerts via the notification system
+      // Surface global alerts via the notification system (legacy/fallback)
       if (reading.isAlert && reading.alertType) {
         const alertMessages: Record<NonNullable<TelemetryReading["alertType"]>, { title: string; message: string }> = {
           Theft:            { title: "🚨 Theft Alert",        message: `Hive "${reading.hiveName ?? reading.hiveId}" has been moved or tilted.` },
           BatteryLow:       { title: "🔋 Low Battery",        message: `Hive "${reading.hiveName ?? reading.hiveId}" battery is at ${reading.batteryPercent}%.` },
           PesticideWarning: { title: "⚠️ Pesticide Warning",  message: `A spraying announcement was issued near hive "${reading.hiveName ?? reading.hiveId}".` },
+          WeightDrop:       { title: "📉 Weight Drop",        message: `Sudden fall of weight on hive "${reading.hiveName ?? reading.hiveId}"! Current: ${reading.weightKg} kg. Possible theft!` },
         };
         const msg = alertMessages[reading.alertType];
         if (msg) warning(msg.title, msg.message, { duration: 10000 });
+      }
+    });
+
+    // Listen for real-time dedicated alerts
+    conn.on("ReceiveAlert", (alertDto: { title: string; message: string; type: string }) => {
+      if (!isMounted) return;
+      if (alertDto.type === "Critical") {
+        notifyError(alertDto.title, alertDto.message, { duration: 10000 });
+      } else {
+        warning(alertDto.title, alertDto.message, { duration: 10000 });
       }
     });
 
@@ -91,6 +102,24 @@ export function ApiarySignalRProvider({ children }: { children: React.ReactNode 
     }
   }, []);
 
+  const joinBeekeeperGroup = useCallback(async (beekeeperId: string) => {
+    if (connection.current.state !== HubConnectionState.Connected) return;
+    try {
+      await connection.current.invoke("JoinBeekeeperGroup", beekeeperId);
+    } catch (e) {
+      console.error("JoinBeekeeperGroup error:", e);
+    }
+  }, []);
+
+  const leaveBeekeeperGroup = useCallback(async (beekeeperId: string) => {
+    if (connection.current.state !== HubConnectionState.Connected) return;
+    try {
+      await connection.current.invoke("LeaveBeekeeperGroup", beekeeperId);
+    } catch (e) {
+      console.error("LeaveBeekeeperGroup error:", e);
+    }
+  }, []);
+
   // ── Handler subscription ──────────────────────────────────────────────────
 
   const onTelemetry = useCallback((handler: (r: TelemetryReading) => void) => {
@@ -99,7 +128,7 @@ export function ApiarySignalRProvider({ children }: { children: React.ReactNode 
   }, []);
 
   return (
-    <ApiarySRContext.Provider value={{ connectionState, joinApiaryGroup, leaveApiaryGroup, onTelemetry, latestReadings }}>
+    <ApiarySRContext.Provider value={{ connectionState, joinApiaryGroup, leaveApiaryGroup, joinBeekeeperGroup, leaveBeekeeperGroup, onTelemetry, latestReadings }}>
       {children}
     </ApiarySRContext.Provider>
   );
