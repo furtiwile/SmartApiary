@@ -14,13 +14,21 @@ namespace SmartApiary.WebApi.Services
             if (string.IsNullOrWhiteSpace(beekeeperId)) return;
 
             string groupName = $"beekeeper:{beekeeperId}";
-
             await hubContext.Clients.Group(groupName).SendAsync("ReceiveNotification", new
             {
                 title = title,
                 body = message,
                 type = "SprinklingAlert",
                 timestamp = DateTime.UtcNow
+            }, ct);
+        }
+
+        public async Task BroadcastNotifiedCountToFarmerAsync(string announcementId, int count, CancellationToken ct)
+        {
+            await hubContext.Clients.All.SendAsync("SprinklingCalculationFinished", new
+            {
+                announcementId = announcementId,
+                beekeepersNotified = count
             }, ct);
         }
     }

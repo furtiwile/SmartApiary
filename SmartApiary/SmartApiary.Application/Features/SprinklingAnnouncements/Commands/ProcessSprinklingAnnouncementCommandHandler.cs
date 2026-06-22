@@ -52,9 +52,9 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
 
             if (!apiariesWithin5Km.Any())
             {
-                logger.LogInformation("No apiaries found within 5km radius for announcement {Id}.", request.AnnouncementId);
                 announcement.SetNotifiedCount(0);
                 await announcementRepository.UpdateAsync(announcement, ct);
+                await notificationService.BroadcastNotifiedCountToFarmerAsync(announcement.Id.Value, 0, ct);
                 return Result.Success();
             }
 
@@ -91,6 +91,8 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
 
             announcement.SetNotifiedCount(notifiedCount);
             await announcementRepository.UpdateAsync(announcement, ct);
+
+            await notificationService.BroadcastNotifiedCountToFarmerAsync(announcement.Id.Value, notifiedCount, ct);
 
             logger.LogInformation("Notified {Count} beekeepers for announcement {Id}.", notifiedCount, request.AnnouncementId);
             return Result.Success();
