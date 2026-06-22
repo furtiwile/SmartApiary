@@ -31,6 +31,8 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
     internal class CreateSprinklingAnnouncementHandler(
         ISprinklingAnnouncementRepository announcementRepository,
         IParcelRepository parcelRepository,
+        IApiaryRepository apiaryRepository,
+        IMediator mediator,
         IAnnouncementQueueService announcementQueueService,
         IWeatherService weatherService,
         ICurrentUserContext currentUser
@@ -83,6 +85,18 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
                 return Result<string>.Failure(announcementResult.Error!.Message, ErrorType.Validation);
 
             await announcementRepository.SaveAsync(announcementResult.Value, ct);
+
+            // Notify beekeepers live via SignalR
+            var apiaries = await apiaryRepository.GetApiariesWithinRadiusAsync(parcel.Latitude, parcel.Longitude, 5000, ct);
+            foreach (var apiary in apiaries)
+            {
+                var warningEvent = new SmartApiary.Domain.Events.PesticideWarningDomainEvent(
+                    apiary.Id,
+                    apiary.Name,
+                    DateTime.UtcNow
+                );
+                await mediator.Publish(new SmartApiary.Application.Common.DomainEventNotification<SmartApiary.Domain.Events.PesticideWarningDomainEvent>(warningEvent), ct);
+            }
 
             await announcementQueueService.SendAnnouncementMessageAsync(announcementResult.Value.Id.Value, AnnouncementAction.Created, ct);
 

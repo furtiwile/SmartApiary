@@ -51,17 +51,19 @@ namespace SmartApiary.Domain.Models
             if (string.IsNullOrWhiteSpace(message))
                 return Result<Notification>.Failure("Message is required");
 
-            return Result<Notification>.Success(
-                new Notification(
-                    EntityId.New(),
-                    userId,
-                    message,
-                    type,
-                    createdAt,
-                    false,
-                    false
-                )
+            var notification = new Notification(
+                EntityId.New(),
+                userId,
+                message,
+                type,
+                createdAt,
+                false,
+                false
             );
+
+            notification.AddDomainEvent(new SmartApiary.Domain.Events.NotificationCreatedDomainEvent(notification));
+
+            return Result<Notification>.Success(notification);
         }
 
         public static Result<Notification> Load(

@@ -16,7 +16,7 @@ export function ApiarySignalRProvider({ children }: { children: React.ReactNode 
   );
   const [latestReadings, setLatestReadings] = useState<Record<string, TelemetryReading>>({});
   const telemetryHandlers = useRef<Set<(r: TelemetryReading) => void>>(new Set());
-  const { warning, error: notifyError } = useNotify();
+  const { info, warning, error: notifyError } = useNotify();
 
   // ── Lifecycle ─────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -53,6 +53,21 @@ export function ApiarySignalRProvider({ children }: { children: React.ReactNode 
         notifyError(alertDto.title, alertDto.message, { duration: 10000 });
       } else {
         warning(alertDto.title, alertDto.message, { duration: 10000 });
+      }
+    });
+
+    // Listen for real-time universal notifications
+    conn.on("ReceiveNotification", (notificationDto: { id: string; message: string; type: string; createdAt: string }) => {
+      if (!isMounted) return;
+      const title = notificationDto.type === "PesticideWarning" ? "⚠️ Pesticide Warning" : 
+                    notificationDto.type === "Critical" ? "🚨 Critical Alert" : "🔔 Notification";
+                    
+      if (notificationDto.type === "Critical") {
+        notifyError(title, notificationDto.message, { duration: 10000 });
+      } else if (notificationDto.type === "Warning" || notificationDto.type === "PesticideWarning") {
+        warning(title, notificationDto.message, { duration: 10000 });
+      } else {
+        info(title, notificationDto.message, { duration: 10000 });
       }
     });
 
@@ -120,6 +135,24 @@ export function ApiarySignalRProvider({ children }: { children: React.ReactNode 
     }
   }, []);
 
+  const joinPrivateChannel = useCallback(async (userId: string) => {
+    if (connection.current.state !== HubConnectionState.Connected) return;
+    try {
+      await connection.current.invoke("JoinPrivateChannel", userId);
+    } catch (e) {
+      console.error("JoinPrivateChannel error:", e);
+    }
+  }, []);
+
+  const leavePrivateChannel = useCallback(async (userId: string) => {
+    if (connection.current.state !== HubConnectionState.Connected) return;
+    try {
+      await connection.current.invoke("LeavePrivateChannel", userId);
+    } catch (e) {
+      console.error("LeavePrivateChannel error:", e);
+    }
+  }, []);
+
   // ── Handler subscription ──────────────────────────────────────────────────
 
   const onTelemetry = useCallback((handler: (r: TelemetryReading) => void) => {
@@ -128,7 +161,7 @@ export function ApiarySignalRProvider({ children }: { children: React.ReactNode 
   }, []);
 
   return (
-    <ApiarySRContext.Provider value={{ connectionState, joinApiaryGroup, leaveApiaryGroup, joinBeekeeperGroup, leaveBeekeeperGroup, onTelemetry, latestReadings }}>
+    <ApiarySRContext.Provider value={{ connectionState, joinApiaryGroup, leaveApiaryGroup, joinBeekeeperGroup, leaveBeekeeperGroup, joinPrivateChannel, leavePrivateChannel, onTelemetry, latestReadings }}>
       {children}
     </ApiarySRContext.Provider>
   );

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { TelemetryStatusCards } from "./TelemetryStatusCards";
 import { NectarDeltaChart, TemperatureHumidityChart } from "./TelemetryCharts";
