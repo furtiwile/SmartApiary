@@ -6,6 +6,7 @@ namespace SmartApiary.Domain.Enums
         Warning,
         Critical,
         WeightDrop,
-        PesticideWarning
+        PesticideWarning,
+        PesticideWarningCancelled
     }
 }

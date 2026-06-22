@@ -92,8 +92,6 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
             if (announcementResult.IsFailure)
                 return Result<CreateAnnouncementResponse>.Failure(announcementResult.Error!.Message, ErrorType.Validation);
 
-            await announcementRepository.SaveAsync(announcementResult.Value, ct);
-
             // Notify beekeepers live via SignalR and count affected hives
             int totalAffectedHives = 0;
             var apiaries = await apiaryRepository.GetApiariesWithinRadiusAsync(parcel.Latitude, parcel.Longitude, 5000, ct);
@@ -109,6 +107,9 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
                 );
                 await mediator.Publish(new SmartApiary.Application.Common.DomainEventNotification<SmartApiary.Domain.Events.PesticideWarningDomainEvent>(warningEvent), ct);
             }
+
+            announcementResult.Value.SetNotifiedCount(totalAffectedHives);
+            await announcementRepository.SaveAsync(announcementResult.Value, ct);
 
             await announcementQueueService.SendAnnouncementMessageAsync(announcementResult.Value.Id.Value, AnnouncementAction.Created, ct);
 
