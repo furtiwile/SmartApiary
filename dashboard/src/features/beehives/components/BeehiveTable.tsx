@@ -1,5 +1,6 @@
 import { Trash2, Hexagon } from "lucide-react";
 import type { Beehive } from "../models/Beehive";
+import { EditBeehiveModal } from "./EditBeehiveModal";
 
 interface BeehiveTableProps {
   beehives: Beehive[];
@@ -65,6 +66,7 @@ export function BeehiveTable({ beehives, onDelete }: BeehiveTableProps) {
               {hive.note || "—"}
             </td>
             <td className="px-6 py-4 text-center">
+              <EditBeehiveModal hive={hive} apiaryId={hive.apiaryId ?? ""} />
               <button
                 onClick={() => onDelete(hive.id)}
                 className="inline-flex items-center gap-1.5 rounded-lg border border-rose-800/40 bg-rose-500/5 px-3 py-1.5 text-xs font-semibold text-rose-400 hover:bg-rose-500/20 transition-all"

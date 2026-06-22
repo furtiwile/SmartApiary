@@ -11,10 +11,30 @@ import type {
 // ─── Crop API ────────────────────────────────────────────────────────────────
 
 export class CropApi {
+  static async getAll(): Promise<any[]> {
+    try {
+      const res = await api.get<{ data: any[] }>("/crops/all");
+      return (res.data?.data ?? []).map(c => ({
+        ...c,
+        cropType: c.type,
+        expectedBloomDate: c.expectedFloweringTime,
+        notes: c.note,
+      }));
+    } catch (e) {
+      console.error("Error fetching all crops:", e);
+      return [];
+    }
+  }
+
   static async getByParcel(parcelId: string): Promise<CropDto[]> {
     try {
-      const res = await api.get<{ data: CropDto[] }>(`/crops?parcelId=${parcelId}`);
-      return res.data?.data ?? [];
+      const res = await api.get<{ data: any[] }>(`/crops?parcelId=${parcelId}`);
+      return (res.data?.data ?? []).map(c => ({
+        ...c,
+        cropType: c.type,
+        expectedBloomDate: c.expectedFloweringTime,
+        notes: c.note,
+      })) as CropDto[];
     } catch (e) {
       console.error("Error fetching crops:", e);
       return [];

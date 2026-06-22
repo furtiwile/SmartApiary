@@ -33,6 +33,17 @@ export function useBeehives(apiaryId: string | null) {
     },
   });
 
+  const updateBeehiveMutation = useMutation({
+    mutationFn: (data: Parameters<typeof beehiveApi.update>[0]) => beehiveApi.update(data),
+    onSuccess: (updatedHive) => {
+      if (updatedHive) {
+        queryClient.setQueryData<Beehive[]>(queryKey, (old) =>
+          old?.map((h) => (h.id === updatedHive.id ? updatedHive : h)) || []
+        );
+      }
+    },
+  });
+
   return {
     beehives,
     isLoading,
@@ -41,5 +52,7 @@ export function useBeehives(apiaryId: string | null) {
     isDeleting: deleteBeehiveMutation.isPending,
     createBeehive: createBeehiveMutation.mutateAsync,
     isCreating: createBeehiveMutation.isPending,
+    updateBeehive: updateBeehiveMutation.mutateAsync,
+    isUpdating: updateBeehiveMutation.isPending,
   };
 }
