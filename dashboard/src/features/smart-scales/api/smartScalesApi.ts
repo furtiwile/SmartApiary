@@ -11,4 +11,8 @@ export const smartScalesApi = {
     const response = await api.post<{ data: string }>("/smartscales");
     return response.data?.data ?? "";
   },
+
+  updateThreshold: async (smartScaleId: string, threshold: number | null): Promise<void> => {
+    await api.put(`/smartscales/${smartScaleId}/threshold`, { smartScaleId, weightDropThreshold: threshold });
+  },
 };

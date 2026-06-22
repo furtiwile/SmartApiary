@@ -3,6 +3,9 @@ import { TelemetryStatusCards } from "./TelemetryStatusCards";
 import { NectarDeltaChart, TemperatureHumidityChart } from "./TelemetryCharts";
 import { HiveDiary } from "./HiveDiary";
 import { DevicePairingModal } from "./DevicePairingModal";
+import { SmartScaleSettingsModal } from "./SmartScaleSettingsModal";
+import { Settings } from "lucide-react";
+import { useState } from "react";
 import type { Beehive } from "../models/Beehive";
 import { useTelemetryData } from "../hooks/useTelemetryData";
 
@@ -12,6 +15,7 @@ interface HiveTelemetryPanelProps {
 
 export function HiveTelemetryPanel({ hive }: HiveTelemetryPanelProps) {
   const queryClient = useQueryClient();
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const isRegistered = !!hive.smartScaleId;
   const isActivated = !!hive.smartScaleId && !!hive.isSmartScaleActivated;
@@ -62,7 +66,14 @@ export function HiveTelemetryPanel({ hive }: HiveTelemetryPanelProps) {
         : (
           <div className="space-y-5">
             {/* Pair/unpair action inline */}
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setIsSettingsOpen(true)}
+                className="flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-1.5 text-xs font-bold text-slate-300 transition-colors hover:bg-slate-700 hover:text-white"
+              >
+                <Settings className="h-4 w-4" />
+                Settings
+              </button>
               <DevicePairingModal
                 apiaryId={hive.apiaryId!}
                 hiveId={hive.id}
@@ -70,6 +81,13 @@ export function HiveTelemetryPanel({ hive }: HiveTelemetryPanelProps) {
                 isPaired={true}
                 onPaired={() => { queryClient.invalidateQueries({ queryKey: ["hives"] }); }}
                 onUnpaired={() => { queryClient.invalidateQueries({ queryKey: ["hives"] }); }}
+              />
+              <SmartScaleSettingsModal 
+                smartScaleId={hive.smartScaleId!}
+                serialNumber={hive.smartScaleSerialNumber!}
+                isOpen={isSettingsOpen}
+                initialThreshold={hive.weightDropThreshold}
+                onClose={() => setIsSettingsOpen(false)}
               />
             </div>
 

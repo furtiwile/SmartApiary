@@ -14,6 +14,7 @@ namespace SmartApiary.Domain.Models
         public string PasswordHash { get; private set; }
         public RoleType Role { get; private set; }
         public bool IsActive { get; private set; }
+        public double WeightDropThreshold { get; private set; } = 10.0;
 
         public void Activate(string passwordHash)
         {
@@ -29,6 +30,11 @@ namespace SmartApiary.Domain.Models
         public void ToggleActive()
         {
             IsActive = !IsActive;
+        }
+
+        public void UpdateWeightDropThreshold(double newThreshold)
+        {
+            WeightDropThreshold = newThreshold;
         }
 
         /// <summary>
@@ -50,7 +56,8 @@ namespace SmartApiary.Domain.Models
             string phoneNumber,
             string passwordHash,
             RoleType role,
-            bool isActive = true
+            bool isActive = true,
+            double weightDropThreshold = 10.0
         )
         {
             Id = id;
@@ -61,6 +68,7 @@ namespace SmartApiary.Domain.Models
             PasswordHash = passwordHash;
             Role = role;
             IsActive = isActive;
+            WeightDropThreshold = weightDropThreshold;
         }
 
         /// <summary>
@@ -133,7 +141,8 @@ namespace SmartApiary.Domain.Models
             string phoneNumber,
             string password,
             RoleType role,
-            bool active = true
+            bool active = true,
+            double weightDropThreshold = 10.0
         )
         {
             var idResult = EntityId.Create(id);
@@ -149,7 +158,8 @@ namespace SmartApiary.Domain.Models
                     phoneNumber,
                     password,
                     role,
-                    active
+                    active,
+                    weightDropThreshold
                 )
             );
 

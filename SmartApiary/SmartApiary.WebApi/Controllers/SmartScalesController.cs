@@ -48,5 +48,15 @@ namespace SmartApiary.WebApi.Controllers
             var result = await mediator.Send(new SmartApiary.Application.Features.SmartScales.Queries.GetSmartScalesByBeekeeperQuery(), ct);
             return result.ToActionResult();
         }
+
+        [HttpPut("{id}/threshold")]
+        public async Task<IActionResult> UpdateThreshold(string id, [FromBody] UpdateSmartScaleThresholdCommand command, CancellationToken ct)
+        {
+            if (id != command.SmartScaleId)
+                return BadRequest(new { error = "Mismatched smart scale ID." });
+
+            var result = await mediator.Send(command, ct);
+            return result.ToActionResult();
+        }
     }
 }

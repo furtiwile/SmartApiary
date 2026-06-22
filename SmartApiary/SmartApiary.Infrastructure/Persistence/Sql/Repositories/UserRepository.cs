@@ -21,7 +21,7 @@ namespace SmartApiary.Infrastructure.Persistence.Sql.Repositories
         public async Task<IReadOnlyCollection<User>> GetAllUsersAsync(CancellationToken ct = default)
         {
             const string sql = @"
-SELECT Id, Email, FirstName, LastName, PhoneNumber, PasswordHash, [Role], IsActive
+SELECT Id, Email, FirstName, LastName, PhoneNumber, PasswordHash, [Role], IsActive, WeightDropThreshold
 FROM dbo.Users;";
 
             return await QueryUsersAsync(sql, command => { }, ct);
@@ -30,7 +30,7 @@ FROM dbo.Users;";
         public async Task<User?> GetUserByIdAsync(EntityId userId, CancellationToken ct = default)
         {
             const string sql = @"
-SELECT Id, Email, FirstName, LastName, PhoneNumber, PasswordHash, [Role], IsActive
+SELECT Id, Email, FirstName, LastName, PhoneNumber, PasswordHash, [Role], IsActive, WeightDropThreshold
 FROM dbo.Users
 WHERE Id = @Id;";
 
@@ -45,7 +45,7 @@ WHERE Id = @Id;";
         public async Task<User?> GetUserByIdAndRoleAsync(RoleType role, EntityId userId, CancellationToken ct = default)
         {
             const string sql = @"
-SELECT Id, Email, FirstName, LastName, PhoneNumber, PasswordHash, [Role], IsActive
+SELECT Id, Email, FirstName, LastName, PhoneNumber, PasswordHash, [Role], IsActive, WeightDropThreshold
 FROM dbo.Users
 WHERE Id = @Id AND [Role] = @Role;";
 
@@ -61,7 +61,7 @@ WHERE Id = @Id AND [Role] = @Role;";
         public async Task<User?> GetUserByEmailAsync(string email, CancellationToken ct = default)
         {
             const string sql = @"
-SELECT Id, Email, FirstName, LastName, PhoneNumber, PasswordHash, [Role], IsActive
+SELECT Id, Email, FirstName, LastName, PhoneNumber, PasswordHash, [Role], IsActive, WeightDropThreshold
 FROM dbo.Users
 WHERE Email = @Email;";
 
@@ -76,7 +76,7 @@ WHERE Email = @Email;";
         public async Task<IReadOnlyCollection<User>> GetAllUsersByRoleAsync(RoleType role, CancellationToken ct = default)
         {
             const string sql = @"
-SELECT Id, Email, FirstName, LastName, PhoneNumber, PasswordHash, [Role], IsActive
+SELECT Id, Email, FirstName, LastName, PhoneNumber, PasswordHash, [Role], IsActive, WeightDropThreshold
 FROM dbo.Users
 WHERE [Role] = @Role;";
 
@@ -90,9 +90,9 @@ WHERE [Role] = @Role;";
         {
             const string sql = @"
 INSERT INTO dbo.Users
-    (Id, Email, FirstName, LastName, PhoneNumber, PasswordHash, [Role], IsActive)
+    (Id, Email, FirstName, LastName, PhoneNumber, PasswordHash, [Role], IsActive, WeightDropThreshold)
 VALUES
-    (@Id, @Email, @FirstName, @LastName, @PhoneNumber, @PasswordHash, @Role, @IsActive);";
+    (@Id, @Email, @FirstName, @LastName, @PhoneNumber, @PasswordHash, @Role, @IsActive, @WeightDropThreshold);";
 
             await using var connection = new SqlConnection(_connectionString);
             await connection.OpenAsync(ct);
@@ -113,7 +113,8 @@ SET Email = @Email,
     PhoneNumber = @PhoneNumber,
     PasswordHash = @PasswordHash,
     [Role] = @Role,
-    IsActive = @IsActive
+    IsActive = @IsActive,
+    WeightDropThreshold = @WeightDropThreshold
 WHERE Id = @Id;";
 
             await using var connection = new SqlConnection(_connectionString);
@@ -173,6 +174,7 @@ WHERE Id = @Id;";
             command.Parameters.Add(new SqlParameter("@PasswordHash", System.Data.SqlDbType.NVarChar, 200) { Value = user.PasswordHash });
             command.Parameters.Add(new SqlParameter("@Role", System.Data.SqlDbType.Int) { Value = (int)user.Role });
             command.Parameters.Add(new SqlParameter("@IsActive", System.Data.SqlDbType.Bit) { Value = user.IsActive });
+            command.Parameters.Add(new SqlParameter("@WeightDropThreshold", System.Data.SqlDbType.Float) { Value = user.WeightDropThreshold });
         }
 
         private static User? MapUser(SqlDataReader reader)
@@ -185,8 +187,9 @@ WHERE Id = @Id;";
             var passwordHash = reader.GetString(reader.GetOrdinal("PasswordHash"));
             var role = (RoleType)reader.GetInt32(reader.GetOrdinal("Role"));
             var isActive = reader.GetBoolean(reader.GetOrdinal("IsActive"));
+            var weightDropThreshold = reader.GetDouble(reader.GetOrdinal("WeightDropThreshold"));
 
-            var result = User.Load(id, email, firstName, lastName, phoneNumber, passwordHash, role, isActive);
+            var result = User.Load(id, email, firstName, lastName, phoneNumber, passwordHash, role, isActive, weightDropThreshold);
             return result.IsFailure ? null : result.Value;
         }
     }

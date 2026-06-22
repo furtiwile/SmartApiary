@@ -18,4 +18,5 @@ export type Beehive = {
   smartScaleId?: string;
   smartScaleSerialNumber?: string;
   isSmartScaleActivated?: boolean;
+  weightDropThreshold?: number | null;
 };

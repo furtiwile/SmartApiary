@@ -36,10 +36,10 @@ export function ApiarySignalRProvider({ children }: { children: React.ReactNode 
       // Surface global alerts via the notification system (legacy/fallback)
       if (reading.isAlert && reading.alertType) {
         const alertMessages: Record<NonNullable<TelemetryReading["alertType"]>, { title: string; message: string }> = {
-          Theft:            { title: "🚨 Theft Alert",        message: `Hive "${reading.hiveName ?? reading.hiveId}" has been moved or tilted.` },
-          BatteryLow:       { title: "🔋 Low Battery",        message: `Hive "${reading.hiveName ?? reading.hiveId}" battery is at ${reading.batteryPercent}%.` },
-          PesticideWarning: { title: "⚠️ Pesticide Warning",  message: `A spraying announcement was issued near hive "${reading.hiveName ?? reading.hiveId}".` },
-          WeightDrop:       { title: "📉 Weight Drop",        message: `Sudden fall of weight on hive "${reading.hiveName ?? reading.hiveId}"! Current: ${reading.weightKg} kg. Possible theft!` },
+          Theft: { title: "Theft Alert", message: `Hive "${reading.hiveName ?? reading.hiveId}" has been moved or tilted.` },
+          BatteryLow: { title: "Low Battery", message: `Hive "${reading.hiveName ?? reading.hiveId}" battery is at ${reading.batteryPercent}%.` },
+          PesticideWarning: { title: "Pesticide Warning", message: `A spraying announcement was issued near hive "${reading.hiveName ?? reading.hiveId}".` },
+          WeightDrop: { title: "Weight Drop", message: `Sudden fall of weight on hive "${reading.hiveName ?? reading.hiveId}"! Current: ${reading.weightKg} kg. Possible theft!` },
         };
         const msg = alertMessages[reading.alertType];
         if (msg) warning(msg.title, msg.message, { duration: 10000 });
@@ -59,9 +59,9 @@ export function ApiarySignalRProvider({ children }: { children: React.ReactNode 
     // Listen for real-time universal notifications
     conn.on("ReceiveNotification", (notificationDto: { id: string; message: string; type: string; createdAt: string }) => {
       if (!isMounted) return;
-      const title = notificationDto.type === "PesticideWarning" ? "⚠️ Pesticide Warning" : 
-                    notificationDto.type === "Critical" ? "🚨 Critical Alert" : "🔔 Notification";
-                    
+      const title = notificationDto.type === "PesticideWarning" ? "Pesticide Warning" :
+        notificationDto.type === "Critical" ? "Critical Alert" : "Notification";
+
       if (notificationDto.type === "Critical") {
         notifyError(title, notificationDto.message, { duration: 10000 });
       } else if (notificationDto.type === "Warning" || notificationDto.type === "PesticideWarning") {
