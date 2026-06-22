@@ -66,8 +66,9 @@ export function DevicePairingModal({
       } else {
         error("Pairing failed", "Check the serial number and ensure the device is powered on.");
       }
-    } catch {
-      error("Pairing failed", "An unexpected error occurred.");
+    } catch (err: any) {
+      const backendError = err.response?.data?.errors || err.response?.data?.message || err.message;
+      error("Pairing failed", typeof backendError === "string" ? backendError : "An unexpected error occurred.");
     }
   }
 
@@ -124,7 +125,6 @@ export function DevicePairingModal({
           </div>
 
           {isPaired ? (
-            /* Unpair view */
             <div className="space-y-4">
               <div className="flex items-start gap-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 p-4">
                 <ShieldCheck className="h-5 w-5 text-indigo-400 shrink-0 mt-0.5" />
@@ -149,7 +149,6 @@ export function DevicePairingModal({
               </button>
             </div>
           ) : (
-            /* Pair view */
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">

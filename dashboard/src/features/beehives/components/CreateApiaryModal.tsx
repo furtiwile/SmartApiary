@@ -13,7 +13,10 @@ const schema = z.object({
   Latitude: z.coerce.number().min(-90, "Invalid latitude").max(90, "Invalid latitude"),
   Longitude: z.coerce.number().min(-180, "Invalid longitude").max(180, "Invalid longitude"),
   Description: z.string().min(1, "Description is required."),
-  ImageFile: z.any(),
+  ImageFile: z.any().refine(
+    (files) => files && files.length > 0,
+    "An apiary image is required."
+  ),
 });
 
 type SchemaType = z.infer<typeof schema>;
@@ -105,27 +108,27 @@ export function CreateApiaryModal({ onCreated }: CreateApiaryModalProps) {
                 <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">
                   Latitude
                 </label>
-                  <input
-                    type="number"
-                    step="any"
-                    placeholder="45.2500"
-                    {...register("Latitude")}
-                    className="block w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  />
-                  {errors.Latitude && <p className="mt-1.5 text-xs text-rose-500">{errors.Latitude.message}</p>}
+                <input
+                  type="number"
+                  step="any"
+                  placeholder="45.2500"
+                  {...register("Latitude")}
+                  className="block w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                {errors.Latitude && <p className="mt-1.5 text-xs text-rose-500">{errors.Latitude.message}</p>}
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">
                   Longitude
                 </label>
-                  <input
-                    type="number"
-                    step="any"
-                    placeholder="19.8420"
-                    {...register("Longitude")}
-                    className="block w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  />
-                  {errors.Longitude && <p className="mt-1.5 text-xs text-rose-500">{errors.Longitude.message}</p>}
+                <input
+                  type="number"
+                  step="any"
+                  placeholder="19.8420"
+                  {...register("Longitude")}
+                  className="block w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                {errors.Longitude && <p className="mt-1.5 text-xs text-rose-500">{errors.Longitude.message}</p>}
               </div>
             </div>
 
