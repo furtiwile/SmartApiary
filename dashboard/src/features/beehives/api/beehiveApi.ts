@@ -11,6 +11,8 @@ type BeehiveResponse = Partial<Beehive> & {
   QueenAge?: number;
   Note?: string;
   SmartScaleId?: string;
+  SmartScaleSerialNumber?: string;
+  IsSmartScaleActivated?: boolean;
 };
 
 function normalizeBeehive(hive: BeehiveResponse): Beehive {
@@ -26,6 +28,8 @@ function normalizeBeehive(hive: BeehiveResponse): Beehive {
     queenAge: hive.queenAge ?? hive.QueenAge,
     note: hive.note ?? hive.Note,
     smartScaleId: hive.smartScaleId ?? hive.SmartScaleId,
+    smartScaleSerialNumber: hive.smartScaleSerialNumber ?? hive.SmartScaleSerialNumber,
+    isSmartScaleActivated: hive.isSmartScaleActivated ?? hive.IsSmartScaleActivated,
   };
 }
 

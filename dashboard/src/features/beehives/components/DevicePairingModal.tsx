@@ -91,11 +91,10 @@ export function DevicePairingModal({
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger asChild>
         <button
-          className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all ${
-            isPaired
-              ? "bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100"
-              : "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"
-          }`}
+          className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all ${isPaired
+            ? "bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100"
+            : "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"
+            }`}
         >
           <Link2 className="h-3 w-3" />
           {isPaired ? "Paired" : "Pair Device"}
@@ -161,16 +160,14 @@ export function DevicePairingModal({
                   placeholder="SA-2024-00123"
                   {...register("serialNumber")}
                   autoFocus
-                  maxLength={14}
-                  className={`block w-full rounded-lg border bg-slate-800 px-3 py-2 text-sm font-mono text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 transition-all ${
-                    watchSerialNumber && !isValidSerial
-                      ? "border-rose-500/60 focus:ring-rose-500"
-                      : "border-slate-700 focus:ring-indigo-500"
-                  }`}
+                  maxLength={13}
+                  className={`block w-full rounded-lg border bg-slate-800 px-3 py-2 text-sm font-mono text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 transition-all ${watchSerialNumber && !isValidSerial
+                    ? "border-rose-500/60 focus:ring-rose-500"
+                    : "border-slate-700 focus:ring-indigo-500"
+                    }`}
                 />
-                <p className={`mt-1.5 text-xs ${
-                  watchSerialNumber && !isValidSerial ? "text-rose-400" : "text-slate-500"
-                }`}>
+                <p className={`mt-1.5 text-xs ${watchSerialNumber && !isValidSerial ? "text-rose-400" : "text-slate-500"
+                  }`}>
                   Format: SA-YYYY-XXXXX (found on the device label)
                 </p>
                 {errors.serialNumber && <p className="mt-1.5 text-xs text-rose-500">{errors.serialNumber.message}</p>}

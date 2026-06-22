@@ -24,6 +24,7 @@ export function useTelemetryData(hive: Beehive, isPaired: boolean) {
     const unsub = onTelemetry((reading) => {
       if (reading.hiveId !== hive.id) return;
       setIsLive(true);
+      queryClient.invalidateQueries({ queryKey: ["hives"] });
       if (hive.smartScaleId) {
         queryClient.setQueryData<TelemetryReading[]>(queryKey, (old) => [
           ...(old || []).slice(-499),
