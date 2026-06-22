@@ -1,11 +1,11 @@
 info:
-  name: Generate PDF by parceld
+  name: Get sprinkling records by parcel
   type: http
-  seq: 11
+  seq: 8
 
 http:
   method: GET
-  url: "{{smart_apiary_api_base_url}}/sprinklingrecords/export?parcelId={{parcel_id}}"
+  url: "{{smart_apiary_api_base_url}}/sprinklingrecords?parcelId={{parcel_id}}"
   params:
     - name: parcelId
       value: "{{parcel_id}}"
@@ -22,7 +22,7 @@ runtime:
   scripts:
     - type: after-response
       code: |-
-        console.log("DEBUG RESPONSE [Generate PDF by parceld.yml] status:", res.status, "body:", JSON.stringify(res.body));
+        console.log("DEBUG RESPONSE [GetSprinklingRecordsByParcel.yml] status:", res.status, "body:", JSON.stringify(res.body));
     - type: before-request
       code: |-
         bru.setGlobalEnvVar("jwt_token", bru.getGlobalEnvVar("farmer_token"));
