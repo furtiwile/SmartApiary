@@ -1,10 +1,10 @@
 info:
-  name: Get Smart Scales By Beekeeper
+  name: Create Smart Scale
   type: http
-  seq: 4
+  seq: 1
 
 http:
-  method: GET
+  method: POST
   url: "{{smart_apiary_api_base_url}}/smartscales"
   auth: inherit
 
@@ -18,7 +18,10 @@ runtime:
   scripts:
     - type: after-response
       code: |-
-        console.log("DEBUG RESPONSE [GetSmartScales.yml] status:", res.status, "body:", JSON.stringify(res.body));
+        console.log("DEBUG RESPONSE [CreateSmartScale.yml] status:", res.status, "body:", JSON.stringify(res.body));
+        if (res.status === 200 && res.body.data) {
+          bru.setGlobalEnvVar("scale_serial_number", res.body.data);
+        }
     - type: before-request
       code: |-
         bru.setGlobalEnvVar("jwt_token", bru.getGlobalEnvVar("beekeeper_token"));

@@ -1,15 +1,11 @@
 info:
-  name: Get sprinkiling Record by parcel
+  name: Get All Crops
   type: http
   seq: 7
 
 http:
   method: GET
-  url: "{{smart_apiary_api_base_url}}/sprinklingrecords?parcelId={{parcel_id}}"
-  params:
-    - name: parcelId
-      value: "{{parcel_id}}"
-      type: query
+  url: "{{smart_apiary_api_base_url}}/crops/all"
   auth: inherit
 
 settings:
@@ -22,7 +18,7 @@ runtime:
   scripts:
     - type: after-response
       code: |-
-        console.log("DEBUG RESPONSE [Get sprinkiling Record by parcel.yml] status:", res.status, "body:", JSON.stringify(res.body));
+        console.log("DEBUG RESPONSE [GetAllCrops.yml] status:", res.status, "body:", JSON.stringify(res.body));
     - type: before-request
       code: |-
         bru.setGlobalEnvVar("jwt_token", bru.getGlobalEnvVar("farmer_token"));

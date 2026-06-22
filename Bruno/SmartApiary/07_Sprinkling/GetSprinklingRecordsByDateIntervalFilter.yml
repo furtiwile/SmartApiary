@@ -1,7 +1,7 @@
 info:
-  name: "Get annocment by date interval filter"
+  name: Get sprinkling records by date interval filter
   type: http
-  seq: 8
+  seq: 9
 
 http:
   method: GET
@@ -28,7 +28,7 @@ runtime:
   scripts:
     - type: after-response
       code: |-
-        console.log("DEBUG RESPONSE [Get annocment by date interval filter.yml] status:", res.status, "body:", JSON.stringify(res.body));
+        console.log("DEBUG RESPONSE [GetSprinklingRecordsByDateIntervalFilter.yml] status:", res.status, "body:", JSON.stringify(res.body));
     - type: before-request
       code: |-
         bru.setGlobalEnvVar("jwt_token", bru.getGlobalEnvVar("farmer_token"));

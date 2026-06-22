@@ -1,5 +1,5 @@
 info:
-  name: Generate PDF by announcementIdd
+  name: Generate PDF by announcementId
   type: http
   seq: 10
 
@@ -22,7 +22,7 @@ runtime:
   scripts:
     - type: after-response
       code: |-
-        console.log("DEBUG RESPONSE [Generate PDF by announcementIdd.yml] status:", res.status, "body:", JSON.stringify(res.body));
+        console.log("DEBUG RESPONSE [GeneratePDFByAnnouncementId.yml] status:", res.status, "body:", JSON.stringify(res.body));
     - type: before-request
       code: |-
         bru.setGlobalEnvVar("jwt_token", bru.getGlobalEnvVar("farmer_token"));
