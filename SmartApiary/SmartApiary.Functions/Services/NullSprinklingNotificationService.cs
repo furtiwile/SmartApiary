@@ -10,5 +10,10 @@ namespace SmartApiary.Functions.Services
         {
             return Task.CompletedTask;
         }
+
+        public Task BroadcastNotifiedCountToFarmerAsync(string announcementId, int count, CancellationToken ct)
+        {
+            return Task.CompletedTask;
+        }
     }
 }

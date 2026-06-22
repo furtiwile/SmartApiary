@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { z } from "zod";
 import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,6 +11,7 @@ import { useAuth } from "../../users/hooks/AuthHook";
 import type { SprinklingStatus } from "../models/Sprinkling";
 import type { ParcelDto } from "../models/Parcel";
 import { useApis } from "../../../shared/api/useApis";
+import { useSignalR } from "../../../shared/signalr/useSignalR";
 
 const PESTICIDE_TYPES = [
   "Herbicide", "Fungicide", "Insecticide", "Rodenticide", "Nematicide", "Other",
@@ -49,6 +50,33 @@ export function SprayingAnnouncementModal({ parcelId, parcelName }: SprayingAnno
   const { success, error, warning } = useNotify();
   const { user } = useAuth();
   const { geo: geoApi, spraying: sprayingApi } = useApis();
+  const { connection } = useSignalR();
+
+  useEffect(() => {
+    if (!connection) return;
+
+    const handleCalculationFinished = (data: { announcementId: string; beekeepersNotified: number }) => {
+      queryClient.invalidateQueries({ queryKey: ["announcements", parcelId] });
+      
+      if (data.beekeepersNotified > 0) {
+        success(
+          "Calculation Finished",
+          `${data.beekeepersNotified} beekeeper${data.beekeepersNotified !== 1 ? "s" : ""} within a 5 km radius have been successfully notified via email.`
+        );
+      } else {
+        warning(
+          "Calculation Finished",
+          "No beekeepers are registered within 5 km of this parcel. No emails were sent."
+        );
+      }
+    };
+
+    connection.on("SprinklingCalculationFinished", handleCalculationFinished);
+
+    return () => {
+      connection.off("SprinklingCalculationFinished", handleCalculationFinished);
+    };
+  }, [connection, queryClient, parcelId]);
 
   const { data: announcements = [], isLoading } = useQuery({
     queryKey: ["announcements", parcelId],
@@ -98,17 +126,14 @@ export function SprayingAnnouncementModal({ parcelId, parcelName }: SprayingAnno
         preparationType: data.pesticideType,
         startTime: new Date(data.scheduledAt).toISOString(),
         expectedDurationHours: data.durationHours,
-        bypassWeatherValidation: data.bypassWeatherValidation,
       });
 
       if (result) {
-        queryClient.setQueryData<typeof announcements>(["announcements", parcelId], (old) => [result.announcement, ...(old || [])]);
-        const notified = result.beekeepersNotified;
-        if (notified > 0) {
-          success("Spraying scheduled", `${notified} beekeeper${notified !== 1 ? "s" : ""} in a 5 km radius have been notified by email.`, { duration: 8000 });
-        } else {
-          warning("Spraying scheduled", "No beekeepers are registered within 5 km of this parcel. No emails were sent.", { duration: 8000 });
-        }
+        success(
+          "Spraying Submitted",
+          "The announcement has been submitted. Calculating and notifying nearby beekeepers in the background...",
+          { duration: 4000 }
+        );
         setOpen(false);
         reset();
         setWeatherWarning(null);
@@ -157,7 +182,6 @@ export function SprayingAnnouncementModal({ parcelId, parcelName }: SprayingAnno
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=open]:fade-in" />
           <Dialog.Content className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl focus:outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
-            {/* Header */}
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-500/10">
@@ -177,7 +201,6 @@ export function SprayingAnnouncementModal({ parcelId, parcelName }: SprayingAnno
               </Dialog.Close>
             </div>
 
-            {/* Existing announcements */}
             <div className="mb-6">
               <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">
                 Scheduled Events
@@ -202,7 +225,12 @@ export function SprayingAnnouncementModal({ parcelId, parcelName }: SprayingAnno
                             {cfg.label}
                           </span>
                           <div>
-                            <p className="text-sm font-medium text-slate-200">{ann.pesticideType}</p>
+                            <p className="text-sm font-medium text-slate-200">
+                              {ann.pesticideType}
+                              <span className="ml-2 text-xs font-semibold px-2 py-0.5 rounded-md bg-slate-700 text-slate-300 border border-slate-600">
+                                {ann.beekeepersNotified ?? 0} notified
+                              </span>
+                            </p>
                             <p className="text-xs text-slate-500">
                               {new Date(ann.scheduledAt).toLocaleString()} · {(ann.durationMinutes / 60).toFixed(1)} h
                             </p>
@@ -223,7 +251,6 @@ export function SprayingAnnouncementModal({ parcelId, parcelName }: SprayingAnno
               )}
             </div>
 
-            {/* Schedule form */}
             <div className="border-t border-slate-800 pt-5">
               <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">
                 Schedule New Spraying
