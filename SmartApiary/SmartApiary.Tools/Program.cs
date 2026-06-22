@@ -246,9 +246,9 @@ async Task InsertUsersAsync(string connectionString)
 
     var users = new[]
     {
-        new UserSeed(Guid.NewGuid(), "admin@example.local", "System", "Admin", "+10000000000", adminHash, 1, true),
-        new UserSeed(Guid.NewGuid(), "beekeeper@example.local", "John", "Bee", "+10000000001", beekeeperHash, 3, true),
-        new UserSeed(Guid.NewGuid(), "farmer@example.local", "Jane", "Farm", "+10000000002", farmerHash, 2, true)
+        new UserSeed(Guid.NewGuid(), "admin@example.local", "System", "Admin", "+10000000000", adminHash, 1, true, 10.0),
+        new UserSeed(Guid.NewGuid(), "beekeeper@example.local", "John", "Bee", "+10000000001", beekeeperHash, 3, true, 10.0),
+        new UserSeed(Guid.NewGuid(), "farmer@example.local", "Jane", "Farm", "+10000000002", farmerHash, 2, true, 10.0)
     };
 
     await using var connection = new SqlConnection(connectionString);
@@ -258,9 +258,9 @@ async Task InsertUsersAsync(string connectionString)
     {
         const string insertSql = @"
 INSERT INTO [dbo].[Users]
-    (Id, Email, FirstName, LastName, PhoneNumber, PasswordHash, Role, IsActive)
+    (Id, Email, FirstName, LastName, PhoneNumber, PasswordHash, Role, IsActive, WeightDropThreshold)
 VALUES
-    (@Id, @Email, @FirstName, @LastName, @PhoneNumber, @PasswordHash, @Role, @IsActive);";
+    (@Id, @Email, @FirstName, @LastName, @PhoneNumber, @PasswordHash, @Role, @IsActive, @WeightDropThreshold);";
 
         await using var command = new SqlCommand(insertSql, connection);
         command.Parameters.Add(new SqlParameter("@Id", SqlDbType.UniqueIdentifier) { Value = user.Id });
@@ -271,6 +271,7 @@ VALUES
         command.Parameters.Add(new SqlParameter("@PasswordHash", SqlDbType.NVarChar, 200) { Value = user.PasswordHash });
         command.Parameters.Add(new SqlParameter("@Role", SqlDbType.Int) { Value = user.Role });
         command.Parameters.Add(new SqlParameter("@IsActive", SqlDbType.Bit) { Value = user.IsActive });
+        command.Parameters.Add(new SqlParameter("@WeightDropThreshold", SqlDbType.Float) { Value = user.WeightDropThreshold });
 
         await command.ExecuteNonQueryAsync();
     }
@@ -321,8 +322,19 @@ BEGIN
         PhoneNumber NVARCHAR(50) NOT NULL,
         PasswordHash NVARCHAR(200) NOT NULL,
         Role INT NOT NULL,
-        IsActive BIT NOT NULL
+        IsActive BIT NOT NULL,
+        WeightDropThreshold FLOAT NOT NULL DEFAULT 10.0
     );
+END
+ELSE
+BEGIN
+    IF NOT EXISTS (
+        SELECT * FROM sys.columns 
+        WHERE object_id = OBJECT_ID(N'[dbo].[Users]') AND name = 'WeightDropThreshold'
+    )
+    BEGIN
+        ALTER TABLE [dbo].[Users] ADD WeightDropThreshold FLOAT NOT NULL DEFAULT 10.0;
+    END
 END";
 
     const string apiarySchemaSql = @"
@@ -392,4 +404,5 @@ internal sealed record UserSeed(
     string PhoneNumber,
     string PasswordHash,
     int Role,
-    bool IsActive);
+    bool IsActive,
+    double WeightDropThreshold);

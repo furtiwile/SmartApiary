@@ -66,8 +66,8 @@ namespace SmartApiary.WebApi.BackgroundServices
                     {
                         var alertDto = new
                         {
-                            Title = alert.AlertType == SmartApiary.Domain.Enums.AlertType.PesticideWarning ? "⚠️ Pesticide Warning" : 
-                                    alert.AlertType == SmartApiary.Domain.Enums.AlertType.PesticideWarningCancelled ? "✅ Pesticide Warning Cancelled" :
+                            Title = alert.AlertType == SmartApiary.Domain.Enums.AlertType.PesticideWarning ? "Pesticide Warning" : 
+                                    alert.AlertType == SmartApiary.Domain.Enums.AlertType.PesticideWarningCancelled ? "Pesticide Warning Cancelled" :
                                     $"Alert: {alert.AlertType}",
                             Message = alert.Message.Value,
                             Type = alert.AlertType.ToString()

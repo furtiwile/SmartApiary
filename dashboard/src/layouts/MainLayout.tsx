@@ -73,6 +73,14 @@ function AccountActions({ isAuthed, user, logout }: AccountActionsProps) {
               SMART SCALES
             </Link>
           </li>
+          <li>
+            <Link
+              to="/dashboard/settings"
+              className="text-sm font-bold tracking-wide text-slate-400 hover:text-amber-400 transition-colors duration-200"
+            >
+              SETTINGS
+            </Link>
+          </li>
         </>
       )}
       {user?.role === "Farmer" && (

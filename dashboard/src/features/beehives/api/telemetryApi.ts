@@ -92,7 +92,7 @@ export class DevicePairingApi {
       return true;
     } catch (e) {
       console.error("Error pairing device:", e);
-      throw e;
+      return false;
     }
   }
 

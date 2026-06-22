@@ -17,7 +17,8 @@ namespace SmartApiary.Application.Features.Hives.Queries
         string Note,
         string? SmartScaleId,
         string? SmartScaleSerialNumber = null,
-        bool IsSmartScaleActivated = false
+        bool IsSmartScaleActivated = false,
+        double? WeightDropThreshold = null
     );
 
     public record GetHivesByApiaryQuery(string ApiaryId) : IRequest<Result<IReadOnlyCollection<HiveDto>>>;
@@ -54,6 +55,7 @@ namespace SmartApiary.Application.Features.Hives.Queries
             {
                 string? serialNumber = null;
                 bool isActivated = false;
+                double? weightDropThreshold = null;
                 if (h.SmartScaleId != null)
                 {
                     var scale = await smartScaleRepository.GetByIdAsync(h.SmartScaleId, ct);
@@ -61,6 +63,7 @@ namespace SmartApiary.Application.Features.Hives.Queries
                     {
                         serialNumber = scale.SerialNumber;
                         isActivated = scale.Status == DeviceStatusEnum.Paired;
+                        weightDropThreshold = scale.WeightDropThreshold;
                     }
                 }
                 result.Add(new HiveDto(
@@ -73,7 +76,8 @@ namespace SmartApiary.Application.Features.Hives.Queries
                     h.Note,
                     h.SmartScaleId?.Value,
                     serialNumber,
-                    isActivated));
+                    isActivated,
+                    weightDropThreshold));
             }
 
             return Result<IReadOnlyCollection<HiveDto>>.Success(result);

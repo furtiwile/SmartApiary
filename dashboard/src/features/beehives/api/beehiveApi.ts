@@ -13,6 +13,7 @@ type BeehiveResponse = Partial<Beehive> & {
   SmartScaleId?: string;
   SmartScaleSerialNumber?: string;
   IsSmartScaleActivated?: boolean;
+  WeightDropThreshold?: number | null;
 };
 
 function normalizeBeehive(hive: BeehiveResponse): Beehive {
@@ -30,6 +31,7 @@ function normalizeBeehive(hive: BeehiveResponse): Beehive {
     smartScaleId: hive.smartScaleId ?? hive.SmartScaleId,
     smartScaleSerialNumber: hive.smartScaleSerialNumber ?? hive.SmartScaleSerialNumber,
     isSmartScaleActivated: hive.isSmartScaleActivated ?? hive.IsSmartScaleActivated,
+    weightDropThreshold: hive.weightDropThreshold ?? hive.WeightDropThreshold ?? null,
   };
 }
 

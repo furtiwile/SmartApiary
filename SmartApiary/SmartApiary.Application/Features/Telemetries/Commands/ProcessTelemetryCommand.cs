@@ -35,6 +35,8 @@ namespace SmartApiary.Application.Features.Telemetries.Commands
         ITelemetryRepository telemetryRepository,
         ISmartScaleRepository smartScaleRepository,
         IHiveRepository hiveRepository,
+        IApiaryRepository apiaryRepository,
+        IUserRepository userRepository,
         IMediator mediator // Koristimo IMediator za Publish
     ) : IRequestHandler<ProcessTelemetryCommand, Result>
     {
@@ -54,10 +56,29 @@ namespace SmartApiary.Application.Features.Telemetries.Commands
             {
                 var weightDrop = previousTelemetry.WeightKg - request.Weight;
 
-                if (weightDrop >= 5.0)
+                var hive = await hiveRepository.GetByIdAsync(previousTelemetry.HiveId, ct);
+                string hiveName = hive?.Designation ?? "Unknown Hive";
+
+                double effectiveThreshold = 10.0;
+                if (scale.WeightDropThreshold.HasValue)
                 {
-                    var hive = await hiveRepository.GetByIdAsync(previousTelemetry.HiveId, ct);
-                    string hiveName = hive?.Designation ?? "Unknown Hive";
+                    effectiveThreshold = scale.WeightDropThreshold.Value;
+                }
+                else if (hive != null)
+                {
+                    var apiary = await apiaryRepository.GetByIdAsync(hive.ApiaryId, ct);
+                    if (apiary != null)
+                    {
+                        var beekeeper = await userRepository.GetUserByIdAsync(apiary.BeekeeperId, ct);
+                        if (beekeeper != null)
+                        {
+                            effectiveThreshold = beekeeper.WeightDropThreshold;
+                        }
+                    }
+                }
+
+                if (weightDrop >= effectiveThreshold)
+                {
 
                     var anomalyEvent = new AnomalyDetectedDomainEvent(
                         scaleIdResult.Value,
@@ -76,8 +97,6 @@ namespace SmartApiary.Application.Features.Telemetries.Commands
                 // Check for battery transition below 15%
                 if (request.BatteryLevel < 15 && previousTelemetry.BatteryPercent >= 15)
                 {
-                    var hive = await hiveRepository.GetByIdAsync(previousTelemetry.HiveId, ct);
-                    string hiveName = hive?.Designation ?? "Unknown Hive";
 
                     var batteryEvent = new BatteryLowDomainEvent(
                         scaleIdResult.Value,

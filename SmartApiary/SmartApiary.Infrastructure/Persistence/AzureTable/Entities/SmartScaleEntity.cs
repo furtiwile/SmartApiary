@@ -9,6 +9,6 @@ namespace SmartApiary.Infrastructure.Persistence.AzureTable.Entities
         public double LatestReading { get; set; } = default;
         public DateTime TimeOfLastReading { get; set; }
         public bool IsBatteryWarningSent { get; set; }
-        public double WeightDropThreshold { get; set; } = 10.0;
+        public double? WeightDropThreshold { get; set; }
     }
 }

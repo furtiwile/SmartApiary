@@ -36,7 +36,10 @@ namespace SmartApiary.Application.Features.Telemetries.Commands
         ISmartScaleRepository smartScaleRepository,
         ITelemetryRepository telemetryRepository,
         ITelemetryQueueService telemetryQueueService,
-        IAlertQueueService alertQueueService)
+        IAlertQueueService alertQueueService,
+        IHiveRepository hiveRepository,
+        IApiaryRepository apiaryRepository,
+        IUserRepository userRepository)
         : IRequestHandler<IngestTelemetryCommand, Result>
     {
         public async Task<Result> Handle(IngestTelemetryCommand request, CancellationToken ct)
@@ -70,9 +73,31 @@ namespace SmartApiary.Application.Features.Telemetries.Commands
             if (smartScale.LatestReading > 0)
             {
                 var weightDrop = smartScale.LatestReading - request.WeightKg;
-                if (weightDrop > smartScale.WeightDropThreshold)
+                double effectiveThreshold = 10.0;
+                if (smartScale.WeightDropThreshold.HasValue)
                 {
-                    var msgResult = Message.Create($"Weight dropped by {weightDrop}kg. Threshold is {smartScale.WeightDropThreshold}kg.");
+                    effectiveThreshold = smartScale.WeightDropThreshold.Value;
+                }
+                else
+                {
+                    var hive = await hiveRepository.GetByIdAsync(hiveIdResult.Value, ct);
+                    if (hive != null)
+                    {
+                        var apiary = await apiaryRepository.GetByIdAsync(hive.ApiaryId, ct);
+                        if (apiary != null)
+                        {
+                            var beekeeper = await userRepository.GetUserByIdAsync(apiary.BeekeeperId, ct);
+                            if (beekeeper != null)
+                            {
+                                effectiveThreshold = beekeeper.WeightDropThreshold;
+                            }
+                        }
+                    }
+                }
+
+                if (weightDrop > effectiveThreshold)
+                {
+                    var msgResult = Message.Create($"Weight dropped by {weightDrop}kg. Threshold is {effectiveThreshold}kg.");
                     if (msgResult.IsSuccess)
                     {
                         var alertResult = Alert.Create(smartScale.Id.Value, AlertType.Critical, msgResult.Value.Value);

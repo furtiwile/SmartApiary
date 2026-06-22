@@ -12,6 +12,7 @@ import { AdminRoute } from "./components/AdminRoute";
 import { SmartScalesPage } from "./features/smart-scales/components/SmartScalesPage";
 import { CropsMapPage } from "./features/maps/pages/CropsMapPage";
 import { ResetPasswordPage } from "./features/users/pages/ResetPasswordPage";
+import { SettingsPage } from "./features/users/pages/SettingsPage";
 
 export const router = createBrowserRouter([
   {
@@ -80,6 +81,14 @@ export const router = createBrowserRouter([
             element: (
               <ProtectedRoute requiredRole="Beekeeper">
                 <CropsMapPage />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "settings",
+            element: (
+              <ProtectedRoute requiredRole="Beekeeper">
+                <SettingsPage />
               </ProtectedRoute>
             ),
           },
