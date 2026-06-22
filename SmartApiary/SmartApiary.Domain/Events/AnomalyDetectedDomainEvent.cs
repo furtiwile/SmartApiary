@@ -1,4 +1,4 @@
-﻿using SmartApiary.Domain.Common;
+using SmartApiary.Domain.Common;
 using SmartApiary.Domain.Enums;
 using SmartApiary.Domain.ValueObjects;
 
@@ -17,6 +17,8 @@ namespace SmartApiary.Domain.Events
 
         public AnomalyDetectedDomainEvent(
             EntityId scaleId,
+            string serialNumber,
+            string hiveName,
             EntityId beekeeperId,
             double previousWeight,
             double currentWeight,
@@ -34,7 +36,7 @@ namespace SmartApiary.Domain.Events
             var alertResult = Alert.Create(
                 scaleId.Value,
                 AlertType.WeightDrop,
-                $"Sudden fall of weight on scale:{scaleId.Value}! Previus: {previousWeight} kg, Current: {currentWeight} kg. Possible theft!"
+                $"Sudden fall of weight on hive '{hiveName}' (scale:{serialNumber})! Previus: {previousWeight} kg, Current: {currentWeight} kg. Possible theft!"
             );
 
             Alert = alertResult.Value!;

@@ -67,6 +67,7 @@ export function EditBeehiveModal({ hive, apiaryId }: EditBeehiveModalProps) {
         superColor: data.superColor,
         queenAge: data.queenAge,
         note: data.note || "",
+        smartScaleId: hive.smartScaleId,
       });
       if (result) {
         success("Hive updated", `Hive "${result.designation}" has been updated.`);
