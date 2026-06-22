@@ -2,10 +2,7 @@ import api from "../../../config/api";
 import type { TelemetryReading } from "../models/Telemetry";
 import type { InspectionEntry, CreateInspectionPayload } from "../models/Inspection";
 
-// ─── Telemetry API ──────────────────────────────────────────────────────────
-
 export class TelemetryApi {
-  /** Fetch historical telemetry readings for a smart scale (last N hours) */
   static async getBySmartScale(smartScaleId: string, hours = 48): Promise<TelemetryReading[]> {
     try {
       const res = await api.get<{ data: TelemetryReading[] }>(
@@ -18,7 +15,6 @@ export class TelemetryApi {
     }
   }
 
-  /** Fetch the latest single reading for a smart scale (status card) */
   static async getLatest(smartScaleId: string): Promise<TelemetryReading | null> {
     try {
       const res = await api.get<{ data: TelemetryReading }>(`/telemetry/latest?smartScaleId=${smartScaleId}`);
@@ -30,10 +26,7 @@ export class TelemetryApi {
   }
 }
 
-// ─── Inspection (Hive Diary) API ────────────────────────────────────────────
-
 export class InspectionApi {
-  /** Fetch all inspections for a hive, ordered by date desc */
   static async getByHive(hiveId: string): Promise<InspectionEntry[]> {
     try {
       const res = await api.get<{ data: Record<string, unknown>[] }>(`/hiveinspections?hiveId=${hiveId}`);
@@ -54,7 +47,6 @@ export class InspectionApi {
     }
   }
 
-  /** Log a new inspection entry */
   static async create(payload: CreateInspectionPayload): Promise<InspectionEntry | null> {
     try {
       const backendPayload = {
@@ -82,7 +74,6 @@ export class InspectionApi {
     }
   }
 
-  /** Delete an inspection entry */
   static async delete(inspectionId: string, hiveId: string): Promise<boolean> {
     try {
       await api.delete(`/hiveinspections/${inspectionId}?hiveId=${hiveId}`);
@@ -94,27 +85,17 @@ export class InspectionApi {
   }
 }
 
-// ─── Device Pairing API ─────────────────────────────────────────────────────
-
 export class DevicePairingApi {
-  /**
-   * Pair a SmartScale device to a hive by serial number.
-   * POST /smartscales/register  { apiaryId, hiveId, serialNumber }
-   */
   static async pair(apiaryId: string, hiveId: string, serialNumber: string): Promise<boolean> {
     try {
       await api.post(`/smartscales/register`, { apiaryId, hiveId, serialNumber });
       return true;
     } catch (e) {
       console.error("Error pairing device:", e);
-      return false;
+      throw e;
     }
   }
 
-  /**
-   * Unpair / remove SmartScale from a hive.
-   * DELETE /smartscales/unpair/{hiveId}
-   */
   static async unpair(hiveId: string): Promise<boolean> {
     try {
       await api.delete(`/smartscales/unpair/${hiveId}`);
