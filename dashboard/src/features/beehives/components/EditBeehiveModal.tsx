@@ -83,7 +83,7 @@ export function EditBeehiveModal({ hive, apiaryId }: EditBeehiveModalProps) {
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger asChild>
         <button
-          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700/60 bg-slate-800/50 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:bg-slate-700 transition-all"
+          className="mr-2 inline-flex items-center gap-1.5 rounded-lg border border-slate-700/60 bg-slate-800/50 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:bg-slate-700 transition-all"
           title="Edit hive"
         >
           <Edit2 className="h-3.5 w-3.5" />

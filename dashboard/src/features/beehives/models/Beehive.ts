@@ -16,4 +16,6 @@ export type Beehive = {
   note?: string;
   apiaryId?: string;
   smartScaleId?: string;
+  smartScaleSerialNumber?: string;
+  isSmartScaleActivated?: boolean;
 };

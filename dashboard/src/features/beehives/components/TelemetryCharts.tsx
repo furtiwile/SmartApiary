@@ -45,6 +45,10 @@ export function NectarDeltaChart({ readings }: NectarChartProps) {
     );
   }
 
+  const maxDelta = data.reduce((max, d) => Math.max(max, Math.abs(d.delta)), 0);
+  const maxVal = Math.max(maxDelta, 1);
+  const yDomain = [-maxVal, maxVal];
+
   return (
     <div className="rounded-2xl border border-slate-700/60 bg-slate-900/80 p-5">
       <p className="text-sm font-bold text-slate-300 mb-4">Nectar Gain / Loss (kg/day)</p>
@@ -52,7 +56,7 @@ export function NectarDeltaChart({ readings }: NectarChartProps) {
         <BarChart data={data} margin={{ top: 4, right: 8, bottom: 0, left: -10 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
           <XAxis dataKey="date" tick={{ fontSize: 10, fill: "#64748b" }} />
-          <YAxis tick={{ fontSize: 10, fill: "#64748b" }} />
+          <YAxis domain={yDomain} tick={{ fontSize: 10, fill: "#64748b" }} />
           <Tooltip
             contentStyle={{ background: "#0f172a", border: "1px solid #334155", borderRadius: 8, fontSize: 12 }}
             labelStyle={{ color: "#94a3b8" }}
@@ -62,7 +66,7 @@ export function NectarDeltaChart({ readings }: NectarChartProps) {
             }}
           />
           <ReferenceLine y={0} stroke="#475569" strokeDasharray="4 4" />
-          <Bar dataKey="delta" radius={[4, 4, 0, 0]}>
+          <Bar dataKey="delta" radius={0}>
             {data.map((d, i) => (
               <Cell key={i} fill={d.delta >= 0 ? "#10b981" : "#f43f5e"} />
             ))}
@@ -108,8 +112,8 @@ export function TemperatureHumidityChart({ readings }: LineChartProps) {
             contentStyle={{ background: "#0f172a", border: "1px solid #334155", borderRadius: 8, fontSize: 12 }}
             labelStyle={{ color: "#94a3b8" }}
           />
-          <Line type="monotone" dataKey="temp" stroke="#f43f5e" strokeWidth={2} dot={false} name="Temp (°C)" />
-          <Line type="monotone" dataKey="humidity" stroke="#38bdf8" strokeWidth={2} dot={false} name="Humidity (%)" />
+          <Line type="monotone" dataKey="temp" stroke="#f43f5e" strokeWidth={2} dot={false} activeDot={{ r: 6, strokeWidth: 0 }} name="Temp (°C)" />
+          <Line type="monotone" dataKey="humidity" stroke="#38bdf8" strokeWidth={2} dot={false} activeDot={{ r: 6, strokeWidth: 0 }} name="Humidity (%)" />
         </LineChart>
       </ResponsiveContainer>
     </div>
