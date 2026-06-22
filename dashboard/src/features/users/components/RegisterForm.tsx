@@ -2,6 +2,7 @@ import { z } from "zod";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { UserPlus, Mail, Phone, User, Shield } from "lucide-react";
 import { useNotify } from "../../../hooks/useNotify";
 import type { UserRole } from "../models/UserRole";
@@ -27,6 +28,7 @@ type SchemaType = z.infer<typeof schema>;
 export function RegisterForm() {
   const { success, error } = useNotify();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { auth } = useApis();
 
   const {
@@ -47,6 +49,7 @@ export function RegisterForm() {
       const result = await auth.register(data.email, data.firstName, data.lastName, data.phoneNumber, data.role as "Farmer" | "Beekeeper" | "Admin");
 
       if (result.success) {
+        await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
         success(
           "Account created",
           `An activation email has been sent to ${data.email}. The user must check their inbox to activate the account.`,
