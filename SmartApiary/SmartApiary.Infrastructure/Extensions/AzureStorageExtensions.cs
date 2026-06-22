@@ -42,6 +42,9 @@ namespace SmartApiary.Infrastructure.Extensions
             // Token mappers
             services.AddSingleton<ITableMapper<ActivationToken, ActivationTokenEntity>, ActivationTokenTableMapper>();
             services.AddSingleton<ITableMapper<PasswordResetToken, PasswordResetTokenEntity>, PasswordResetTokenTableMapper>();
+            
+            // Notification mapper
+            services.AddSingleton<ITableMapper<Notification, NotificationEntity>, NotificationTableMapper>();
 
             // Key Providers
             services.AddSingleton<ITableKeyProvider<User>, UserTableKeyProvider>();
@@ -57,6 +60,9 @@ namespace SmartApiary.Infrastructure.Extensions
             // Token key providers
             services.AddSingleton<ITableKeyProvider<ActivationToken>, ActivationTokenTableKeyProvider>();
             services.AddSingleton<ITableKeyProvider<PasswordResetToken>, PasswordResetTokenTableKeyProvider>();
+            
+            // Notification key provider
+            services.AddSingleton<ITableKeyProvider<Notification>, NotificationTableKeyProvider>();
 
             // Repositories
             services.AddSingleton<IApiaryRepository, Persistence.Sql.Repositories.ApiaryRepository>();
@@ -72,6 +78,7 @@ namespace SmartApiary.Infrastructure.Extensions
             services.AddSingleton<IUserRepository, Persistence.Sql.Repositories.UserRepository>();
             services.AddSingleton<IActivationTokenRepository, ActivationTokenRepository>();
             services.AddSingleton<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
+            services.AddSingleton<INotificationRepository, NotificationRepository>();
             services.AddHostedService<TokenTablesInitializerHostedService>();
 
             return services;
