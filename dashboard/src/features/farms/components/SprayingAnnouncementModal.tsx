@@ -47,7 +47,7 @@ export function SprayingAnnouncementModal({ parcelId, parcelName }: SprayingAnno
   const [cancelTarget, setCancelTarget] = useState<string | null>(null);
   const [weatherWarning, setWeatherWarning] = useState<string | null>(null);
   const queryClient = useQueryClient();
-  const { success, error, warning } = useNotify();
+  const { success, error } = useNotify();
   const { user } = useAuth();
   const { geo: geoApi, spraying: sprayingApi } = useApis();
   const { connection } = useSignalR();
@@ -58,16 +58,11 @@ export function SprayingAnnouncementModal({ parcelId, parcelName }: SprayingAnno
     const handleCalculationFinished = (data: { announcementId: string; beekeepersNotified: number }) => {
       queryClient.invalidateQueries({ queryKey: ["announcements", parcelId] });
       
-      if (data.beekeepersNotified > 0) {
-        success(
-          "Calculation Finished",
-          `${data.beekeepersNotified} beekeeper${data.beekeepersNotified !== 1 ? "s" : ""} within a 5 km radius have been successfully notified via email.`
-        );
+      const notified = data.beekeepersNotified;
+      if (notified > 0) {
+        success("Spraying scheduled", `${notified} hive${notified !== 1 ? "s" : ""} in a 5 km radius ${notified === 1 ? "has" : "have"} been notified by email.`, { duration: 8000 });
       } else {
-        warning(
-          "Calculation Finished",
-          "No beekeepers are registered within 5 km of this parcel. No emails were sent."
-        );
+        success("Spraying scheduled", "Spraying scheduled successfully. No nearby hives were affected.", { duration: 8000 });
       }
     };
 

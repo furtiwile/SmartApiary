@@ -117,8 +117,8 @@ export class SprayingApi {
 
   static async create(payload: CreateSprinklingPayloadExtended): Promise<CreateSprinklingResult | null> {
     try {
-      const res = await api.post<{ id: string }>("/sprinklingannouncements", payload);
-      const id = res.data?.id;
+      const res = await api.post<{ announcementId: string; warningMessage: string; notifiedHivesCount: number }>("/sprinklingannouncements", payload);
+      const id = res.data?.announcementId;
       if (id) {
         return {
           announcement: {
@@ -130,7 +130,7 @@ export class SprayingApi {
             status: "Scheduled",
             createdAt: new Date().toISOString(),
           },
-          beekeepersNotified: 0, // Backend notifies asynchronously
+          beekeepersNotified: res.data.notifiedHivesCount, 
         };
       }
       return null;

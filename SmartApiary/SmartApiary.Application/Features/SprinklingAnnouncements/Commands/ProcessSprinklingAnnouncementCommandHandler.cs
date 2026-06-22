@@ -18,6 +18,7 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
         ISprinklingAnnouncementRepository announcementRepository,
         IParcelRepository parcelRepository,
         IApiaryRepository apiaryRepository,
+        IHiveRepository hiveRepository,
         IUserRepository userRepository,
         IEmailSender emailSender,
         ISprinklingNotificationService notificationService,
@@ -38,16 +39,13 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
             if (parcel == null)
                 return Result.Failure("Parcel not found", ErrorType.NotFound);
 
-            var allApiaries = await apiaryRepository.GetApiariesWithinRadiusAsync(parcel.Latitude, parcel.Longitude, 1.0, ct);
-            var apiariesWithin5Km = new List<SmartApiary.Domain.Models.Apiary>();
+            var apiariesWithin5Km = await apiaryRepository.GetApiariesWithinRadiusAsync(parcel.Latitude, parcel.Longitude, 5000.0, ct);
 
-            foreach (var apiary in allApiaries)
+            int totalAffectedHives = 0;
+            foreach (var apiary in apiariesWithin5Km)
             {
-                double distance = CalculateHaversineDistance(parcel.Latitude, parcel.Longitude, apiary.Latitude, apiary.Longitude);
-                if (distance <= 5.0)
-                {
-                    apiariesWithin5Km.Add(apiary);
-                }
+                var hives = await hiveRepository.GetByApiaryIdAsync(apiary.Id, ct);
+                totalAffectedHives += hives.Count;
             }
 
             if (!apiariesWithin5Km.Any())
@@ -92,7 +90,7 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
             announcement.SetNotifiedCount(notifiedCount);
             await announcementRepository.UpdateAsync(announcement, ct);
 
-            await notificationService.BroadcastNotifiedCountToFarmerAsync(announcement.Id.Value, notifiedCount, ct);
+            await notificationService.BroadcastNotifiedCountToFarmerAsync(announcement.Id.Value, totalAffectedHives, ct);
 
             logger.LogInformation("Notified {Count} beekeepers for announcement {Id}.", notifiedCount, request.AnnouncementId);
             return Result.Success();

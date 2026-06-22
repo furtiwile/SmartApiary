@@ -17,7 +17,7 @@ namespace SmartApiary.WebApi.Controllers
         {
             var result = await mediator.Send(cmd, ct);
             if (result.IsSuccess)
-                return Ok(new { id = result.Value });
+                return Ok(result.Value);
 
             return result.ToActionResult();
         }
