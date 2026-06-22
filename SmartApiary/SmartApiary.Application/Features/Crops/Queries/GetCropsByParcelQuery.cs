@@ -9,7 +9,7 @@ namespace SmartApiary.Application.Features.Crops.Queries
     public record CropDto(
         string Id,
         string ParcelId,
-        CropType Type,
+        string Type,
         DateTime ExpectedFloweringTime,
         string Note
     );
@@ -31,7 +31,7 @@ namespace SmartApiary.Application.Features.Crops.Queries
                 .Select(c => new CropDto(
                     c.Id.Value,
                     c.ParcelId.Value,
-                    c.Type,
+                    c.Type.ToString(),
                     c.ExpectedFloweringTime,
                     c.Note))
                 .ToList();

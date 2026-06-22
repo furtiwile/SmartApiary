@@ -139,6 +139,15 @@ export default function ApiaryParcelMap({
           <Popup>
             <div className="map-popup">
               <div className="map-popup-title">{apiary.name}</div>
+              {apiary.thumbnailUrl && (
+                <div className="my-2 rounded-lg overflow-hidden border border-slate-700 max-w-[120px] aspect-video">
+                  <img
+                    src={apiary.thumbnailUrl}
+                    alt={apiary.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
               {apiary.beekeeperName && <div><strong>Beekeeper:</strong> {apiary.beekeeperName}</div>}
               {apiary.hiveCount !== undefined && <div><strong>Hives:</strong> {apiary.hiveCount}</div>}
               {apiary.description && <div>{apiary.description}</div>}
@@ -156,9 +165,9 @@ export default function ApiaryParcelMap({
       )}
 
       {/* Parcel markers */}
-      {parcels.map((parcel) => (
+      {parcels.map((parcel, index) => (
         <Marker
-          key={parcel.id}
+          key={`${parcel.id}-${parcel.cropType || ""}-${index}`}
           position={[parcel.location.latitude, parcel.location.longitude]}
           icon={getParcelIcon(parcel.cropType)}
           eventHandlers={{ click: () => onMarkerClick?.(parcel.id, "parcel") }}

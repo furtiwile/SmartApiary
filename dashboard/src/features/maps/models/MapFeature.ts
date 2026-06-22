@@ -10,6 +10,7 @@ export type ApiaryMapFeature = {
   beekeeperName?: string;
   hiveCount?: number;
   description?: string;
+  thumbnailUrl?: string;
 };
 
 export type ParcelMapFeature = {

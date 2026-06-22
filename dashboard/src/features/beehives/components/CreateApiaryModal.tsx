@@ -68,6 +68,7 @@ export function CreateApiaryModal({ onCreated }: CreateApiaryModalProps) {
     id: a.id,
     name: a.name,
     location: { latitude: a.latitude, longitude: a.longitude },
+    thumbnailUrl: a.thumbnailUrl,
   }));
 
   function handleMapClick(lat: number, lng: number) {
