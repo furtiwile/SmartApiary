@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { z } from "zod";
 import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,16 +7,16 @@ import { PlusCircle, X, Hexagon } from "lucide-react";
 import { useNotify } from "../../../hooks/useNotify";
 import type { ApiaryDto } from "../models/Apiary";
 import { useApiaries } from "../hooks/useApiaries";
+import ApiaryParcelMap from "../../maps/components/ApiaryParcelMap";
+import { GeoApi } from "../../maps/api/geoApi";
+import type { ApiaryMapFeature, ParcelMapFeature } from "../../maps/models/MapFeature";
 
 const schema = z.object({
   Name: z.string().min(1, "Apiary name is required."),
   Latitude: z.coerce.number().min(-90, "Invalid latitude").max(90, "Invalid latitude"),
   Longitude: z.coerce.number().min(-180, "Invalid longitude").max(180, "Invalid longitude"),
   Description: z.string().min(1, "Description is required."),
-  ImageFile: z.any().refine(
-    (files) => files && files.length > 0,
-    "An apiary image is required."
-  ),
+  ImageFile: z.any(),
 });
 
 type SchemaType = z.infer<typeof schema>;
@@ -27,18 +27,53 @@ interface CreateApiaryModalProps {
 
 export function CreateApiaryModal({ onCreated }: CreateApiaryModalProps) {
   const [open, setOpen] = useState(false);
+  const [crops, setCrops] = useState<ParcelMapFeature[]>([]);
   const { success, error } = useNotify();
-  const { createApiary } = useApiaries();
+  const { createApiary, apiaries } = useApiaries();
+
+  useEffect(() => {
+    if (open) {
+      GeoApi.getCropsNearApiaries(50).then((res) => {
+        setCrops(
+          res.map((c) => ({
+            id: c.parcelId,
+            name: c.parcelName,
+            location: { latitude: c.latitude, longitude: c.longitude },
+            cropType: c.cropType,
+          }))
+        );
+      });
+    }
+  }, [open]);
 
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<SchemaType>({
     resolver: zodResolver(schema) as unknown as Resolver<SchemaType>,
     defaultValues: { Name: "", Latitude: "" as unknown as number, Longitude: "" as unknown as number, Description: "" },
   });
+
+  const latStr = watch("Latitude");
+  const lngStr = watch("Longitude");
+  const lat = typeof latStr === "string" ? parseFloat(latStr) : Number(latStr);
+  const lng = typeof lngStr === "string" ? parseFloat(lngStr) : Number(lngStr);
+  const draftMarker: [number, number] | undefined = !isNaN(lat) && !isNaN(lng) ? [lat, lng] : undefined;
+
+  const mapApiaries: ApiaryMapFeature[] = apiaries.map((a) => ({
+    id: a.id,
+    name: a.name,
+    location: { latitude: a.latitude, longitude: a.longitude },
+  }));
+
+  function handleMapClick(lat: number, lng: number) {
+    setValue("Latitude", lat as unknown as number, { shouldValidate: true, shouldDirty: true });
+    setValue("Longitude", lng as unknown as number, { shouldValidate: true, shouldDirty: true });
+  }
 
   async function onSubmit(data: SchemaType) {
     try {
@@ -73,7 +108,7 @@ export function CreateApiaryModal({ onCreated }: CreateApiaryModalProps) {
 
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=open]:fade-in" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl focus:outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
+        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl focus:outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/10">
@@ -103,32 +138,72 @@ export function CreateApiaryModal({ onCreated }: CreateApiaryModalProps) {
               {errors.Name && <p className="mt-1.5 text-xs text-rose-500">{errors.Name.message}</p>}
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">
-                  Latitude
-                </label>
-                <input
-                  type="number"
-                  step="any"
-                  placeholder="45.2500"
-                  {...register("Latitude")}
-                  className="block w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-                {errors.Latitude && <p className="mt-1.5 text-xs text-rose-500">{errors.Latitude.message}</p>}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">
+                      Latitude
+                    </label>
+                      <input
+                        type="number"
+                        step="any"
+                        placeholder="45.2500"
+                        {...register("Latitude")}
+                        className="block w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                      {errors.Latitude && <p className="mt-1.5 text-xs text-rose-500">{errors.Latitude.message}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">
+                      Longitude
+                    </label>
+                      <input
+                        type="number"
+                        step="any"
+                        placeholder="19.8420"
+                        {...register("Longitude")}
+                        className="block w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                      {errors.Longitude && <p className="mt-1.5 text-xs text-rose-500">{errors.Longitude.message}</p>}
+                  </div>
+                </div>
+                <div className="mt-1">
+                  <ApiaryParcelMap
+                    apiaries={mapApiaries}
+                    parcels={crops}
+                    height="200px"
+                    draftMarker={draftMarker}
+                    onMapClick={handleMapClick}
+                  />
+                  <p className="mt-1.5 text-xs text-slate-500">
+                    Click on the map to set coordinates. It shows your apiaries and nearby farm fields.
+                  </p>
+                </div>
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">
-                  Longitude
-                </label>
-                <input
-                  type="number"
-                  step="any"
-                  placeholder="19.8420"
-                  {...register("Longitude")}
-                  className="block w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-                {errors.Longitude && <p className="mt-1.5 text-xs text-rose-500">{errors.Longitude.message}</p>}
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">Description</label>
+                  <textarea
+                    placeholder="Describe the apiary..."
+                    {...register("Description")}
+                    rows={4}
+                    className="block w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                  />
+                  {errors.Description && <p className="mt-1.5 text-xs text-rose-500">{errors.Description.message}</p>}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">Apiary Image</label>
+                  <input
+                    type="file"
+                    accept=".jpg,.jpeg,.png,.webp,.gif"
+                    {...register("ImageFile")}
+                    className="block w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                  {errors.ImageFile && <p className="mt-1.5 text-xs text-rose-500">{errors.ImageFile.message as string}</p>}
+                </div>
               </div>
             </div>
 
@@ -136,27 +211,7 @@ export function CreateApiaryModal({ onCreated }: CreateApiaryModalProps) {
               After creating the apiary you can add hives and pair SmartScale devices to them.
             </p>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">Description</label>
-              <textarea
-                placeholder="Describe the apiary..."
-                {...register("Description")}
-                rows={2}
-                className="block w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
-              />
-              {errors.Description && <p className="mt-1.5 text-xs text-rose-500">{errors.Description.message}</p>}
-            </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">Apiary Image</label>
-              <input
-                type="file"
-                accept=".jpg,.jpeg,.png,.webp,.gif"
-                {...register("ImageFile")}
-                className="block w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-              {errors.ImageFile && <p className="mt-1.5 text-xs text-rose-500">{errors.ImageFile.message as string}</p>}
-            </div>
 
             <div className="flex gap-3 pt-2">
               <Dialog.Close asChild>

@@ -32,6 +32,7 @@ function createDivIcon(emoji: string, bgColor: string) {
 }
 
 const apiaryIcon = createDivIcon("🍯", "#f59e0b");
+const draftIcon = createDivIcon("📍", "#3b82f6");
 
 function getParcelIcon(cropType?: string) {
   const opt = CROP_OPTIONS.find((c) => c.value === cropType);
@@ -79,6 +80,7 @@ type ApiaryParcelMapProps = {
   center?: [number, number];
   zoom?: number;
   height?: string;
+  draftMarker?: [number, number];
   onMapClick?: (lat: number, lng: number) => void;
   onMarkerClick?: (id: string, type: "apiary" | "parcel") => void;
 };
@@ -92,13 +94,20 @@ export default function ApiaryParcelMap({
   center = DEFAULT_CENTER,
   zoom = DEFAULT_ZOOM,
   height = "500px",
+  draftMarker,
   onMapClick,
   onMarkerClick,
 }: ApiaryParcelMapProps) {
-  const allPositions = useMemo<[number, number][]>(() => [
-    ...apiaries.map((a) => [a.location.latitude, a.location.longitude] as [number, number]),
-    ...parcels.map((p) => [p.location.latitude, p.location.longitude] as [number, number]),
-  ], [apiaries, parcels]);
+  const allPositions = useMemo<[number, number][]>(() => {
+    const pos = [
+      ...apiaries.map((a) => [a.location.latitude, a.location.longitude] as [number, number]),
+      ...parcels.map((p) => [p.location.latitude, p.location.longitude] as [number, number]),
+    ];
+    if (draftMarker) {
+      pos.push(draftMarker);
+    }
+    return pos;
+  }, [apiaries, parcels, draftMarker]);
 
   return (
     <MapContainer
@@ -140,6 +149,11 @@ export default function ApiaryParcelMap({
           </Popup>
         </Marker>
       ))}
+
+      {/* Draft marker */}
+      {draftMarker && (
+        <Marker position={draftMarker} icon={draftIcon} interactive={false} />
+      )}
 
       {/* Parcel markers */}
       {parcels.map((parcel) => (
