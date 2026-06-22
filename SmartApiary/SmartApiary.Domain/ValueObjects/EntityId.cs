@@ -1,4 +1,4 @@
-﻿using SmartApiary.Domain.Common;
+using SmartApiary.Domain.Common;
 using SmartApiary.Domain.Enums;
 
 namespace SmartApiary.Domain.ValueObjects;
@@ -17,10 +17,10 @@ public sealed record EntityId
         if (string.IsNullOrWhiteSpace(value))
             return Result<EntityId>.Failure("Id format is invalid.", ErrorType.Validation);
 
-        if (!Guid.TryParse(value, out _))
+        if (!Guid.TryParse(value, out var guid))
             return Result<EntityId>.Failure("Invalid DeviceId format.", ErrorType.Validation);
 
-        return Result<EntityId>.Success(new EntityId(value));
+        return Result<EntityId>.Success(new EntityId(guid.ToString().ToLowerInvariant()));
     }
 
     public static EntityId New() => new(Guid.NewGuid().ToString());

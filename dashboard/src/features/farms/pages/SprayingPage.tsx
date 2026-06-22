@@ -83,7 +83,7 @@ type SchemaType = z.infer<typeof schema>;
 export const SprayingPage: React.FC = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const { success, error, warning } = useNotify();
+  const { success, error } = useNotify();
   const { farms: farmApi, spraying: sprayingApi, geo: geoApi } = useApis();
 
   const [selectedParcel, setSelectedParcel] = useState<ParcelDto | null>(null);
@@ -172,13 +172,13 @@ export const SprayingPage: React.FC = () => {
         if (notified > 0) {
           success(
             "Spraying scheduled",
-            `${notified} beekeeper${notified !== 1 ? "s" : ""} within 5 km have been notified by email.`,
+            `${notified} hive${notified !== 1 ? "s" : ""} in a 5 km radius ${notified === 1 ? "has" : "have"} been notified by email.`,
             { duration: 8000 }
           );
         } else {
-          warning(
+          success(
             "Spraying scheduled",
-            "No beekeepers are registered within 5 km of this parcel. No emails were sent.",
+            "Spraying scheduled successfully. No nearby hives were affected.",
             { duration: 8000 }
           );
         }
@@ -370,6 +370,9 @@ export const SprayingPage: React.FC = () => {
                                 <div>
                                   <p className="text-sm font-medium text-slate-200">
                                     {ann.pesticideType}
+                                    <span className="ml-2 text-xs font-semibold px-2 py-0.5 rounded-md bg-slate-700 text-slate-300 border border-slate-600">
+                                      {ann.beekeepersNotified ?? 0} hives affected
+                                    </span>
                                   </p>
                                   <p className="text-xs text-slate-500">
                                     {new Date(ann.scheduledAt).toLocaleString()} ·{" "}
