@@ -10,6 +10,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AdminRoute } from "./components/AdminRoute";
 import { SmartScalesPage } from "./features/smart-scales/components/SmartScalesPage";
 import { CropsMapPage } from "./features/maps/pages/CropsMapPage";
+import { ResetPasswordPage } from "./features/users/pages/ResetPasswordPage";
 
 export const router = createBrowserRouter([
   {
@@ -18,6 +19,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <LoginPage /> },
       { path: "login", element: <LoginPage /> },
+      { path: "reset-password", element: <ResetPasswordPage /> },
       {
         path: "activate",
         element: <ActivatePage />,

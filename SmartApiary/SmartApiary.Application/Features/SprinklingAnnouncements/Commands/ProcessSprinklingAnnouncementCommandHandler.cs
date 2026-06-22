@@ -67,6 +67,7 @@ namespace SmartApiary.Application.Features.SprinklingAnnouncements.Commands
                             HtmlContent: $"<p>Hello {user.FirstName},</p><p>{message.Replace("\n", "<br/>")}</p>"
                         );
 
+                        logger.LogInformation("Sending email to {Email} for announcement {Id}.", user.Email, request.AnnouncementId);
                         await emailSender.SendAsync(emailMessage, ct);
                         notifiedCount++;
                     }
