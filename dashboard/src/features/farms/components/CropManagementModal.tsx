@@ -74,6 +74,7 @@ export function CropManagementModal({ parcelId, parcelName }: CropManagementModa
       });
       if (result) {
         queryClient.setQueryData<typeof crops>(["crops", parcelId], (old) => [...(old || []), result]);
+        queryClient.invalidateQueries({ queryKey: ["all-crops"] });
         success("Crop added", `${data.cropType} has been assigned to "${parcelName}".`);
         reset();
       } else {
@@ -89,6 +90,7 @@ export function CropManagementModal({ parcelId, parcelName }: CropManagementModa
     const deleted = await cropApi.delete(confirmDeleteId, parcelId);
     if (deleted) {
       queryClient.setQueryData<typeof crops>(["crops", parcelId], (old) => old?.filter((c) => c.id !== confirmDeleteId));
+      queryClient.invalidateQueries({ queryKey: ["all-crops"] });
       success("Crop removed", "The crop has been removed from the parcel.");
     } else {
       error("Failed", "Could not remove crop. Please try again.");
