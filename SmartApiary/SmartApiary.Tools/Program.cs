@@ -71,7 +71,7 @@ while (true)
             case "0":
                 return;
             default:
-                Console.WriteLine("Invalid selection. Choose 0-5.");
+                Console.WriteLine("Invalid selection. Choose 0-7.");
                 break;
         }
     }
