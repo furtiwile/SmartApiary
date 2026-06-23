@@ -89,5 +89,10 @@ namespace SmartApiary.Domain.Models
             ExpectedFloweringTime = expectedFloweringTime;
             Note = note;
         }
+
+        public bool HasExpectedFloweringTimePassed(DateTime utcNow)
+        {
+            return ExpectedFloweringTime <= utcNow;
+        }
     }
 }

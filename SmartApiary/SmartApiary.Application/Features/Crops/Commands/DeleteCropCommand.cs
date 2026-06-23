@@ -22,7 +22,8 @@ namespace SmartApiary.Application.Features.Crops.Commands
     internal class DeleteCropHandler(
         ICropRepository cropRepository,
         IParcelRepository parcelRepository,
-        ICurrentUserContext currentUser
+        ICurrentUserContext currentUser,
+        IDateTimeProvider dateTimeProvider
     )
         : IRequestHandler<DeleteCropCommand, Result>
     {
@@ -50,6 +51,12 @@ namespace SmartApiary.Application.Features.Crops.Commands
             var crop = await cropRepository.GetByIdAsync(parcelIdResult.Value, cropIdResult.Value, ct);
             if (crop == null)
                 return Result.Failure("Crop not found", ErrorType.NotFound);
+
+            if (!crop.HasExpectedFloweringTimePassed(dateTimeProvider.UtcNow))
+            {
+                var localBloomEnd = crop.ExpectedFloweringTime;
+                return Result.Failure($"The crop cannot be deleted because it has not yet bloomed. It will become deletable on/after its expected bloom date: {localBloomEnd:yyyy-MM-dd HH:mm UTC}.", ErrorType.Validation);
+            }
 
             await cropRepository.DeleteAsync(crop, ct);
 

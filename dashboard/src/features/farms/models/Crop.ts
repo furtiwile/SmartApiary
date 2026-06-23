@@ -23,3 +23,9 @@ export const CROP_OPTIONS: { value: CropType; label: string; emoji: string }[] =
   { value: "Acacia",     label: "Acacia",     emoji: "🌿" },
   { value: "Other",      label: "Other",      emoji: "🌱" },
 ];
+
+export function hasExpectedBloomDatePassed(expectedBloomDate: string): boolean {
+  const bloomDate = new Date(expectedBloomDate);
+  const now = new Date();
+  return bloomDate <= now;
+}

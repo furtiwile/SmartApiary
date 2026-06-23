@@ -8,7 +8,7 @@ import { Leaf, PlusCircle, Trash2, X, Siren } from "lucide-react";
 import { useNotify } from "../../../hooks/useNotify";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import type { CropType } from "../models/Crop";
-import { CROP_OPTIONS } from "../models/Crop";
+import { CROP_OPTIONS, hasExpectedBloomDatePassed } from "../models/Crop";
 import { useApis } from "../../../shared/api/useApis";
 
 const schema = z.object({
@@ -153,6 +153,7 @@ export function CropManagementModal({ parcelId, parcelName }: CropManagementModa
                 <ul className="divide-y divide-slate-800 rounded-xl border border-slate-700 overflow-hidden">
                   {crops.map((crop) => {
                     const opt = CROP_OPTIONS.find((o) => o.value === crop.cropType);
+                    const deletable = hasExpectedBloomDatePassed(crop.expectedBloomDate);
                     return (
                       <li key={crop.id} className="flex items-center justify-between px-4 py-2.5 bg-slate-800/50 hover:bg-slate-800 transition-colors">
                         <div className="flex items-center gap-2">
@@ -164,12 +165,30 @@ export function CropManagementModal({ parcelId, parcelName }: CropManagementModa
                             </p>
                           </div>
                         </div>
-                        <button
-                          onClick={() => setConfirmDeleteId(crop.id)}
-                          className="p-1.5 rounded-lg text-slate-600 hover:text-rose-400 hover:bg-rose-500/10 transition-all"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                        <div className="flex items-center gap-2">
+                          {!deletable && (
+                            <span className="text-[10px] font-semibold text-amber-500/80 bg-amber-500/10 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                              Blooming (Locked)
+                            </span>
+                          )}
+                          {deletable && (
+                            <span className="text-[10px] font-semibold text-emerald-500/80 bg-emerald-500/10 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                              Bloomed
+                            </span>
+                          )}
+                          <button
+                            disabled={!deletable}
+                            onClick={() => setConfirmDeleteId(crop.id)}
+                            title={deletable ? "Delete Crop" : "Cannot delete until expected bloom date has passed"}
+                            className={`p-1.5 rounded-lg transition-all ${
+                              deletable
+                                ? "text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 cursor-pointer"
+                                : "text-slate-600 opacity-40 cursor-not-allowed"
+                            }`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
                       </li>
                     );
                   })}
@@ -214,68 +233,82 @@ export function CropManagementModal({ parcelId, parcelName }: CropManagementModa
 
             {/* Add crop form */}
             <div className="border-t border-slate-800 pt-5">
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">
-                Add Crop
-              </p>
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
-                {/* Crop type selector */}
-                <div className="grid grid-cols-3 gap-2">
-                  {CROP_OPTIONS.map(({ value, label, emoji }) => (
+              {crops.length > 0 ? (
+                <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-center">
+                  <Leaf className="h-6 w-6 text-amber-500/60 mx-auto mb-2" />
+                  <p className="text-xs font-semibold text-slate-300">
+                    A crop is already sown on this parcel.
+                  </p>
+                  <p className="text-[11px] text-slate-500 mt-1">
+                    To sow a new crop, wait until the expected bloom date of the current crop has passed and delete it.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">
+                    Add Crop
+                  </p>
+                  <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
+                    {/* Crop type selector */}
+                    <div className="grid grid-cols-3 gap-2">
+                      {CROP_OPTIONS.map(({ value, label, emoji }) => (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => setValue("cropType", value)}
+                          className={`flex flex-col items-center justify-center gap-1 rounded-xl border py-2.5 text-xs font-medium transition-all ${
+                            selectedCropType === value
+                              ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-400"
+                              : "border-slate-700 bg-slate-800/50 text-slate-500 hover:border-slate-600 hover:bg-slate-800 hover:text-slate-400"
+                          }`}
+                        >
+                          <span className="text-xl">{emoji}</span>
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">
+                          Expected Bloom Date
+                        </label>
+                        <input
+                          type="date"
+                          min={todayIso}
+                          {...register("expectedBloomDate")}
+                          className="block w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all [color-scheme:dark]"
+                        />
+                        {errors.expectedBloomDate && <p className="mt-1.5 text-xs text-rose-400">{errors.expectedBloomDate.message}</p>}
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">
+                          Notes (optional)
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Early variety"
+                          {...register("notes")}
+                          className="block w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all"
+                        />
+                      </div>
+                    </div>
+
                     <button
-                      key={value}
-                      type="button"
-                      onClick={() => setValue("cropType", value)}
-                      className={`flex flex-col items-center justify-center gap-1 rounded-xl border py-2.5 text-xs font-medium transition-all ${
-                        selectedCropType === value
-                          ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-400"
-                          : "border-slate-700 bg-slate-800/50 text-slate-500 hover:border-slate-600 hover:bg-slate-800 hover:text-slate-400"
-                      }`}
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500 disabled:opacity-50 transition-colors"
                     >
-                      <span className="text-xl">{emoji}</span>
-                      {label}
+                      {isSubmitting ? (
+                        <span className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      ) : (
+                        <PlusCircle className="h-4 w-4" />
+                      )}
+                      {isSubmitting ? "Adding…" : "Add Crop"}
                     </button>
-                  ))}
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">
-                      Expected Bloom Date
-                    </label>
-                    <input
-                      type="date"
-                      min={todayIso}
-                      {...register("expectedBloomDate")}
-                      className="block w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all [color-scheme:dark]"
-                    />
-                    {errors.expectedBloomDate && <p className="mt-1.5 text-xs text-rose-400">{errors.expectedBloomDate.message}</p>}
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">
-                      Notes (optional)
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Early variety"
-                      {...register("notes")}
-                      className="block w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all"
-                    />
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500 disabled:opacity-50 transition-colors"
-                >
-                  {isSubmitting ? (
-                    <span className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  ) : (
-                    <PlusCircle className="h-4 w-4" />
-                  )}
-                  {isSubmitting ? "Adding…" : "Add Crop"}
-                </button>
-              </form>
+                  </form>
+                </>
+              )}
             </div>
           </Dialog.Content>
         </Dialog.Portal>

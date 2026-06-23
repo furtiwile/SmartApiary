@@ -49,6 +49,11 @@ namespace SmartApiary.Application.Features.Crops.Commands
             if (parcel.FarmerId.Value != currentUser.UserId)
                 return Result<string>.Failure("Unauthorized - you do not own this parcel.", ErrorType.Unauthorized);
 
+            // Check if there is already a crop registered for this parcel
+            var existingCrops = await cropRepository.GetByParcelIdAsync(parcelIdResult.Value, ct);
+            if (existingCrops.Any())
+                return Result<string>.Failure("A crop is already sown on this parcel. You can only sow one crop at a time.", ErrorType.Validation);
+
             var cropResult = Crop.Create(
                 request.Type,
                 request.ExpectedFloweringTime,
