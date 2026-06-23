@@ -1,0 +1,36 @@
+flowchart TD
+    %% Styling Classes
+    classDef client fill:#f5f5f7,stroke:#1d1d1f,stroke-width:1px;
+    classDef api fill:#e1f5fe,stroke:#0288d1,stroke-width:1px;
+    classDef storage fill:#fffde7,stroke:#fbc02d,stroke-width:1px;
+    classDef external fill:#ffebee,stroke:#c62828,stroke-width:1px,stroke-dasharray: 4 4;
+
+    Admin([Admin]):::client
+    Create["POST /api/auth/admin-create"]:::api
+    SqlUser["SQL Server: dbo.Users<br>(Insert inactive user record)"]:::storage
+    TableToken["Azure Table: ActivationTokens<br>(Insert PK='ActivationTokens', RK=HashedToken)"]:::storage
+    SendGrid["SendGrid Email Service<br>(Send invite link + raw token)"]:::external
+    User([User]):::client
+    Activate["POST /api/auth/activate<br>(Raw Token + Password)"]:::api
+    GetToken["Azure Table: ActivationTokens<br>(Retrieve RK = SHA256 of Raw Token)"]:::storage
+    Validate{"Is Token Valid &<br>Not Expired?"}
+    Error["Return Error Response"]:::api
+    UpdateSql["SQL Server: dbo.Users<br>(Update IsActive = 1, PasswordHash)"]:::storage
+    MarkUsed["Azure Table: ActivationTokens<br>(Update UsedAtUtc = Now)"]:::storage
+    Success["Return 200 OK Success"]:::api
+
+    %% Phase 1: Creation
+    Admin --> Create
+    Create --> SqlUser
+    Create --> TableToken
+    TableToken --> SendGrid
+    SendGrid --> User
+
+    %% Phase 2: Activation
+    User --> Activate
+    Activate --> GetToken
+    GetToken --> Validate
+    Validate -- No --> Error
+    Validate -- Yes --> UpdateSql
+    UpdateSql --> MarkUsed
+    MarkUsed --> Success

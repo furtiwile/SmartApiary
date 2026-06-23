@@ -1,0 +1,64 @@
+flowchart TD
+    %% Styling Classes
+    classDef domain fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1px;
+    classDef api fill:#e1f5fe,stroke:#0288d1,stroke-width:1px;
+    classDef storage fill:#fffde7,stroke:#fbc02d,stroke-width:1px;
+    classDef queue fill:#eceff1,stroke:#455a64,stroke-width:1px;
+    classDef hub fill:#fff3e0,stroke:#f57c00,stroke-width:1px;
+    classDef client fill:#f1f8e9,stroke:#558b2f,stroke-width:1px;
+    classDef external fill:#ffebee,stroke:#c62828,stroke-width:1px,stroke-dasharray: 4 4;
+
+    Event([AnomalyDetectedDomainEvent /<br>BatteryLowDomainEvent Raised]):::domain
+    MediatR["MediatR Pipeline Bus"]:::api
+    
+    %% Event Handlers
+    HandlerSigR["AlertSignalRBroadcastEventHandler"]:::api
+    HandlerLog["LogAlertEventHandler"]:::api
+    
+    SigRHub["SignalR: DeviceHub"]:::hub
+    GroupBeekeeper["Group: beekeeper:{BeekeeperId}"]:::hub
+    ReceiveAlert["ReceiveAlert websocket notification"]:::hub
+    DashboardAlert["UI overlay/popup popup in Dashboard"]:::client
+    
+    AlertQueue[("Azure Queue: alert-queue")]:::queue
+    FuncAlert["ProcessAlerts QueueTrigger<br>(Azure Function)"]:::api
+    CommandAlert["Dispatch ProcessAlertCommand"]:::api
+    
+    SqlUser["SQL Server: dbo.Users<br>(Retrieve Beekeeper email)"]:::storage
+    TableNotif["Azure Table: Notifications<br>(Insert PK=UserId, RK=NotificationId)"]:::storage
+    SendGrid["SendGrid Email Service"]:::external
+    BeekeeperInbox(["Beekeeper's Email Inbox"]):::external
+    
+    RaiseNotifEvent["Raise NotificationCreatedDomainEvent"]:::domain
+    HandlerNotifSigR["NotificationSignalRBroadcastEventHandler"]:::api
+    PrivateChannel["Group: private:{UserId}"]:::hub
+    ReceiveNotif["ReceiveNotification websocket event"]:::hub
+    DashboardDrawer["Update red dot counter & drawer in Dashboard"]:::client
+
+    %% Phase 1 Connections
+    Event --> MediatR
+    MediatR --> HandlerSigR
+    MediatR --> HandlerLog
+    
+    HandlerSigR --> SigRHub
+    SigRHub --> GroupBeekeeper
+    GroupBeekeeper --> ReceiveAlert
+    ReceiveAlert --> DashboardAlert
+    
+    HandlerLog --> AlertQueue
+
+    %% Phase 2 Connections
+    AlertQueue --> FuncAlert
+    FuncAlert --> CommandAlert
+    CommandAlert --> SqlUser
+    CommandAlert --> TableNotif
+    CommandAlert --> RaiseNotifEvent
+    CommandAlert --> SendGrid
+    SendGrid --> BeekeeperInbox
+
+    %% Phase 3 Connections
+    RaiseNotifEvent --> HandlerNotifSigR
+    HandlerNotifSigR --> SigRHub
+    SigRHub --> PrivateChannel
+    PrivateChannel --> ReceiveNotif
+    ReceiveNotif --> DashboardDrawer

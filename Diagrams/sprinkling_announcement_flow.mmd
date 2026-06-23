@@ -1,0 +1,57 @@
+flowchart TD
+    %% Styling Classes
+    classDef client fill:#f1f8e9,stroke:#558b2f,stroke-width:1px;
+    classDef api fill:#e1f5fe,stroke:#0288d1,stroke-width:1px;
+    classDef storage fill:#fffde7,stroke:#fbc02d,stroke-width:1px;
+    classDef queue fill:#eceff1,stroke:#455a64,stroke-width:1px;
+    classDef external fill:#ffebee,stroke:#c62828,stroke-width:1px,stroke-dasharray: 4 4;
+    classDef domain fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1px;
+    classDef hub fill:#fff3e0,stroke:#f57c00,stroke-width:1px;
+
+    Farmer([Farmer]):::client
+    PostAnnouncement["POST /api/sprinklingannouncements<br>(ParcelId, Crop, StartTime, PrepType)"]:::api
+    SaveAnnouncement["Azure Table: SprinklingAnnouncements<br>(Insert PK=ParcelId, RK=AnnouncementId)"]:::storage
+    PushQueue["Enqueue announcement details"]:::queue
+    AnnouncementQueue[("Azure Queue: announcement-queue")]:::queue
+    Response["Return 202 Accepted Response"]:::api
+    
+    Monitor["SprinklingAnnouncementMonitor QueueTrigger<br>(Azure Function)"]:::api
+    Command["Dispatch ProcessSprinklingAnnouncementCommand"]:::api
+    
+    QuerySpatial["SQL Server: dbo.Apiaries<br>(Select apiaries within 5km radius via STDistance)"]:::storage
+    QueryBeekeeper["SQL Server: dbo.Users<br>(Retrieve email addresses of owners)"]:::storage
+    
+    SendGrid["SendGrid Email Service"]:::external
+    BeekeeperEmail(["Beekeeper's Email Inbox"]):::external
+    
+    RaiseEvent["Raise PesticideWarningDomainEvent"]:::domain
+    MediatR["MediatR Pipeline Bus"]:::api
+    HandlerSigR["AlertSignalRBroadcastEventHandler"]:::api
+    SigRHub["SignalR: DeviceHub"]:::hub
+    GroupBeekeeper["Group: beekeeper:{BeekeeperId}"]:::hub
+    ReceiveAlert["ReceiveAlert websocket notification"]:::hub
+    BeekeeperDashboard(["Beekeeper's React Dashboard"]):::client
+
+    %% Ingestion Flow
+    Farmer --> PostAnnouncement
+    PostAnnouncement --> SaveAnnouncement
+    SaveAnnouncement --> PushQueue
+    PushQueue --> AnnouncementQueue
+    PushQueue --> Response
+
+    %% Async Processing Flow
+    AnnouncementQueue --> Monitor
+    Monitor --> Command
+    Command --> QuerySpatial
+    QuerySpatial --> QueryBeekeeper
+    QueryBeekeeper --> SendGrid
+    SendGrid --> BeekeeperEmail
+    
+    %% SignalR Alert Flow
+    Command --> RaiseEvent
+    RaiseEvent --> MediatR
+    MediatR --> HandlerSigR
+    HandlerSigR --> SigRHub
+    SigRHub --> GroupBeekeeper
+    GroupBeekeeper --> ReceiveAlert
+    ReceiveAlert --> BeekeeperDashboard

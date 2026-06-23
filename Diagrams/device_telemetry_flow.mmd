@@ -1,0 +1,53 @@
+flowchart TD
+    %% Styling Classes
+    classDef device fill:#f5f5f7,stroke:#1d1d1f,stroke-width:1px;
+    classDef api fill:#e1f5fe,stroke:#0288d1,stroke-width:1px;
+    classDef storage fill:#fffde7,stroke:#fbc02d,stroke-width:1px;
+    classDef queue fill:#eceff1,stroke:#455a64,stroke-width:1px;
+    classDef hub fill:#fff3e0,stroke:#f57c00,stroke-width:1px;
+    classDef client fill:#f1f8e9,stroke:#558b2f,stroke-width:1px;
+
+    Dev([IoT SmartScale / Simulator]):::device
+    PostTelemetry["IngestTelemetry Function:<br>POST /api/telemetry<br>(with X-Device-Token header)"]:::api
+    GetScale["Azure Table: SmartScales<br>(Validate token & retrieve ScaleId)"]:::storage
+    SaveTelemetry["Azure Table: Telemetries<br>(Insert PK=SmartScaleId, RK=TelemetryId)"]:::storage
+    UpdateScale["Azure Table: SmartScales<br>(Set latest measurements & timestamp)"]:::storage
+    PushQueue["Enqueue telemetry metrics"]:::queue
+    TelemetryQueue[("Azure Queue: telemetry-queue")]:::queue
+    Response["Return 200 OK Response"]:::api
+    
+    Worker["TelemetryBroadcastWorker<br>(Continuous Hosted Service Poller)"]:::api
+    GetHive["Azure Table: Hives<br>(Get parent ApiaryId for the Hive)"]:::storage
+    GetApiary["SQL DB: dbo.Apiaries & dbo.Users<br>(Get BeekeeperId)"]:::storage
+    
+    SigR["SignalR DeviceHub Broadcast"]:::hub
+    GroupHive["Group: hive:{HiveId}"]:::hub
+    GroupApiary["Group: apiary:{ApiaryId}"]:::hub
+    GroupBeekeeper["Group: beekeeper:{BeekeeperId}"]:::hub
+    
+    Dashboard["React Dashboard UI Graph"]:::client
+    Command["Dispatch ProcessTelemetryCommand<br>(Initiates Anomaly Check)"]:::api
+    CompleteQueue["Complete & Delete Message"]:::queue
+
+    %% Flow connections
+    Dev --> PostTelemetry
+    PostTelemetry --> GetScale
+    GetScale --> SaveTelemetry
+    SaveTelemetry --> UpdateScale
+    UpdateScale --> PushQueue
+    PushQueue --> TelemetryQueue
+    PushQueue --> Response
+
+    TelemetryQueue --> Worker
+    Worker --> GetHive
+    GetHive --> GetApiary
+    GetApiary --> SigR
+    
+    SigR --> GroupHive
+    SigR --> GroupApiary
+    SigR --> GroupBeekeeper
+    
+    GroupHive & GroupApiary & GroupBeekeeper --> Dashboard
+    
+    Worker --> Command
+    Command --> CompleteQueue
