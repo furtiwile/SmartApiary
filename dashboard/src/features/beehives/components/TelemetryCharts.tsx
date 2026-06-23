@@ -17,22 +17,45 @@ interface NectarChartProps {
 }
 
 function buildNectarDeltas(readings: TelemetryReading[]) {
-  // Group by date, pick first reading of day (≈08:00) and last (≈20:00)
+  // Group by local date to ensure we align with local day boundaries
   const byDate: Record<string, TelemetryReading[]> = {};
   readings.forEach((r) => {
-    const date = r.timestamp.slice(0, 10);
-    if (!byDate[date]) byDate[date] = [];
-    byDate[date].push(r);
+    const localDate = new Date(r.timestamp);
+    const dateStr = `${localDate.getFullYear()}-${String(localDate.getMonth() + 1).padStart(2, "0")}-${String(localDate.getDate()).padStart(2, "0")}`;
+    if (!byDate[dateStr]) byDate[dateStr] = [];
+    byDate[dateStr].push(r);
   });
 
   return Object.entries(byDate)
     .map(([date, entries]) => {
-      const sorted = entries.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
-      const morning = sorted[0];
-      const evening = sorted[sorted.length - 1];
+      // Find the reading closest to 08:00 (480 minutes) and 20:00 (1200 minutes) local time
+      let morning = entries[0];
+      let morningMinDiff = Infinity;
+
+      let evening = entries[0];
+      let eveningMinDiff = Infinity;
+
+      entries.forEach((entry) => {
+        const d = new Date(entry.timestamp);
+        const timeInMinutes = d.getHours() * 60 + d.getMinutes();
+
+        const morningDiff = Math.abs(timeInMinutes - 480);
+        if (morningDiff < morningMinDiff) {
+          morningMinDiff = morningDiff;
+          morning = entry;
+        }
+
+        const eveningDiff = Math.abs(timeInMinutes - 1200);
+        if (eveningDiff < eveningMinDiff) {
+          eveningMinDiff = eveningDiff;
+          evening = entry;
+        }
+      });
+
       const delta = parseFloat((evening.weightKg - morning.weightKg).toFixed(2));
       return { date, delta };
     })
+    .sort((a, b) => a.date.localeCompare(b.date))
     .slice(-14); // last 14 days
 }
 
