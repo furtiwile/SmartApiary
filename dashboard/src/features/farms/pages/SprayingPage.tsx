@@ -48,7 +48,7 @@ const STATUS_CONFIG: Record<SprinklingStatus, { label: string; icon: typeof Cloc
 };
 
 const schema = z.object({
-  pesticideType: z.string().min(1, "Please specify the pesticide."),
+  pesticideType: z.string().optional(),
   durationHours: z.coerce
     .number({ message: "Invalid duration" })
     .min(0.5, "Minimum duration is 0.5 hours."),
@@ -90,7 +90,7 @@ export const SprayingPage: React.FC = () => {
   } = useForm<SchemaType>({
     resolver: zodResolver(schema) as unknown as Resolver<SchemaType>,
     defaultValues: {
-      pesticideType: "Herbicide",
+      pesticideType: "",
       durationHours: 1,
       scheduledAt: "",
       notes: "",
@@ -113,7 +113,7 @@ export const SprayingPage: React.FC = () => {
 
   function handleCancelEdit() {
     setEditingAnnouncement(null);
-    reset({ pesticideType: "Herbicide", durationHours: 1, scheduledAt: "", notes: "", bypassWeatherValidation: false });
+    reset({ pesticideType: "", durationHours: 1, scheduledAt: "", notes: "", bypassWeatherValidation: false });
     setWeatherWarning(null);
   }
 
@@ -154,14 +154,14 @@ export const SprayingPage: React.FC = () => {
           announcementId: editingAnnouncement.id,
           startTime: new Date(data.scheduledAt).toISOString(),
           expectedDurationHours: data.durationHours,
-          preparationType: data.pesticideType,
+          preparationType: data.pesticideType || "",
           bypassWeatherValidation: data.bypassWeatherValidation,
         });
 
         if (ok) {
           success("Spraying rescheduled", "The announcement has been successfully updated.");
           setEditingAnnouncement(null);
-          reset({ pesticideType: "Herbicide", durationHours: 1, scheduledAt: "", notes: "", bypassWeatherValidation: false });
+          reset({ pesticideType: "", durationHours: 1, scheduledAt: "", notes: "", bypassWeatherValidation: false });
           setWeatherWarning(null);
           queryClient.invalidateQueries({ queryKey: ["announcements", selectedParcel.id] });
         } else {
@@ -170,7 +170,7 @@ export const SprayingPage: React.FC = () => {
       } else {
         const result = await SprayingApi.create({
           parcelId: selectedParcel.id,
-          preparationType: data.pesticideType,
+          preparationType: data.pesticideType || "",
           startTime: new Date(data.scheduledAt).toISOString(),
           expectedDurationHours: data.durationHours,
         });
@@ -190,7 +190,7 @@ export const SprayingPage: React.FC = () => {
               { duration: 8000 }
             );
           }
-          reset({ pesticideType: "Herbicide", durationHours: 1, scheduledAt: "", notes: "", bypassWeatherValidation: false });
+          reset({ pesticideType: "", durationHours: 1, scheduledAt: "", notes: "", bypassWeatherValidation: false });
           setWeatherWarning(null);
           queryClient.invalidateQueries({ queryKey: ["announcements", selectedParcel.id] });
         } else {
@@ -422,19 +422,14 @@ export const SprayingPage: React.FC = () => {
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">
-                            Pesticide Type
+                            Pesticide (optional)
                           </label>
-                          <select
+                          <input
+                            type="text"
+                            placeholder="e.g. Herbicide, Glyphosate"
                             {...register("pesticideType")}
-                            className="block w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500/50 transition-all"
-                          >
-                            <option value="Herbicide">Herbicide</option>
-                            <option value="Fungicide">Fungicide</option>
-                            <option value="Insecticide">Insecticide</option>
-                            <option value="Rodenticide">Rodenticide</option>
-                            <option value="Nematicide">Nematicide</option>
-                            <option value="Other">Other</option>
-                          </select>
+                            className="block w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500/50 transition-all"
+                          />
                         </div>
                         <div>
                           <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">
