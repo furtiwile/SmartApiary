@@ -85,3 +85,8 @@ To run the backend projects locally without configuration errors (such as `Azure
     DATABASE_PID=Developer
     ```
 
+## License
+
+Copyright (C) 2026 Nikola Kovac
+
+This project is licensed under the GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later). See the LICENSE file for details.
